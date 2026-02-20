@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kisan Sahayak - Profile &amp; Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec6d",
+                        "primary-dark": "#0eb552", 
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#102218",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Toggle Switch for iOS feel */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #13ec6d;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #13ec6d;
+        }
+        
+        /* Hide scrollbar for clean look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-100 h-screen flex flex-col overflow-hidden antialiased">
+<!-- Top Navigation -->
+<header class="flex-none px-6 pt-12 pb-4 flex items-center justify-between bg-white dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-50">
+<button class="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-gray-800 dark:text-white">
+<span class="material-icons-outlined text-2xl">chevron_left</span>
+</button>
+<h1 class="text-lg font-semibold tracking-tight">Profile &amp; Settings</h1>
+<button class="p-2 -mr-2 text-primary font-medium text-sm">Save</button>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto no-scrollbar px-5 pb-24">
+<!-- Profile Card -->
+<section class="mt-4 mb-8">
+<div class="bg-white dark:bg-white/5 rounded-2xl p-6 shadow-soft flex items-center gap-5 border border-gray-100 dark:border-white/5">
+<div class="relative">
+<img alt="Profile photo of a smiling man" class="w-20 h-20 rounded-full object-cover ring-4 ring-background-light dark:ring-background-dark" data-alt="Portrait of an Indian farmer smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAV30o_jGYgPGZ1dja5QIZVRGd-DySKW5BdoaQMBrg8FMLfZmSdEMaBo_8oqFXODQfyovEpfDZMKF5VOL6_INMSmMW_EMBiQp7R_rOJpvS8gfo5wOlYGNerF5sMRHtqTQALxNtSSduITDWdKiupOw44l3qFBlCsWBoSGGGmAAL_adQHVPCGJHYUN3W3I_LGoDXPrHGlHwtC3dixbuWvYuHUnGixQs1O8rkEg-fIr2GIH_pd7Ewcvz5jeM8OQyMhHGbeix0Bu4K-xSL3"/>
+<button class="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full shadow-lg hover:bg-primary-dark transition-colors flex items-center justify-center">
+<span class="material-icons-outlined text-sm">edit</span>
+</button>
+</div>
+<div class="flex-1 min-w-0">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white truncate">Rajesh Kumar</h2>
+<div class="flex items-center text-gray-500 dark:text-gray-400 mt-1">
+<span class="material-icons-outlined text-base mr-1">location_on</span>
+<span class="text-sm truncate" data-location="Nashik, Maharashtra">Nashik, Maharashtra</span>
+</div>
+<div class="mt-3 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-green-700 dark:text-green-300 border border-primary/20">
+                        Premium Member
+                    </div>
+</div>
+</div>
+</section>
+<!-- Settings Group: Preferences -->
+<section class="mb-6">
+<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">Preferences</h3>
+<div class="bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/5">
+<!-- Item: Language -->
+<button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group border-b border-gray-100 dark:border-white/5 last:border-0">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+<span class="material-icons-outlined">translate</span>
+</div>
+<div class="text-left">
+<p class="text-base font-medium text-gray-900 dark:text-white">Language</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">English (India)</p>
+</div>
+</div>
+<span class="material-icons-outlined text-gray-400">chevron_right</span>
+</button>
+<!-- Item: Farm Preferences -->
+<button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+<span class="material-icons-outlined">agriculture</span>
+</div>
+<div class="text-left">
+<p class="text-base font-medium text-gray-900 dark:text-white">Farm Details</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Crops, Soil Type, Size</p>
+</div>
+</div>
+<span class="material-icons-outlined text-gray-400">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Settings Group: Notifications -->
+<section class="mb-6">
+<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">Alerts &amp; Notifications</h3>
+<div class="bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/5">
+<!-- Item: Weather Alerts -->
+<div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-white/5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center text-sky-600 dark:text-sky-400">
+<span class="material-icons-outlined">cloud</span>
+</div>
+<div class="text-left">
+<p class="text-base font-medium text-gray-900 dark:text-white">Weather Alerts</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Rain &amp; Storm warnings</p>
+</div>
+</div>
+<!-- iOS Toggle Switch -->
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300 dark:border-gray-600 checked:right-0 checked:border-primary transition-all duration-300" id="weather-toggle" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer transition-colors duration-300" for="weather-toggle"></label>
+</div>
+</div>
+<!-- Item: Market Prices -->
+<div class="flex items-center justify-between p-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+<span class="material-icons-outlined">currency_rupee</span>
+</div>
+<div class="text-left">
+<p class="text-base font-medium text-gray-900 dark:text-white">Mandi Prices</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Daily APMC updates</p>
+</div>
+</div>
+<!-- iOS Toggle Switch -->
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300 dark:border-gray-600 checked:right-0 checked:border-primary transition-all duration-300" id="market-toggle" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer transition-colors duration-300" for="market-toggle"></label>
+</div>
+</div>
+</div>
+</section>
+<!-- Settings Group: Trust & AI -->
+<section class="mb-8">
+<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">Trust &amp; AI</h3>
+<div class="bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/5">
+<!-- Item: AI Transparency -->
+<button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group border-b border-gray-100 dark:border-white/5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
+<span class="material-icons-outlined">psychology</span>
+</div>
+<div class="text-left">
+<p class="text-base font-medium text-gray-900 dark:text-white">AI Transparency</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">How we use your farm data</p>
+</div>
+</div>
+<span class="material-icons-outlined text-gray-400">chevron_right</span>
+</button>
+<!-- Item: Support -->
+<button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
+<span class="material-icons-outlined">headset_mic</span>
+</div>
+<div class="text-left">
+<p class="text-base font-medium text-gray-900 dark:text-white">Help &amp; Support</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Contact our agronomists</p>
+</div>
+</div>
+<span class="material-icons-outlined text-gray-400">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Logout -->
+<button class="w-full bg-white dark:bg-white/5 text-red-500 dark:text-red-400 font-medium p-4 rounded-xl mb-8 border border-red-100 dark:border-red-900/30 shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center justify-center gap-2">
+<span class="material-icons-outlined text-xl">logout</span>
+            Sign Out
+        </button>
+<p class="text-center text-xs text-gray-400 mb-6">Kisan Sahayak v2.4.1</p>
+</main>
+<!-- Bottom Tab Bar -->
+<nav class="fixed bottom-0 w-full bg-white dark:bg-background-dark border-t border-gray-100 dark:border-white/5 px-6 pb-6 pt-3 flex justify-between items-end z-50">
+<a class="flex flex-col items-center gap-1 text-gray-400 hover:text-primary transition-colors" href="#">
+<span class="material-icons-outlined text-2xl">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-400 hover:text-primary transition-colors" href="#">
+<span class="material-icons-outlined text-2xl">spa</span>
+<span class="text-[10px] font-medium">Crops</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-400 hover:text-primary transition-colors" href="#">
+<div class="bg-primary/20 p-2 rounded-xl mb-1 dark:bg-primary/10">
+<span class="material-icons-outlined text-2xl text-primary">add_a_photo</span>
+</div>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-400 hover:text-primary transition-colors" href="#">
+<span class="material-icons-outlined text-2xl">forum</span>
+<span class="text-[10px] font-medium">Community</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-icons-outlined text-2xl">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+</body></html>

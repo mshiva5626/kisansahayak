@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kisan Sahayak - AI Copilot</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+            extend: {
+                colors: {
+                    "primary": "#13ec6d",
+                    "background-light": "#f6f8f7",
+                    "background-dark": "#102218",
+                    // Derived neutrals for harmony
+                    "neutral-surface-light": "#e8ebe9", 
+                    "neutral-surface-dark": "#1a2f24",
+                    "neutral-text-light": "#1f2923",
+                    "neutral-text-dark": "#e0e7e3",
+                    "neutral-muted-light": "#6b7a72",
+                    "neutral-muted-dark": "#8a9e94",
+                },
+                fontFamily: {
+                    "display": ["Inter", "sans-serif"]
+                },
+                borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                boxShadow: {
+                    "soft": "0 4px 20px -2px rgba(19, 236, 109, 0.1)",
+                    "card": "0 2px 8px -1px rgba(0, 0, 0, 0.05)",
+                }
+            },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hiding for horizontal lists */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Message bubble tails */
+        .bubble-tail-left::before {
+            content: "";
+            position: absolute;
+            left: -8px;
+            bottom: 0;
+            width: 20px;
+            height: 20px;
+            background: inherit;
+            border-bottom-right-radius: 16px;
+            z-index: -1;
+            clip-path: polygon(0 100%, 100% 100%, 100% 0);
+        }
+        
+        .bubble-tail-right::before {
+            content: "";
+            position: absolute;
+            right: -8px;
+            bottom: 0;
+            width: 20px;
+            height: 20px;
+            background: inherit;
+            border-bottom-left-radius: 16px;
+            z-index: -1;
+            clip-path: polygon(0 100%, 100% 100%, 0 0);
+        }
+        
+        /* Smooth fade in */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-in {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-neutral-text-light dark:text-neutral-text-dark font-display antialiased h-screen flex flex-col overflow-hidden selection:bg-primary/30">
+<!-- Header -->
+<header class="bg-white/80 dark:bg-neutral-surface-dark/80 backdrop-blur-md border-b border-neutral-surface-light dark:border-white/5 sticky top-0 z-20 px-4 pt-12 pb-3 shadow-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<button class="p-2 -ml-2 rounded-full hover:bg-neutral-surface-light dark:hover:bg-white/5 transition-colors text-neutral-muted-light dark:text-neutral-muted-dark">
+<span class="material-icons-round">arrow_back_ios_new</span>
+</button>
+<div class="relative">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/20">
+<img alt="Abstract green leaf pattern representing nature" class="w-full h-full object-cover" data-alt="Abstract green leaf pattern representing nature" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmAIIMhNDpEFdtNx9um7OwpUMdpzXXmhq_YOjfZqC_CwdFLr1niLem_5J9hVC6xgwW-jmLHI5Tn7uZQdSTFwCzg05bgVC4VbB4PiX47lHCT8MjmRGbEei6aKRp37RrfTsc_xDxRwrkCTIZ6MdPb_gAy8C5UYFmmNiJ3aq8aeeDBwO7xUAObRVuKUSwHiDOm8yuWR18pSekkRaYwkuntddg8JQZUsgnMpIVmdHV2txy152fQc1upiW0FfHqEoaH5vbrbyQ2QfrN3jtk"/>
+</div>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-primary border-2 border-white dark:border-neutral-surface-dark rounded-full"></div>
+</div>
+<div>
+<h1 class="font-semibold text-lg leading-tight">Kisan Assistant</h1>
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<p class="text-xs text-primary font-medium">Online</p>
+</div>
+</div>
+</div>
+<button class="p-2 rounded-full hover:bg-neutral-surface-light dark:hover:bg-white/5 transition-colors text-neutral-muted-light dark:text-neutral-muted-dark">
+<span class="material-icons-outlined">history</span>
+</button>
+</div>
+</header>
+<!-- Chat Area -->
+<main class="flex-1 overflow-y-auto p-4 pb-32 space-y-6" id="chat-stream">
+<!-- Date Divider -->
+<div class="flex justify-center my-4">
+<span class="bg-neutral-surface-light dark:bg-white/10 px-3 py-1 rounded-full text-xs font-medium text-neutral-muted-light dark:text-neutral-muted-dark">
+                Today, 10:23 AM
+            </span>
+</div>
+<!-- AI Message (Welcome) -->
+<div class="flex gap-3 animate-fade-in items-end">
+<div class="w-8 h-8 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden self-end mb-1">
+<img alt="Abstract green leaf pattern representing nature" class="w-full h-full object-cover" data-alt="Abstract green leaf pattern representing nature" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZJw5ZL5zDqkPza4aCrKPc4jCS2YW-tV8IK18XnKO3xixsGpbYrmHC1ikqtj2HmoACDkbf5Hi6hnC6jVIyx_H2XFaq9rjI8VOFh5AmA84RS4I_rOK9dT2qr3MOVSWlYJOTOjnmwkBiE3eDFqngc9jnLKzNc0alkqhawqiq4mQDDY1M6u_4xQMSkQLfsSosGrezOvoiwo_8-6TkIF7DvDcxV2ktN9Ojp3QLJWVuLX09_02Vpg69MCkdUzU1steau5ecOLLkYH9bAv6h"/>
+</div>
+<div class="flex flex-col gap-1 max-w-[85%]">
+<div class="bg-white dark:bg-neutral-surface-dark p-4 rounded-2xl rounded-bl-none shadow-card dark:shadow-none border border-neutral-surface-light dark:border-white/5 text-[15px] leading-relaxed relative bubble-tail-left">
+<p>Namaste! I'm here to help you get the best from your harvest. How is your crop looking today?</p>
+</div>
+<span class="text-[11px] text-neutral-muted-light dark:text-neutral-muted-dark ml-1">10:23 AM</span>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex gap-3 animate-fade-in delay-100 flex-row-reverse items-end">
+<!-- User Avatar (Optional, often hidden in chat apps for self, but keeps symmetry) -->
+<div class="w-8 h-8 flex-shrink-0 rounded-full bg-neutral-surface-light dark:bg-white/10 flex items-center justify-center overflow-hidden self-end mb-1">
+<img alt="Portrait of a smiling man" class="w-full h-full object-cover" data-alt="Portrait of a smiling man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMFSBwzPMcoWH_eeYQ13kDizjGCXw-JphQaCxeIVkzXKbfhcZVOUjfSQcFGetGD8A1krjsYW4B7Vf_y4MCMjIFiphSIAp5IdnFbi3gRkSjkLXpc42Irc1lvOceXO7ToMD_Xz8i_GW11e-pKI4s-_01klL0P0qVkJBDNAXtcAez8NBe2_THuj2Uplp4oEpecTnozCoX53HTAIp8pfTrsmByhIPV5mJqAz1Me93JsRfFvYFyiBCrj1TjHzomHGWonG9ZteWovxNIV7Xt"/>
+</div>
+<div class="flex flex-col gap-1 items-end max-w-[85%]">
+<div class="bg-primary text-neutral-text-dark dark:text-neutral-text-dark font-medium p-4 rounded-2xl rounded-br-none shadow-soft text-[15px] leading-relaxed relative bubble-tail-right">
+<p>My tomato leaves are turning yellow near the bottom.</p>
+</div>
+<span class="text-[11px] text-neutral-muted-light dark:text-neutral-muted-dark mr-1">10:25 AM</span>
+</div>
+</div>
+<!-- AI Typing Indicator -->
+<div class="flex gap-3 animate-fade-in delay-200 hidden">
+<div class="w-8 h-8 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden self-end mb-1">
+<img alt="Abstract green leaf pattern representing nature" class="w-full h-full object-cover" data-alt="Abstract green leaf pattern representing nature" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMCf20Ot-jEFSijSJQMCOKGqXRkS8ihaGZaAY9SjdgC_oWv0vZ5_huhrLx1-LFG8BAn2SefqVBXWWDpSu9Yz9TLc5TVPtpyWOm2SGr3LL1D5JIWzaeEGZ9SMpi_bwTv6Y4o5w09fZdHy_9lxWZniCrho43ZU-wYSbigC7Nrd_fb7AkJPE-LLYQD7eZBo6XONXwdgsQUlczCFiuyNhX8uHdbKC-7ppqAlvD5pwNmM8rR7gnKw8ip3gxVpq-g-J0S_UNqqrNelLgR5BQ"/>
+</div>
+<div class="bg-white dark:bg-neutral-surface-dark px-4 py-3 rounded-2xl rounded-bl-none shadow-card dark:shadow-none border border-neutral-surface-light dark:border-white/5 self-end bubble-tail-left">
+<div class="flex gap-1">
+<span class="w-2 h-2 bg-neutral-muted-light/40 rounded-full animate-bounce"></span>
+<span class="w-2 h-2 bg-neutral-muted-light/40 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
+<span class="w-2 h-2 bg-neutral-muted-light/40 rounded-full animate-bounce" style="animation-delay: 0.4s"></span>
+</div>
+</div>
+</div>
+<!-- AI Response with Image Request -->
+<div class="flex gap-3 animate-fade-in delay-200 items-end">
+<div class="w-8 h-8 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden self-end mb-1">
+<img alt="Abstract green leaf pattern representing nature" class="w-full h-full object-cover" data-alt="Abstract green leaf pattern representing nature" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfgNBXHmquuoXqkio6qyBysSB_obqsvRwmwkDZjR8wYU5-zAZVMIMAm1P_7koHSZ_oYduGl9DyWOatHkU2jaeoymGHg1YbA0bQUqu8th-B5bn5EPHEAjCtpKOfjMZvgAheciRJi4LVTSlNcfjiDjgTYS-3zC5NoMVroz2ELThSZ6Ai8qU8pBU-tO9HWqy3_1p1gvqyztomP8yZj8FcM9dH7rE1a5U1TdITL4ar_b6BN7wKi339qKCcZbA7F2e8LQjf5OFVh0xcsbnT"/>
+</div>
+<div class="flex flex-col gap-1 max-w-[85%]">
+<div class="bg-white dark:bg-neutral-surface-dark p-4 rounded-2xl rounded-bl-none shadow-card dark:shadow-none border border-neutral-surface-light dark:border-white/5 text-[15px] leading-relaxed relative bubble-tail-left">
+<p>Yellowing leaves often indicate a nitrogen deficiency or early blight. It's common this time of year.</p>
+<div class="mt-3 p-3 bg-background-light dark:bg-black/20 rounded-xl flex items-center gap-3 border border-neutral-surface-light dark:border-white/5 cursor-pointer hover:bg-neutral-surface-light dark:hover:bg-white/10 transition-colors group">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-icons-outlined text-xl">add_a_photo</span>
+</div>
+<div class="flex-1">
+<p class="font-medium text-sm">Upload a photo</p>
+<p class="text-xs text-neutral-muted-light dark:text-neutral-muted-dark">For accurate diagnosis</p>
+</div>
+<span class="material-icons-round text-neutral-muted-light dark:text-neutral-muted-dark">chevron_right</span>
+</div>
+</div>
+<span class="text-[11px] text-neutral-muted-light dark:text-neutral-muted-dark ml-1">10:25 AM</span>
+</div>
+</div>
+</main>
+<!-- Bottom Input Section -->
+<div class="fixed bottom-0 left-0 w-full bg-white dark:bg-background-dark border-t border-neutral-surface-light dark:border-white/5 pb-6 pt-2 z-30">
+<!-- Suggestion Chips -->
+<div class="overflow-x-auto no-scrollbar py-2 px-4 mb-1">
+<div class="flex gap-2 w-max">
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 active:bg-primary text-primary active:text-white dark:text-primary rounded-lg border border-primary/20 transition-all text-xs font-medium whitespace-nowrap group">
+<span class="material-icons-outlined text-sm group-active:text-white">bug_report</span>
+                    Identify Pest
+                </button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-surface-light dark:bg-white/5 hover:bg-neutral-surface-light/80 dark:hover:bg-white/10 text-neutral-muted-light dark:text-neutral-muted-dark rounded-lg border border-transparent transition-all text-xs font-medium whitespace-nowrap">
+<span class="material-icons-outlined text-sm">science</span>
+                    Fertilizer Calc
+                </button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-surface-light dark:bg-white/5 hover:bg-neutral-surface-light/80 dark:hover:bg-white/10 text-neutral-muted-light dark:text-neutral-muted-dark rounded-lg border border-transparent transition-all text-xs font-medium whitespace-nowrap">
+<span class="material-icons-outlined text-sm">storefront</span>
+                    Mandi Rates
+                </button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-surface-light dark:bg-white/5 hover:bg-neutral-surface-light/80 dark:hover:bg-white/10 text-neutral-muted-light dark:text-neutral-muted-dark rounded-lg border border-transparent transition-all text-xs font-medium whitespace-nowrap">
+<span class="material-icons-outlined text-sm">water_drop</span>
+                    Irrigation
+                </button>
+</div>
+</div>
+<!-- Input Bar -->
+<div class="px-4 flex items-end gap-2">
+<!-- Add Media Button -->
+<button class="flex-shrink-0 w-10 h-10 mb-1 rounded-full bg-neutral-surface-light dark:bg-white/5 text-neutral-muted-light dark:text-neutral-muted-dark hover:text-primary dark:hover:text-primary transition-colors flex items-center justify-center">
+<span class="material-icons-round text-xl">add</span>
+</button>
+<!-- Text Field -->
+<div class="flex-1 bg-neutral-surface-light dark:bg-neutral-surface-dark rounded-2xl px-4 py-3 flex items-center gap-2 border border-transparent focus-within:border-primary/50 transition-colors">
+<textarea class="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-neutral-text-light dark:text-neutral-text-dark placeholder-neutral-muted-light dark:placeholder-neutral-muted-dark resize-none max-h-24 overflow-y-auto" placeholder="Ask about crops, weather..." rows="1" style="min-height: 24px;"></textarea>
+<button class="text-neutral-muted-light dark:text-neutral-muted-dark hover:text-primary transition-colors">
+<span class="material-icons-round">mic</span>
+</button>
+</div>
+<!-- Send Button -->
+<button class="flex-shrink-0 w-12 h-12 mb-0 rounded-full bg-primary text-white dark:text-neutral-surface-dark shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform">
+<span class="material-icons-round text-xl translate-x-0.5">send</span>
+</button>
+</div>
+</div>
+</body></html>

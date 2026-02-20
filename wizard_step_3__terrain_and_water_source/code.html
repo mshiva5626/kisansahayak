@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wizard Step 3: Terrain and Water Source</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+            extend: {
+                colors: {
+                "primary": "#13ec13",
+                "background-light": "#f6f8f6",
+                "background-dark": "#102210",
+                },
+                fontFamily: {
+                "display": ["Inter", "sans-serif"]
+                },
+                borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+            },
+        }
+    </script>
+<style>
+        /* Custom Glass Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .dark .glass-card {
+            background: rgba(20, 40, 20, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Selected State for Cards */
+        .card-selected {
+            border-color: #13ec13;
+            background: rgba(19, 236, 19, 0.05);
+            box-shadow: 0 4px 20px -5px rgba(19, 236, 19, 0.15);
+        }
+        .dark .card-selected {
+            background: rgba(19, 236, 19, 0.1);
+        }
+
+        /* Hide Scrollbar but allow scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-100 min-h-screen flex justify-center selection:bg-primary/30">
+<!-- Mobile Container -->
+<div class="w-full max-w-md bg-background-light dark:bg-background-dark min-h-screen relative shadow-2xl overflow-hidden flex flex-col">
+<!-- Header -->
+<header class="px-6 pt-12 pb-4 flex items-center justify-between z-10">
+<button class="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-icons-round text-gray-500 dark:text-gray-400">arrow_back</span>
+</button>
+<h1 class="text-lg font-semibold tracking-tight">Farm Details</h1>
+<div class="w-10"></div> <!-- Spacer for alignment -->
+</header>
+<!-- Progress Bar -->
+<div class="px-6 mb-8">
+<div class="flex justify-between items-end mb-2">
+<span class="text-sm font-medium text-primary">Step 3 of 4</span>
+<span class="text-xs text-gray-400 dark:text-gray-500">75% Completed</span>
+</div>
+<div class="h-1.5 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-3/4 transition-all duration-500 ease-out"></div>
+</div>
+</div>
+<!-- Main Content Scroll Area -->
+<main class="flex-1 overflow-y-auto px-6 pb-28 no-scrollbar">
+<!-- Section 1: Terrain Type -->
+<section class="mb-10 animate-fade-in-up">
+<h2 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">Terrain Type</h2>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Select the landscape that best describes your farm.</p>
+<div class="space-y-4">
+<!-- Option: Plain -->
+<label class="cursor-pointer group relative block">
+<input checked="" class="peer sr-only" name="terrain" type="radio"/>
+<div class="glass-card rounded-xl p-5 flex items-center gap-5 transition-all duration-300 peer-checked:card-selected group-hover:bg-white/90 dark:group-hover:bg-white/5">
+<div class="w-14 h-14 rounded-lg bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-primary transition-colors peer-checked:bg-primary peer-checked:text-white">
+<span class="material-icons-round text-3xl">landscape</span>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-lg text-gray-900 dark:text-white mb-0.5">Plain</h3>
+<p class="text-xs text-gray-500 dark:text-gray-400">Flat land suitable for most crops.</p>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center peer-checked:border-primary peer-checked:bg-primary transition-all">
+<span class="material-icons-round text-white text-sm opacity-0 peer-checked:opacity-100">check</span>
+</div>
+</div>
+</label>
+<!-- Option: Sloping -->
+<label class="cursor-pointer group relative block">
+<input class="peer sr-only" name="terrain" type="radio"/>
+<div class="glass-card rounded-xl p-5 flex items-center gap-5 transition-all duration-300 peer-checked:card-selected group-hover:bg-white/90 dark:group-hover:bg-white/5">
+<div class="w-14 h-14 rounded-lg bg-gray-50 dark:bg-gray-800/50 flex items-center justify-center text-gray-400 transition-colors peer-checked:bg-primary peer-checked:text-white">
+<span class="material-icons-round text-3xl" style="transform: rotate(-15deg);">terrain</span>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-lg text-gray-900 dark:text-white mb-0.5">Sloping</h3>
+<p class="text-xs text-gray-500 dark:text-gray-400">Gradual incline, needs soil care.</p>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center peer-checked:border-primary peer-checked:bg-primary transition-all">
+<span class="material-icons-round text-white text-sm opacity-0 peer-checked:opacity-100">check</span>
+</div>
+</div>
+</label>
+<!-- Option: Hilly -->
+<label class="cursor-pointer group relative block">
+<input class="peer sr-only" name="terrain" type="radio"/>
+<div class="glass-card rounded-xl p-5 flex items-center gap-5 transition-all duration-300 peer-checked:card-selected group-hover:bg-white/90 dark:group-hover:bg-white/5">
+<div class="w-14 h-14 rounded-lg bg-gray-50 dark:bg-gray-800/50 flex items-center justify-center text-gray-400 transition-colors peer-checked:bg-primary peer-checked:text-white">
+<span class="material-icons-round text-3xl">filter_hdr</span>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-lg text-gray-900 dark:text-white mb-0.5">Hilly</h3>
+<p class="text-xs text-gray-500 dark:text-gray-400">Steep terrain, terraced farming.</p>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center peer-checked:border-primary peer-checked:bg-primary transition-all">
+<span class="material-icons-round text-white text-sm opacity-0 peer-checked:opacity-100">check</span>
+</div>
+</div>
+</label>
+</div>
+</section>
+<!-- Section 2: Water Source -->
+<section>
+<div class="flex items-baseline justify-between mb-4">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white">Water Source</h2>
+<span class="text-xs font-medium text-primary">Multi-select</span>
+</div>
+<div class="flex flex-wrap gap-3">
+<!-- Chip: Rainfed -->
+<label class="cursor-pointer group">
+<input checked="" class="peer sr-only" name="water" type="checkbox"/>
+<div class="px-5 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/40 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all peer-checked:bg-primary/10 peer-checked:border-primary peer-checked:text-primary-dark dark:peer-checked:text-primary hover:border-gray-300 dark:hover:border-gray-600 flex items-center gap-2">
+<span class="material-icons-round text-lg">cloud</span>
+                            Rainfed
+                        </div>
+</label>
+<!-- Chip: Canal -->
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="water" type="checkbox"/>
+<div class="px-5 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/40 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all peer-checked:bg-primary/10 peer-checked:border-primary peer-checked:text-primary-dark dark:peer-checked:text-primary hover:border-gray-300 dark:hover:border-gray-600 flex items-center gap-2">
+<span class="material-icons-round text-lg">water</span>
+                            Canal
+                        </div>
+</label>
+<!-- Chip: Borewell -->
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="water" type="checkbox"/>
+<div class="px-5 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/40 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all peer-checked:bg-primary/10 peer-checked:border-primary peer-checked:text-primary-dark dark:peer-checked:text-primary hover:border-gray-300 dark:hover:border-gray-600 flex items-center gap-2">
+<span class="material-icons-round text-lg">south</span>
+                            Borewell
+                        </div>
+</label>
+<!-- Chip: Drip -->
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="water" type="checkbox"/>
+<div class="px-5 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/40 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all peer-checked:bg-primary/10 peer-checked:border-primary peer-checked:text-primary-dark dark:peer-checked:text-primary hover:border-gray-300 dark:hover:border-gray-600 flex items-center gap-2">
+<span class="material-icons-round text-lg">opacity</span>
+                            Drip
+                        </div>
+</label>
+<!-- Chip: Sprinkler -->
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="water" type="checkbox"/>
+<div class="px-5 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/40 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all peer-checked:bg-primary/10 peer-checked:border-primary peer-checked:text-primary-dark dark:peer-checked:text-primary hover:border-gray-300 dark:hover:border-gray-600 flex items-center gap-2">
+<span class="material-icons-round text-lg">shower</span>
+                            Sprinkler
+                        </div>
+</label>
+</div>
+</section>
+</main>
+<!-- Footer Navigation -->
+<footer class="absolute bottom-0 w-full bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 p-6 flex items-center justify-between z-20">
+<button class="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 px-4 py-3 transition-colors">
+                Back
+            </button>
+<button class="bg-primary hover:bg-green-500 text-white dark:text-black font-semibold py-3.5 px-8 rounded-xl shadow-lg shadow-primary/30 active:scale-95 transition-all flex items-center gap-2">
+                Next Step
+                <span class="material-icons-round text-sm">arrow_forward</span>
+</button>
+</footer>
+</div>
+</body></html>

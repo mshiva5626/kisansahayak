@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kisan Sahayak - AI Processing</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Google Material Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec6d",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#102218",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1a2e22",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'ping-slow': 'ping 3s cubic-bezier(0, 0, 0.2, 1) infinite',
+                        'spin-slow': 'spin 8s linear infinite',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom styles for elements not easily handled by basic Tailwind utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass-panel {
+            background: rgba(16, 34, 24, 0.7);
+        }
+        
+        /* Simulating the animated cycle with CSS for the demo */
+        @keyframes cycleText {
+            0%, 30% { opacity: 1; content: "Analyzing farm context..."; }
+            33%, 63% { opacity: 1; content: "Checking weather conditions..."; }
+            66%, 100% { opacity: 1; content: "Preparing execution plan..."; }
+        }
+
+        .status-text::after {
+            content: "Analyzing farm context...";
+            animation: cycleContent 9s infinite;
+        }
+
+        @keyframes cycleContent {
+            0% { content: "Analyzing farm context..."; opacity: 0; transform: translateY(10px); }
+            5% { opacity: 1; transform: translateY(0); }
+            30% { opacity: 1; transform: translateY(0); }
+            33% { opacity: 0; transform: translateY(-10px); }
+            
+            34% { content: "Checking weather conditions..."; opacity: 0; transform: translateY(10px); }
+            39% { opacity: 1; transform: translateY(0); }
+            63% { opacity: 1; transform: translateY(0); }
+            66% { opacity: 0; transform: translateY(-10px); }
+
+            67% { content: "Preparing execution plan..."; opacity: 0; transform: translateY(10px); }
+            72% { opacity: 1; transform: translateY(0); }
+            97% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+        
+        /* Subtle texture pattern */
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(19, 236, 109, 0.1) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 min-h-screen flex items-center justify-center relative overflow-hidden transition-colors duration-300">
+<!-- Background Ambient Elements -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden">
+<!-- Abstract Top Shape -->
+<div class="absolute -top-[20%] -right-[10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl dark:bg-primary/10"></div>
+<!-- Abstract Bottom Shape -->
+<div class="absolute -bottom-[10%] -left-[10%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-3xl dark:bg-primary/10"></div>
+<!-- Grid Pattern -->
+<div class="absolute inset-0 bg-grid-pattern opacity-40"></div>
+<!-- Subtle Leaf Contour (SVG Illustration) -->
+<svg class="absolute top-1/4 left-[-50px] w-64 h-64 text-primary/5 rotate-12" fill="currentColor" viewbox="0 0 24 24">
+<path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22l1-2.3A4.49,4.49 0 0,0 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"></path>
+</svg>
+</div>
+<!-- Main Mobile Container -->
+<div class="relative w-full max-w-md h-screen max-h-[900px] flex flex-col items-center justify-between p-8 z-10">
+<!-- Header Area (Empty for focus, or subtle logo) -->
+<div class="w-full flex justify-center pt-8 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
+<!-- Optional branding could go here, keeping it clean for now -->
+</div>
+<!-- Central Processing Unit -->
+<div class="flex-1 flex flex-col items-center justify-center w-full relative">
+<!-- The Orb Container -->
+<div class="relative w-48 h-48 flex items-center justify-center mb-12">
+<!-- Outer Ripple 1 -->
+<div class="absolute inset-0 rounded-full bg-primary/20 animate-ping-slow"></div>
+<!-- Outer Ripple 2 (Delayed) -->
+<div class="absolute inset-4 rounded-full bg-primary/10 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_1.5s_infinite]"></div>
+<!-- Rotating Ring -->
+<div class="absolute inset-[-10px] rounded-full border border-primary/20 border-t-primary/60 animate-spin-slow"></div>
+<!-- Core Orb -->
+<div class="relative w-24 h-24 bg-gradient-to-tr from-primary to-[#86efac] rounded-full shadow-[0_0_40px_rgba(19,236,109,0.4)] animate-pulse-slow flex items-center justify-center z-10">
+<!-- Inner detail to make it look techy/organic -->
+<div class="w-20 h-20 bg-white/20 rounded-full blur-sm"></div>
+<span class="material-icons-round text-white absolute text-4xl opacity-90">auto_awesome</span>
+</div>
+</div>
+<!-- Status Text Area -->
+<div class="h-24 flex flex-col items-center justify-start text-center space-y-3">
+<!-- Dynamic Text -->
+<h2 class="text-xl md:text-2xl font-semibold text-slate-800 dark:text-white tracking-tight status-text flex justify-center w-full">
+<!-- Content inserted via CSS animation -->
+</h2>
+<!-- Subtitle -->
+<p class="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    This may take a few seconds
+                </p>
+</div>
+<!-- Context Tags (Optional decorative tech elements) -->
+<div class="absolute bottom-20 flex gap-2 opacity-30">
+<div class="h-1 w-1 bg-primary rounded-full animate-bounce"></div>
+<div class="h-1 w-1 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></div>
+<div class="h-1 w-1 bg-primary rounded-full animate-bounce [animation-delay:0.4s]"></div>
+</div>
+</div>
+<!-- Footer / Action Area -->
+<div class="w-full pb-8">
+<!-- Cancel Button -->
+<button class="w-full py-4 px-6 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-medium text-sm hover:bg-slate-100 dark:hover:bg-surface-dark transition-colors active:scale-[0.98] transform duration-150">
+                Cancel Generation
+            </button>
+</div>
+</div>
+<!-- Image Data Alt Attributes required by prompt instructions (though no <img> tags used, applying to background elements conceptually) -->
+<!-- data-alt="Abstract green gradient background shape" -->
+<!-- data-alt="Subtle grid pattern background" -->
+</body></html>

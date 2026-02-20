@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quick Farm Switcher - Kisan Sahayak</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec6d",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#102218",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1c3326",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem", 
+                        "lg": "0.5rem", 
+                        "xl": "0.75rem", 
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        'glow': '0 0 15px -3px rgba(19, 236, 109, 0.3)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Simulate iOS Blur */
+        .backdrop-blur-ios {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        /* Hide scrollbar for cleaner look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-gray-800 font-display text-gray-900 antialiased overflow-hidden h-screen w-screen flex justify-center items-center">
+<!-- Mobile Frame Simulation -->
+<div class="relative w-full max-w-sm h-full max-h-[844px] bg-background-light dark:bg-background-dark overflow-hidden shadow-2xl sm:rounded-[2.5rem] flex flex-col">
+<!-- Status Bar Area (Visual only) -->
+<div class="h-12 w-full flex justify-between items-center px-6 pt-2 z-10 text-gray-900 dark:text-white">
+<span class="text-sm font-semibold">9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-icons-round text-sm">signal_cellular_alt</span>
+<span class="material-icons-round text-sm">wifi</span>
+<span class="material-icons-round text-lg rotate-90">battery_full</span>
+</div>
+</div>
+<!-- Simulated App Content Behind Overlay -->
+<main class="flex-1 px-4 pt-4 pb-20 overflow-y-auto no-scrollbar opacity-30 pointer-events-none transform scale-95 transition-transform duration-300">
+<!-- Header -->
+<div class="flex justify-between items-center mb-8">
+<div>
+<h2 class="text-gray-500 dark:text-gray-400 text-sm font-medium">Welcome back,</h2>
+<div class="flex items-center gap-1">
+<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Green Valley Estate</h1>
+<span class="material-icons-round text-gray-400 dark:text-gray-500">expand_more</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-surface-dark overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="User profile avatar smiling man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuInn9qQrf-cwCZHUid_Ycsib9ArER0KWfcdPU33owA6MwAkLau03ixl3Ugt2MVGaBbXR2vFIFh5PDdlJXwAzDamgZJgxg64VPOHVvQhS4EAPzRm3LdXnaRNubVqMgD7gP2r6sfKhM5euj8oFPmXzcogN1MGFzwtLNQUHsRQulOiF_6dSEnCM60atmmWAtf7R_cA8ghH_m0jguJ15MnGoejBkrOgyTCvd50IaJI08-MKTvoMnRdiRel46SG1CVAZPooxN2J-qZtP_Y"/>
+</div>
+</div>
+<!-- Dashboard Stats -->
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-white dark:bg-surface-dark p-4 rounded-2xl shadow-sm">
+<div class="text-gray-500 dark:text-gray-400 text-xs mb-1">Temperature</div>
+<div class="text-2xl font-bold dark:text-white">24°C</div>
+</div>
+<div class="bg-white dark:bg-surface-dark p-4 rounded-2xl shadow-sm">
+<div class="text-gray-500 dark:text-gray-400 text-xs mb-1">Humidity</div>
+<div class="text-2xl font-bold dark:text-white">65%</div>
+</div>
+</div>
+<!-- Weather Map Card -->
+<div class="w-full h-48 rounded-2xl overflow-hidden shadow-sm relative mb-6">
+<img alt="Farm Map" class="w-full h-full object-cover" data-alt="Aerial view of green farm fields" data-location="Punjab" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU4tj-U7Z8mnps0iHSU_0Fj-wTLlwgnxaj3XmQScunl-PpZC547hywmpWk1Ap84eiz7zj1p_tLzEYlOkrQ95NUxkA8iL1i9yHkObQyRw-loccrA0yWrwJ-btJdlG8Popx4bFlRNrQIQ7yHCu1digMJBAGa3VGZElsEbvrEQusIGQsuY_c0CtfC_Y4pEwAfLbqUq2NzKxCsNQBGVmgo60ArsD3vHue7kiLqL3p6_rbQK0JQqoFmkv0bIe6tViAQhKZkr1KP8i7472Ig"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+<div class="text-white">
+<div class="font-bold">Field 2 - Irrigation Needed</div>
+<div class="text-xs opacity-80">Scheduled for tomorrow 6:00 AM</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation (Visual Context) -->
+<div class="absolute bottom-0 w-full h-20 bg-white dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 flex justify-around items-center px-2 z-0 opacity-30">
+<button class="flex flex-col items-center gap-1 p-2 text-primary">
+<span class="material-icons-round">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 p-2 text-gray-400 dark:text-gray-500">
+<span class="material-icons-round">analytics</span>
+<span class="text-[10px] font-medium">Yield</span>
+</button>
+<div class="w-12"></div>
+<button class="flex flex-col items-center gap-1 p-2 text-gray-400 dark:text-gray-500">
+<span class="material-icons-round">inventory_2</span>
+<span class="text-[10px] font-medium">Stock</span>
+</button>
+<button class="flex flex-col items-center gap-1 p-2 text-gray-400 dark:text-gray-500">
+<span class="material-icons-round">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</button>
+<!-- FAB -->
+<div class="absolute -top-6 left-1/2 transform -translate-x-1/2">
+<button class="w-14 h-14 rounded-full bg-primary text-white shadow-lg flex items-center justify-center">
+<span class="material-icons-round text-2xl">add</span>
+</button>
+</div>
+</div>
+<!-- BACKDROP OVERLAY -->
+<div class="absolute inset-0 bg-black/40 z-40 backdrop-blur-sm transition-opacity duration-300"></div>
+<!-- BOTTOM SHEET -->
+<div class="absolute bottom-0 left-0 w-full z-50 bg-background-light dark:bg-surface-dark rounded-t-[32px] shadow-[0_-8px_30px_rgba(0,0,0,0.12)] transform transition-transform duration-300 ease-out flex flex-col max-h-[85%]">
+<!-- Sheet Handle -->
+<div class="w-full flex justify-center pt-3 pb-2">
+<div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+</div>
+<!-- Sheet Header -->
+<div class="px-6 pb-4 pt-2 flex justify-between items-center border-b border-gray-100 dark:border-gray-800">
+<div>
+<h2 class="text-xl font-bold text-gray-900 dark:text-white">Switch Farm</h2>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Select a property to manage</p>
+</div>
+<button class="group p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-icons-round text-primary group-hover:scale-110 transition-transform">add_circle_outline</span>
+</button>
+</div>
+<!-- Farm List -->
+<div class="flex-1 overflow-y-auto px-6 py-4 space-y-3 no-scrollbar">
+<!-- Active Farm Card -->
+<div class="relative w-full group cursor-pointer">
+<div class="absolute -inset-0.5 bg-primary rounded-2xl opacity-30 blur-sm group-hover:opacity-50 transition-opacity"></div>
+<div class="relative flex items-center p-4 bg-white dark:bg-background-dark border border-primary/50 rounded-xl shadow-sm">
+<!-- Farm Icon/Image -->
+<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mr-4 shrink-0">
+<span class="material-icons-round">grass</span>
+</div>
+<!-- Farm Details -->
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-0.5">
+<h3 class="font-semibold text-gray-900 dark:text-white truncate">Green Valley Estate</h3>
+<span class="bg-primary/20 text-primary-dark dark:text-primary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>
+</div>
+<p class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+<span class="material-icons-round text-[14px]">agriculture</span>
+                                Wheat &amp; Corn
+                            </p>
+</div>
+<!-- Checkmark -->
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white shadow-glow ml-2 shrink-0">
+<span class="material-icons-round text-lg">check</span>
+</div>
+</div>
+</div>
+<!-- Inactive Farm Card 1 -->
+<button class="w-full flex items-center p-4 bg-white dark:bg-background-dark border border-transparent hover:border-gray-200 dark:hover:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
+<div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 mr-4 shrink-0">
+<span class="material-icons-round">water_drop</span>
+</div>
+<div class="flex-1 text-left">
+<h3 class="font-semibold text-gray-900 dark:text-gray-200">Riverbed Plot 4</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+<span class="material-icons-round text-[14px]">spa</span>
+                            Organic Rice
+                        </p>
+</div>
+<div class="w-8 h-8 flex items-center justify-center text-gray-300 dark:text-gray-600">
+<span class="material-icons-round">chevron_right</span>
+</div>
+</button>
+<!-- Inactive Farm Card 2 -->
+<button class="w-full flex items-center p-4 bg-white dark:bg-background-dark border border-transparent hover:border-gray-200 dark:hover:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
+<div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 mr-4 shrink-0">
+<span class="material-icons-round">park</span>
+</div>
+<div class="flex-1 text-left">
+<h3 class="font-semibold text-gray-900 dark:text-gray-200">Orchard Hill</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+<span class="material-icons-round text-[14px]">apple</span>
+                            Apples &amp; Pears
+                        </p>
+</div>
+<div class="w-8 h-8 flex items-center justify-center text-gray-300 dark:text-gray-600">
+<span class="material-icons-round">chevron_right</span>
+</div>
+</button>
+<!-- Inactive Farm Card 3 (Skeleton for 'Loading/Syncing') -->
+<button class="w-full flex items-center p-4 bg-gray-50 dark:bg-background-dark/50 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl opacity-60">
+<div class="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-400 dark:text-gray-500 mr-4 shrink-0">
+<span class="material-icons-round">cloud_off</span>
+</div>
+<div class="flex-1 text-left">
+<h3 class="font-semibold text-gray-400 dark:text-gray-500">Sunny Acres (Syncing...)</h3>
+<p class="text-sm text-gray-400 dark:text-gray-600">Connection weak</p>
+</div>
+</button>
+</div>
+<!-- Footer Action -->
+<div class="p-6 pt-2 pb-10">
+<button class="w-full py-4 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium text-sm flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+<span class="material-icons-round text-lg">settings</span>
+                    Manage All Farms
+                </button>
+</div>
+</div>
+</div>
+</body></html>

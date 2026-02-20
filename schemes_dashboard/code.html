@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Schemes Dashboard - Kisan Sahayak</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec6d",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#102218",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1a2e22",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(19, 236, 109, 0.1)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* iOS-like smooth scrolling and safe areas */
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-100 h-screen flex flex-col overflow-hidden">
+<!-- Top Navigation / Header -->
+<header class="bg-surface-light dark:bg-surface-dark px-5 pt-12 pb-4 flex justify-between items-center shadow-sm z-10 sticky top-0">
+<div>
+<h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Government Schemes</h1>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Explore benefits tailored for you</p>
+</div>
+<button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative">
+<span class="material-icons text-gray-600 dark:text-gray-300">notifications</span>
+<span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-surface-dark"></span>
+</button>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto hide-scrollbar pb-24">
+<!-- Search and Filter -->
+<div class="px-5 py-4 bg-surface-light dark:bg-surface-dark mb-4 shadow-sm">
+<div class="flex gap-3">
+<div class="relative flex-1">
+<span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">search</span>
+<input class="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50 text-gray-700 dark:text-gray-200 placeholder-gray-400" placeholder="Search schemes..." type="text"/>
+</div>
+<button class="bg-gray-50 dark:bg-background-dark px-3.5 rounded-xl flex items-center justify-center hover:bg-primary/10 transition-colors">
+<span class="material-icons text-gray-600 dark:text-gray-300">tune</span>
+</button>
+</div>
+</div>
+<!-- Segmented Control (Tabs) -->
+<div class="px-5 mb-6">
+<div class="flex bg-gray-200 dark:bg-gray-800 p-1 rounded-xl">
+<button class="flex-1 py-2 px-4 rounded-lg bg-surface-light dark:bg-surface-dark shadow-sm text-sm font-semibold text-gray-900 dark:text-white transition-all duration-200 text-center">
+                    Central
+                </button>
+<button class="flex-1 py-2 px-4 rounded-lg text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-all duration-200 text-center">
+                    State
+                </button>
+</div>
+</div>
+<!-- Quick Access Filters (Horizontal Scroll) -->
+<div class="px-5 mb-6 overflow-x-auto hide-scrollbar flex gap-3">
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-primary text-black text-sm font-semibold border border-primary">All</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-transparent border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium hover:border-primary/50">Subsidy</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-transparent border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium hover:border-primary/50">Insurance</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-transparent border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium hover:border-primary/50">Equipment</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-transparent border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium hover:border-primary/50">Loans</button>
+</div>
+<!-- Schemes Feed -->
+<div class="px-5 space-y-4">
+<!-- Card 1: Featured -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl p-5 shadow-soft border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+<div class="flex justify-between items-start mb-3 relative z-10">
+<span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">Insurance</span>
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-icons text-xl">bookmark_border</span>
+</button>
+</div>
+<h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight mb-2 pr-4">Pradhan Mantri Fasal Bima Yojana</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
+                    Comprehensive insurance cover against failure of the crop thus helping in stabilizing the income of farmers.
+                </p>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex items-center text-xs text-gray-400 font-medium">
+<span class="material-icons text-sm mr-1">schedule</span> Deadline: 31 Oct
+                    </div>
+<button class="bg-primary hover:bg-green-400 text-black font-semibold text-sm py-2 px-5 rounded-lg shadow-sm transition-all active:scale-95">
+                        Apply Now
+                    </button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 relative group">
+<div class="flex justify-between items-start mb-3">
+<span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">Income Support</span>
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-icons text-xl">bookmark_border</span>
+</button>
+</div>
+<h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight mb-2">PM-KISAN Samman Nidhi</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
+                    Financial benefit of ₹6000 per year in three equal installments to eligible landholding farmer families.
+                </p>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex items-center text-xs text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded">
+<span class="material-icons text-sm mr-1">verified</span> High Success Rate
+                    </div>
+<button class="bg-primary hover:bg-green-400 text-black font-semibold text-sm py-2 px-5 rounded-lg shadow-sm transition-all active:scale-95">
+                        Apply Now
+                    </button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 relative group">
+<div class="flex justify-between items-start mb-3">
+<span class="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">Equipment Subsidy</span>
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-icons text-xl">bookmark_border</span>
+</button>
+</div>
+<h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight mb-2">Sub-Mission on Agricultural Mechanization</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
+                    Get up to 50% subsidy on purchase of tractors and heavy machinery for sustainable farming practices.
+                </p>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex items-center text-xs text-gray-400 font-medium">
+<span class="material-icons text-sm mr-1">schedule</span> Deadline: 15 Nov
+                    </div>
+<button class="bg-primary hover:bg-green-400 text-black font-semibold text-sm py-2 px-5 rounded-lg shadow-sm transition-all active:scale-95">
+                        Apply Now
+                    </button>
+</div>
+</div>
+<!-- Card 4: Soil Health -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 relative group mb-8">
+<div class="flex justify-between items-start mb-3">
+<span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">Soil Health</span>
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-icons text-xl">bookmark_border</span>
+</button>
+</div>
+<h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight mb-2">Soil Health Card Scheme</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
+                    Government to issue soil health cards to farmers which will carry crop-wise recommendations of nutrients.
+                </p>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex items-center text-xs text-gray-400 font-medium">
+<span class="material-icons text-sm mr-1">all_inclusive</span> Always Open
+                    </div>
+<button class="bg-primary hover:bg-green-400 text-black font-semibold text-sm py-2 px-5 rounded-lg shadow-sm transition-all active:scale-95">
+                        Apply Now
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full bg-surface-light dark:bg-surface-dark border-t border-gray-200 dark:border-gray-800 pb-safe-bottom z-50">
+<div class="flex justify-around items-center h-16 safe-bottom">
+<a class="flex flex-col items-center justify-center w-full h-full text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 group" href="#">
+<span class="material-icons text-2xl mb-0.5 group-hover:scale-110 transition-transform">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-primary dark:text-primary relative group" href="#">
+<div class="absolute -top-3 bg-primary/20 p-2 rounded-full hidden"></div> <!-- Active indicator shape optional -->
+<span class="material-icons text-2xl mb-0.5 group-hover:scale-110 transition-transform">assignment</span>
+<span class="text-[10px] font-bold">Schemes</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 group" href="#">
+<span class="material-icons text-2xl mb-0.5 group-hover:scale-110 transition-transform">storefront</span>
+<span class="text-[10px] font-medium">Market</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 group" href="#">
+<span class="material-icons text-2xl mb-0.5 group-hover:scale-110 transition-transform">forum</span>
+<span class="text-[10px] font-medium">Community</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 group" href="#">
+<span class="material-icons text-2xl mb-0.5 group-hover:scale-110 transition-transform">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+</nav>
+<!-- Floating Filter Fab (Optional enhancement for long lists, hidden here but ready for logic) -->
+<!-- <button class="fixed bottom-20 right-5 bg-black text-white p-4 rounded-full shadow-lg z-40 md:hidden flex items-center justify-center">
+        <span class="material-icons">filter_list</span>
+    </button> -->
+</body></html>

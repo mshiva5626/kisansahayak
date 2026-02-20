@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wizard Step 2: Map Pin Selection - Kisan Sahayak</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#13ec13",
+              "background-light": "#f6f8f6",
+              "background-dark": "#102210",
+              "glass-light": "rgba(255, 255, 255, 0.85)",
+              "glass-dark": "rgba(16, 34, 16, 0.85)",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+            boxShadow: {
+                'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
+                'glass-strong': '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+            }
+          },
+        },
+      }
+    </script>
+<style>/* Custom styles for map-like interactions and glassmorphism */
+.glass-panel {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3)
+    }
+.dark .glass-panel {
+    border: 1px solid rgba(255, 255, 255, 0.05)
+    }
+/* Simulating the map background */
+.map-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    overflow: hidden
+    }
+/* Map texture - using a subtle pattern to represent satellite view abstractly in code, 
+           but in reality this would be an image/canvas */
+.map-texture {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBWmm-zamQdZ3NiMoxZ0_oJTwhTSgvEnMpeQkpVaKl8pM13n9GZ4XeoQAVXEpIrFFccsMVbSOPfr6jGil0XBAtZZVhOOMbbcfaEqPaXN-ceD9QRksZgqgvwty25jRNE0PZ4LT2KxHeDIBF5grDX4spmyEQtfaRmpXxlD_L_uRNMd0fbWoZy8zb4ctfSijC7hBh8TRA8QKlWKcqbEz5WRqjmfXtRO09yCHgYHjJwpYxHWnD0o4g457wHpxU2li4WaOMlPkjEspBFB6La);
+    background-size: cover;
+    background-position: center;
+    width: 100%;
+    height: 100%;
+    filter: saturate(1.1) contrast(1.1)
+    }
+/* Pulsing effect for the pin */
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+        } 100% {
+        transform: scale(2.2);
+        opacity: 0;
+        }
+    }
+.pin-shadow {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translatex(-50%);
+    width: 12px;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    filter: blur(2px)
+    }
+.reticle-ring::before {
+    content: "";
+    position: absolute;
+    left: -12px;
+    top: -12px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: rgba(19, 236, 19, 0.4);
+    animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    z-index: -1
+    }
+/* Safe area spacing for iOS */
+.safe-top {
+    padding-top: env(safe-area-inset-top, 44px)
+    }
+.safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 34px)
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 h-screen w-screen overflow-hidden relative selection:bg-primary selection:text-black">
+<!-- Map Background Layer -->
+<div class="map-container">
+<!-- The satellite map image -->
+<div class="map-texture" data-alt="Satellite map view of green agricultural fields and terrain" data-location="Punjab, India" style=""></div>
+<!-- Subtle dark overlay to ensure text contrast if map is too bright -->
+<div class="absolute inset-0 bg-black/10 pointer-events-none"></div>
+</div>
+<!-- UI Overlay Layer -->
+<div class="relative z-10 h-full flex flex-col justify-between pointer-events-none">
+<!-- Top Section: Header & Steps -->
+<div class="safe-top w-full px-4 pt-4 pointer-events-auto">
+<!-- Back Button & Title Row -->
+<div class="flex items-center justify-between mb-4">
+<button class="bg-glass-light dark:bg-glass-dark glass-panel h-10 w-10 flex items-center justify-center rounded-full shadow-glass hover:bg-white dark:hover:bg-gray-800 transition-colors">
+<span class="material-icons-round text-gray-800 dark:text-white">arrow_back</span>
+</button>
+<div class="px-3 py-1 bg-glass-light dark:bg-glass-dark glass-panel rounded-full text-xs font-semibold text-gray-800 dark:text-gray-200 shadow-sm">
+                    Kisan Sahayak
+                </div>
+<!-- Placeholder for balance or profile if needed, empty for now to center visual weight -->
+<div class="w-10"></div>
+</div>
+<!-- Step Progress Card -->
+<div class="glass-panel bg-glass-light dark:bg-glass-dark p-5 rounded-2xl shadow-glass-strong">
+<div class="flex items-center justify-between mb-3">
+<span class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Step 2 of 4</span>
+<span class="text-xs font-medium text-primary">50% Completed</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full mb-3 overflow-hidden">
+<div class="bg-primary h-full rounded-full w-1/2"></div>
+</div>
+<h1 class="text-lg font-bold text-gray-900 dark:text-white mb-1">Pin your farm location</h1>
+<p class="text-sm text-gray-600 dark:text-gray-300">Drag the map to position the pin exactly on your farm entrance.</p>
+</div>
+</div>
+<!-- Center Pin (Fixed) -->
+<!-- This is absolutely centered in the viewport, ignoring the flex layout -->
+<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 flex flex-col items-center justify-center -mt-8">
+<!-- Tooltip above pin -->
+<div class="mb-2 px-3 py-1.5 bg-black/80 backdrop-blur-sm text-white text-xs font-medium rounded-lg shadow-lg transform transition-transform">
+                Target Location
+            </div>
+<!-- Pin Graphic -->
+<div class="relative w-12 h-12">
+<div class="relative z-10 w-6 h-6 mx-auto bg-primary rounded-full border-2 border-white dark:border-gray-900 shadow-lg reticle-ring flex items-center justify-center">
+<div class="w-2 h-2 bg-white dark:bg-gray-900 rounded-full"></div>
+</div>
+<div class="absolute top-3 left-1/2 h-8 w-0.5 bg-primary transform -translate-x-1/2"></div>
+<!-- Pin Shadow on 'ground' -->
+<div class="pin-shadow"></div>
+</div>
+</div>
+<!-- Bottom Section: Actions -->
+<div class="safe-bottom w-full px-4 pb-6 pointer-events-auto">
+<!-- Current Location FAB -->
+<div class="flex justify-end mb-4">
+<button class="flex items-center gap-2 bg-glass-light dark:bg-glass-dark glass-panel px-4 py-3 rounded-xl shadow-glass hover:bg-white dark:hover:bg-gray-800 transition-all active:scale-95 group">
+<span class="material-icons-round text-primary group-hover:animate-bounce">my_location</span>
+<span class="text-sm font-semibold text-gray-800 dark:text-white">Use Current Location</span>
+</button>
+</div>
+<!-- Primary Action Panel -->
+<div class="glass-panel bg-glass-light dark:bg-glass-dark p-4 rounded-2xl shadow-glass-strong">
+<div class="flex flex-col gap-3">
+<div class="flex items-start gap-3 p-3 bg-white/50 dark:bg-black/20 rounded-xl border border-white/20 dark:border-white/5">
+<span class="material-icons-round text-gray-500 mt-0.5 text-lg">place</span>
+<div>
+<p class="text-xs font-bold text-gray-500 uppercase mb-0.5">Selected Coordinates</p>
+<p class="text-sm font-semibold text-gray-900 dark:text-white font-mono">23.4512° N, 87.1234° E</p>
+<p class="text-xs text-gray-500 truncate mt-0.5">Near Village Road, Ludhiana, Punjab</p>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-green-400 text-black font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+<span>Confirm Location</span>
+<span class="material-icons-round text-lg">check_circle</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Additional Detail: Map Attribution (Simulated) -->
+<div class="absolute bottom-1 right-1 z-0 px-1 py-0.5 bg-white/40 dark:bg-black/40 backdrop-blur-xs rounded text-[10px] text-black dark:text-white pointer-events-none">
+        © Mapbox © OpenStreetMap
+    </div>
+</body></html>
