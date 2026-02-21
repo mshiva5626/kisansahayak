@@ -1,29 +1,19 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const ARCEE_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const ARCEE_MODEL = 'arcee-ai/trinity-large-preview:free';
+const ARCEE_API_KEY = process.env.ARCEE_API_KEY || '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';
 
-let genAI = null;
-let model = null;
-
-const initializeGemini = () => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (apiKey && apiKey !== 'your_gemini_key_here') {
-        genAI = new GoogleGenerativeAI(apiKey);
-        model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-        return true;
-    }
-    return false;
-};
-
-const buildPrompt = (query, context) => {
+const buildPrompt = (context) => {
     const { farmer, farm, weather, image_analysis } = context;
 
-    let prompt = `You are a senior agricultural operations advisor with deep expertise in agronomy, soil science, crop management, and precision farming. You serve as a trusted field consultant for farmers.
+    let prompt = `You are a Senior Agricultural Operations Advisor. You must provide highly professional, precise, crisp, and friendly advice.
 
 CRITICAL RULES:
-- Never mention AI, models, algorithms, or machine learning
-- Use professional agronomy language
-- Consider local conditions (terrain, water source, climate)
-- Format gracefully: if the farmer's query is a simple greeting (e.g., "hi", "namaste", "how are you"), or a general question, RESPOND CONVERSATIONALLY and naturally. Do NOT use the strict structural format below for greetings or casual talk.
-- IF and ONLY IF the query is about crop issues, farming advice, or field analysis: Provide actionable, field-ready advice and YOU MUST RESPOND IN THE EXACT STRUCTURE DEFINED AT THE BOTTOM.
+- BE CONCISE AND PRECISE. Use exact scientific calculations where applicable. Analyze the provided farm data (area size, exact weather temperature/humidity, crop type) and output specific numbers (e.g., NPK ratios, calculated water requirements in liters, exact dates).
+- Never mention AI, models, algorithms, or machine learning.
+- Use professional agronomy and agricultural language.
+- Consider chat history and previous context in your response.
+- If the user sends a simple greeting, respond with a warm, friendly, and professional greeting and ask how you can assist their farm operations today.
+- If the query is about crop issues, farming advice, or field analysis: Provide scientifically backed, actionable, field-ready advice and YOU MUST RESPOND IN THE EXACT STRUCTURE DEFINED AT THE BOTTOM.
 
 FARMER CONTEXT:
 `;
@@ -80,59 +70,88 @@ If the farmer's query relates to financial assistance, subsidies, or general hel
     }
 
     prompt += `
-FARMER'S QUERY: ${query}
-
 STRUCTURAL FORMAT FOR AGRICULTURAL ADVICE:
 (Use this format ONLY if the query requires technical farming advice, diagnostics, or actionable recommendations. If it is a greeting or casual question, just respond naturally.)
 
-**Observation:**
+Observation:
 [What you observe based on the data provided]
 
-**Scientific Interpretation:**
+Scientific Interpretation:
 [Scientific explanation of the situation]
 
-**Decision:**
+Decision:
 [Clear recommendation]
 
-**Execution Plan:**
+Execution Plan:
 [Step-by-step action plan]
 
-**Dosage / Method:**
+Dosage / Method:
 [Specific quantities, concentrations, and application methods]
 
-**Timing:**
+Timing:
 [When to execute each step]
 
-**Risk Check:**
+Risk Check:
 [Potential risks and mitigation measures]
 
-**Next Action:**
+Next Action:
 [Immediate next step the farmer should take]
 `;
 
     return prompt;
 };
 
-const getAIAdvisory = async (query, context = {}) => {
-    // Try to initialize Gemini if not already done
-    if (!model) {
-        const initialized = initializeGemini();
-        if (!initialized) {
-            throw new Error('AI Service is not configured. Please provide a valid Gemini API key.');
-        }
-    }
-
+const getAIAdvisory = async (queryOrMessages, context = {}) => {
     try {
-        const prompt = buildPrompt(query, context);
+        const prompt = buildPrompt(context);
 
-        const result = await model.generateContent(prompt);
-        const response = result.response;
-        const text = response.text();
+        let apiMessages = [{ role: 'system', content: prompt }];
+
+        if (Array.isArray(queryOrMessages)) {
+            // Include full chat history
+            apiMessages = apiMessages.concat(queryOrMessages);
+        } else {
+            // Single query (fallback)
+            apiMessages.push({ role: 'user', content: queryOrMessages });
+        }
+
+        console.log('\n--- ARCEE AI (OPENROUTER) API REQUEST ---');
+        console.log(`Model: ${ARCEE_MODEL}`);
+        console.log(`Context Keys: ${Object.keys(context).join(', ')}`);
+
+        // Use native Node fetch (available in newer Node versions) or require it if using older ones
+        // Assuming global fetch is available since Node 18+
+        const response = await fetch(ARCEE_URL, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${ARCEE_API_KEY}`,
+                'HTTP-Referer': 'http://localhost:5173',
+                'X-Title': 'Kisan Sahayak Farm Copilot',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: ARCEE_MODEL,
+                messages: apiMessages,
+                stream: false // Wait for full response, UI is not built for streaming yet
+            })
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`Arcee AI responded with status: ${response.status} - ${errorBody}`);
+        }
+
+        const data = await response.json();
+        const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
+
+        console.log('\n--- ARCEE AI API RESPONSE ---');
+        console.log(text.substring(0, 500) + (text.length > 500 ? '...\n[Truncated]' : ''));
+        console.log('---------------------------\n');
 
         return text;
     } catch (error) {
-        console.error('Gemini API Error:', error.message);
-        throw new Error('AI Service is temporarily unavailable.');
+        console.error('\n❌ Arcee AI API Error:', error.message);
+        throw new Error('AI Service is temporarily unavailable. Please try again later.');
     }
 };
 

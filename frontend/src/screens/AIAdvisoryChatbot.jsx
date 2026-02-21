@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { aiAPI, farmAPI, weatherAPI } from '../api';
 
-const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile }) => {
+const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, clearContext }) => {
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [farmData, setFarmData] = useState(null);
     const scrollRef = useRef(null);
+    const hasProcessedContext = useRef(false);
 
     // Load farm data on mount
     useEffect(() => {
@@ -39,8 +40,73 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile }) => {
                 }]);
             }
         };
-        loadContext();
+
+        const initChat = async () => {
+            await loadContext();
+        };
+        initChat();
     }, [selectedFarmId, userProfile]);
+
+    // Handle incoming external context (like Crop Scans)
+    useEffect(() => {
+        if (chatContext?.type === 'crop_scan' && chatContext.data && farmData && !hasProcessedContext.current) {
+            hasProcessedContext.current = true;
+            // Give the UI a tiny moment to render the greeting first
+            setTimeout(() => {
+                const scan = chatContext.data;
+                const indicators = scan.indicators?.length > 0 ? scan.indicators.join(', ') : 'None';
+                const assessment = scan.analysis?.overall_assessment || scan.analysis?.raw_analysis || 'Unknown issue';
+
+                const autoPrompt = `I just scanned my ${farmData.crop_type || 'crop'} with the vision AI. It observed: "${assessment}". Primary indicators: ${indicators}. Please provide a detailed, step-by-step treatment plan and any necessary agronomic recommendations.`;
+
+                // Simulate user sending this message
+                const userMsg = {
+                    id: Date.now(),
+                    text: autoPrompt,
+                    isAI: false,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+
+                setMessages(prev => {
+                    const newMessages = [...prev, userMsg];
+                    // Trigger the API call
+                    processAutoMessage(newMessages, autoPrompt);
+                    return newMessages;
+                });
+
+                if (clearContext) clearContext();
+            }, 800);
+        }
+    }, [chatContext, farmData, clearContext]);
+
+    const processAutoMessage = async (history, newText) => {
+        setIsTyping(true);
+        const messageHistory = history.map(m => ({
+            role: m.isAI ? 'assistant' : 'user',
+            content: m.text
+        }));
+
+        try {
+            const { data } = await aiAPI.chat(messageHistory, selectedFarmId);
+            const aiMsg = {
+                id: Date.now() + 1,
+                text: data.response,
+                isAI: true,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages(prev => [...prev, aiMsg]);
+        } catch (error) {
+            console.error('AI Error (Auto Context):', error);
+            setMessages(prev => [...prev, {
+                id: Date.now() + 1,
+                text: "I received your scan, but I'm having trouble analyzing the treatment plan right now. Please try asking again.",
+                isAI: true,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }]);
+        } finally {
+            setIsTyping(false);
+        }
+    };
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -58,26 +124,33 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile }) => {
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
-        setMessages(prev => [...prev, userMsg]);
-        const query = inputText;
+        const newMessages = [...messages, userMsg];
+        setMessages(newMessages);
         setInputText('');
         setIsTyping(true);
 
-        try {
-            // Pass farm context with the chat request
-            const contextData = farmData ? {
-                farm_name: farmData.farm_name,
-                crop_type: farmData.crop_type,
-                terrain_type: farmData.terrain_type,
-                water_source: farmData.water_source,
-                sowing_date: farmData.sowing_date,
-                state: farmData.state,
-                area: farmData.area,
-                latitude: farmData.latitude,
-                longitude: farmData.longitude
-            } : undefined;
+        // Format history for backend OpenRouter API
+        const messageHistory = newMessages.map(m => ({
+            role: m.isAI ? 'assistant' : 'user',
+            content: m.text
+        }));
 
-            const { data } = await aiAPI.chat(query, contextData);
+        // Ensure farm is loaded before sending
+        if (!farmData || !farmData.crop_type) {
+            setTimeout(() => {
+                setMessages(prev => [...prev, {
+                    id: Date.now() + 1,
+                    text: 'Insufficient farm data. Please ensure your farm has a crop selected to access the AI assistant.',
+                    isAI: true,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                }]);
+                setIsTyping(false);
+            }, 600);
+            return;
+        }
+
+        try {
+            const { data } = await aiAPI.chat(messageHistory, selectedFarmId);
             const aiMsg = {
                 id: Date.now() + 1,
                 text: data.response,
@@ -87,9 +160,10 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile }) => {
             setMessages(prev => [...prev, aiMsg]);
         } catch (error) {
             console.error('AI Error:', error);
+            const msgText = error.response?.data?.message || "I'm having trouble connecting right now. Please check your internet connection and try again.";
             setMessages(prev => [...prev, {
                 id: Date.now() + 1,
-                text: "I'm having trouble connecting right now. Please check your internet connection and try again.",
+                text: msgText,
                 isAI: true,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             }]);

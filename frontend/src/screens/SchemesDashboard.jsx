@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import BottomNavbar from '../components/BottomNavbar';
 import { schemeAPI } from '../api';
+import SchemeChatModal from '../components/SchemeChatModal';
 
 const SchemesDashboard = ({ onBack, onNotificationClick, onNavigate, userProfile }) => {
     const [schemes, setSchemes] = useState([]);
@@ -9,6 +10,7 @@ const SchemesDashboard = ({ onBack, onNotificationClick, onNavigate, userProfile
     const [activeTab, setActiveTab] = useState('central'); // 'central' | 'state'
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('All');
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const categories = ['All', 'Income Support', 'Insurance', 'Loan', 'Subsidy', 'Organic'];
 
@@ -18,7 +20,7 @@ const SchemesDashboard = ({ onBack, onNotificationClick, onNavigate, userProfile
             setError(null);
             try {
                 const state = userProfile?.state || '';
-                const { data } = await schemeAPI.getSchemes(state);
+                const { data } = await schemeAPI.getRealtimeSchemes(state);
                 setSchemes(data.schemes || []);
             } catch (err) {
                 console.error('Schemes fetch error:', err);
@@ -106,8 +108,8 @@ const SchemesDashboard = ({ onBack, onNotificationClick, onNavigate, userProfile
                         <button
                             onClick={() => setActiveTab('central')}
                             className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 text-center ${activeTab === 'central'
-                                    ? 'bg-surface-light dark:bg-surface-dark shadow-sm text-gray-900 dark:text-white'
-                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                ? 'bg-surface-light dark:bg-surface-dark shadow-sm text-gray-900 dark:text-white'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                                 }`}
                         >
                             Central ({schemes.filter(s => s.scheme_type === 'central').length})
@@ -115,8 +117,8 @@ const SchemesDashboard = ({ onBack, onNotificationClick, onNavigate, userProfile
                         <button
                             onClick={() => setActiveTab('state')}
                             className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 text-center ${activeTab === 'state'
-                                    ? 'bg-surface-light dark:bg-surface-dark shadow-sm text-gray-900 dark:text-white'
-                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                ? 'bg-surface-light dark:bg-surface-dark shadow-sm text-gray-900 dark:text-white'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                                 }`}
                         >
                             State ({schemes.filter(s => s.scheme_type === 'state').length})
@@ -126,8 +128,10 @@ const SchemesDashboard = ({ onBack, onNotificationClick, onNavigate, userProfile
 
                 {/* Loading */}
                 {isLoading && (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <h3 className="font-semibold text-gray-800 dark:text-gray-200">Generating AI Schemes</h3>
+                        <p className="text-sm text-gray-500 mt-2 max-w-[250px]">Analyzing your location and profile to find the most relevant real-time agricultural schemes...</p>
                     </div>
                 )}
 
@@ -213,6 +217,24 @@ const SchemesDashboard = ({ onBack, onNotificationClick, onNavigate, userProfile
                     </div>
                 )}
             </main>
+
+            {/* Floating Chat Button */}
+            {!isLoading && !error && schemes.length > 0 && (
+                <button
+                    onClick={() => setIsChatOpen(true)}
+                    className="absolute bottom-24 right-5 bg-gradient-to-r from-primary to-green-500 text-slate-900 w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform z-30"
+                >
+                    <span className="material-icons-round text-2xl">smart_toy</span>
+                </button>
+            )}
+
+            {/* AI Assistant Modal */}
+            <SchemeChatModal
+                isOpen={isChatOpen}
+                onClose={() => setIsChatOpen(false)}
+                schemesContext={filteredSchemes}
+                userProfile={userProfile}
+            />
 
             {/* Bottom Nav */}
             <BottomNavbar activeTab="schemes" onNavigate={onNavigate} />

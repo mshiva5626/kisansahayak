@@ -1,6 +1,8 @@
 import React from 'react';
 
 const CropAnalysisResults = ({ onBack, onViewTreatment, scanResult }) => {
+    const isHealthy = scanResult?.indicators?.length === 0 && !scanResult?.analysis?.overall_assessment?.toLowerCase().includes('disease');
+
     return (
         <div className="w-full max-w-md mx-auto bg-white dark:bg-background-dark h-screen relative shadow-2xl overflow-hidden flex flex-col font-display antialiased">
             {/* Header */}
@@ -22,7 +24,7 @@ const CropAnalysisResults = ({ onBack, onViewTreatment, scanResult }) => {
                     <img
                         alt="Scanned Crop"
                         className="w-full h-full object-cover"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZ793hAvSv1pjZAR504l1YZU042Rn44ee3WG1gvPOCRfX_9DJ9Ls0rJglI1fItvxJ4xBvBw6X_rJLHJSREsKc2MKQHQlTOJ1pwIjpxsf5kmzw05weAJrO9WKKGMQ62a_CSQD8ZxAqnZJ2QTbuNJkWbtHVX92VmkhMiGLwtoo-9dkA5JZ9bxGTBIqOKK7LwgEhrRWbYl2rWXxRutcAOLfOyEvIQ_84uODJaZAXUZwfnuViOkyjMyLcLHrIrwhkGNZ6a0ri6S51H0qmd"
+                        src={scanResult?.image_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuDZ793hAvSv1pjZAR504l1YZU042Rn44ee3WG1gvPOCRfX_9DJ9Ls0rJglI1fItvxJ4xBvBw6X_rJLHJSREsKc2MKQHQlTOJ1pwIjpxsf5kmzw05weAJrO9WKKGMQ62a_CSQD8ZxAqnZJ2QTbuNJkWbtHVX92VmkhMiGLwtoo-9dkA5JZ9bxGTBIqOKK7LwgEhrRWbYl2rWXxRutcAOLfOyEvIQ_84uODJaZAXUZwfnuViOkyjMyLcLHrIrwhkGNZ6a0ri6S51H0qmd"}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-transparent to-transparent opacity-60"></div>
                 </div>
@@ -40,8 +42,8 @@ const CropAnalysisResults = ({ onBack, onViewTreatment, scanResult }) => {
 
             {/* Bottom Sheet */}
             <div className="absolute bottom-0 left-0 w-full z-20 p-4 pb-8">
-                <div className="bg-white/95 dark:bg-background-dark/95 backdrop-blur-xl border border-white/60 dark:border-white/10 rounded-3xl p-6 shadow-2xl">
-                    <div className="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-6 opacity-50"></div>
+                <div className="bg-white/95 dark:bg-background-dark/95 backdrop-blur-xl border border-white/60 dark:border-white/10 rounded-3xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+                    <div className="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-6 opacity-50 shrink-0"></div>
 
                     {/* Diagnosis Header */}
                     <div className="flex items-start justify-between mb-4">
@@ -53,28 +55,38 @@ const CropAnalysisResults = ({ onBack, onViewTreatment, scanResult }) => {
                                 </span>
                                 <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{Math.round((scanResult?.confidence || 0.92) * 100)}% Confidence</span>
                             </div>
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">{scanResult?.analysis || 'Analyzing...'}</h2>
-                            <p className="text-xs text-gray-400 font-medium italic mt-0.5">{scanResult?.crop || 'Identifying crop...'}</p>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight mt-1">{scanResult?.analysis?.overall_assessment || scanResult?.analysis?.raw_analysis || 'Diagnostic Complete'}</h2>
+                            <p className="text-xs text-gray-400 font-medium italic mt-2">Detected: {scanResult?.indicators?.length > 0 ? scanResult.indicators.join(', ') : 'No primary stress indicators'}</p>
                         </div>
-                        <div className={`h-12 w-12 rounded-2xl ${scanResult?.analysis === 'Healthy' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'} flex items-center justify-center`}>
-                            <span className="material-icons text-2xl font-bold">{scanResult?.analysis === 'Healthy' ? 'verified' : 'warning'}</span>
+                        <div className={`h-12 w-12 rounded-2xl ${isHealthy ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'} flex items-center justify-center shrink-0 ml-3`}>
+                            <span className="material-icons text-2xl font-bold">{isHealthy ? 'verified' : 'warning'}</span>
                         </div>
                     </div>
 
                     {/* Brief Description */}
                     <div className="mb-6">
                         <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed text-left">
-                            {scanResult?.recommendation || 'Please wait while AI generates treatment advice...'}
+                            <strong>Color & Texture:</strong> {scanResult?.analysis?.color_patterns} {scanResult?.analysis?.texture_analysis}
+                        </p>
+                        <p className="text-sm pt-3 font-semibold text-primary leading-relaxed text-left">
+                            {scanResult?.analysis?.recommendations?.join(' ') || scanResult?.analysis?.raw_analysis || 'Please wait while AI generates treatment advice...'}
                         </p>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="space-y-3">
                         <button
+                            onClick={onViewTreatment}
+                            className="w-full bg-slate-900 dark:bg-slate-100 hover:bg-black text-white dark:text-slate-900 font-bold py-4 px-6 rounded-xl shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                        >
+                            <span className="material-icons text-lg">psychology</span>
+                            <span>Ask AI for Treatment Plan</span>
+                        </button>
+                        <button
                             onClick={onBack}
                             className="w-full bg-primary hover:bg-primary-dark text-black font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center"
                         >
-                            <span>Back to Diagnostics</span>
+                            <span>Scan Another Leaf</span>
                         </button>
                     </div>
                 </div>

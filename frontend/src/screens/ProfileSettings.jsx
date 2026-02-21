@@ -24,7 +24,8 @@ const ProfileSettings = ({ onBack, onSave, onNavigate, userProfile, setUserProfi
                 mobile_number: userProfile.mobile_number || '',
                 farming_type: userProfile.farming_type || '',
                 state: userProfile.state || '',
-                district: userProfile.district || ''
+                district: userProfile.district || '',
+                preferred_language: userProfile.preferred_language || 'en'
             });
         }
     }, [userProfile]);
@@ -110,6 +111,39 @@ const ProfileSettings = ({ onBack, onSave, onNavigate, userProfile, setUserProfi
                                         placeholder="Primary Crop (e.g. Cotton)"
                                         className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary"
                                     />
+                                    <input
+                                        type="email"
+                                        value={userProfile?.email || ''}
+                                        disabled
+                                        placeholder="Email (Read Only)"
+                                        className="w-full bg-gray-100 dark:bg-black/40 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-500 cursor-not-allowed outline-none"
+                                    />
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={formData.state}
+                                            onChange={e => setFormData({ ...formData, state: e.target.value })}
+                                            placeholder="State"
+                                            className="w-1/2 bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={formData.district}
+                                            onChange={e => setFormData({ ...formData, district: e.target.value })}
+                                            placeholder="District"
+                                            className="w-1/2 bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary"
+                                        />
+                                    </div>
+                                    <select
+                                        value={formData.preferred_language || 'en'}
+                                        onChange={e => setFormData({ ...formData, preferred_language: e.target.value })}
+                                        className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary"
+                                    >
+                                        <option value="en">English</option>
+                                        <option value="hi">Hindi</option>
+                                        <option value="mr">Marathi</option>
+                                        <option value="te">Telugu</option>
+                                    </select>
                                 </div>
                             ) : (
                                 <>

@@ -1,10 +1,13 @@
-const { getIsConnected } = require('../config/db');
+const { getSupabase } = require('../config/db');
 
 // Create a new farm
 exports.createFarm = async (req, res) => {
     try {
+        const supabase = getSupabase();
+        const userId = req.user._id || req.user.id;
+
         const farmData = {
-            userId: req.user._id,
+            user_id: userId,
             farm_name: req.body.farm_name || req.body.name,
             state: req.body.state || '',
             area: req.body.area || '',
@@ -16,14 +19,15 @@ exports.createFarm = async (req, res) => {
             longitude: req.body.longitude || (req.body.location && req.body.location.lon) || null
         };
 
-        let farm;
-        if (getIsConnected()) {
-            const Farm = require('../models/Farm');
-            farm = await Farm.create(farmData);
-        } else {
-            const { FarmStore } = require('../memoryStore');
-            farm = await FarmStore.create(farmData);
-        }
+        const { data: farm, error } = await supabase
+            .from('farms')
+            .insert([farmData])
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        farm._id = farm.id;
 
         res.status(201).json({ farm });
     } catch (error) {
@@ -35,14 +39,18 @@ exports.createFarm = async (req, res) => {
 // Get all farms for a user
 exports.getFarms = async (req, res) => {
     try {
-        let farms;
-        if (getIsConnected()) {
-            const Farm = require('../models/Farm');
-            farms = await Farm.find({ userId: req.user._id }).sort({ createdAt: -1 });
-        } else {
-            const { FarmStore } = require('../memoryStore');
-            farms = await FarmStore.find({ userId: req.user._id }, { createdAt: -1 });
-        }
+        const supabase = getSupabase();
+        const userId = req.user._id || req.user.id;
+
+        const { data: rawFarms, error } = await supabase
+            .from('farms')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const farms = rawFarms.map(f => ({ ...f, _id: f.id }));
         res.status(200).json({ farms });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -52,15 +60,19 @@ exports.getFarms = async (req, res) => {
 // Get a single farm by ID
 exports.getFarmById = async (req, res) => {
     try {
-        let farm;
-        if (getIsConnected()) {
-            const Farm = require('../models/Farm');
-            farm = await Farm.findOne({ _id: req.params.id, userId: req.user._id });
-        } else {
-            const { FarmStore } = require('../memoryStore');
-            farm = await FarmStore.findOne({ _id: req.params.id, userId: req.user._id });
-        }
-        if (!farm) return res.status(404).json({ message: 'Farm not found' });
+        const supabase = getSupabase();
+        const userId = req.user._id || req.user.id;
+
+        const { data: farm, error } = await supabase
+            .from('farms')
+            .select('*')
+            .eq('id', req.params.id)
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        if (error || !farm) return res.status(404).json({ message: 'Farm not found' });
+
+        farm._id = farm.id;
         res.status(200).json({ farm });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -70,27 +82,28 @@ exports.getFarmById = async (req, res) => {
 // Update a farm
 exports.updateFarm = async (req, res) => {
     try {
-        let farm;
-        if (getIsConnected()) {
-            const Farm = require('../models/Farm');
-            farm = await Farm.findOne({ _id: req.params.id, userId: req.user._id });
-        } else {
-            const { FarmStore } = require('../memoryStore');
-            farm = await FarmStore.findOne({ _id: req.params.id, userId: req.user._id });
-        }
-        if (!farm) return res.status(404).json({ message: 'Farm not found' });
+        const supabase = getSupabase();
+        const userId = req.user._id || req.user.id;
 
-        const fields = ['farm_name', 'state', 'area', 'terrain_type', 'water_source', 'crop_type', 'sowing_date', 'latitude', 'longitude', 'status'];
+        const fields = ['farm_name', 'state', 'area', 'terrain_type', 'water_source', 'crop_type', 'sowing_date', 'latitude', 'longitude'];
+        const updates = {};
+
         fields.forEach(field => {
-            if (req.body[field] !== undefined) farm[field] = req.body[field];
+            if (req.body[field] !== undefined) updates[field] = req.body[field];
         });
+        updates.updated_at = new Date().toISOString();
 
-        if (getIsConnected()) {
-            await farm.save();
-        } else {
-            const { FarmStore } = require('../memoryStore');
-            await FarmStore.save(farm);
-        }
+        const { data: farm, error } = await supabase
+            .from('farms')
+            .update(updates)
+            .eq('id', req.params.id)
+            .eq('user_id', userId)
+            .select()
+            .maybeSingle();
+
+        if (error || !farm) return res.status(404).json({ message: 'Farm not found' });
+
+        farm._id = farm.id;
         res.status(200).json({ farm });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -100,15 +113,17 @@ exports.updateFarm = async (req, res) => {
 // Delete a farm
 exports.deleteFarm = async (req, res) => {
     try {
-        let farm;
-        if (getIsConnected()) {
-            const Farm = require('../models/Farm');
-            farm = await Farm.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
-        } else {
-            const { FarmStore } = require('../memoryStore');
-            farm = await FarmStore.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
-        }
-        if (!farm) return res.status(404).json({ message: 'Farm not found' });
+        const supabase = getSupabase();
+        const userId = req.user._id || req.user.id;
+
+        const { error, count } = await supabase
+            .from('farms')
+            .delete({ count: 'exact' })
+            .eq('id', req.params.id)
+            .eq('user_id', userId);
+
+        if (error || count === 0) return res.status(404).json({ message: 'Farm not found' });
+
         res.status(200).json({ message: 'Farm deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });

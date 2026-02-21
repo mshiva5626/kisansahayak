@@ -1,0 +1,165 @@
+{
+  "users": [
+    {
+      "_id": "mem_1_mlvsczhh",
+      "email": "m.shivaryoyo@gmail.com",
+      "password": "$2b$10$hnE8R6lT0ViNe1N9vAEvuulnFZTIWn02laoFFXgqas9f/.YHkKase",
+      "name": "Farmer",
+      "mobile_number": "",
+      "preferred_language": "en",
+      "state": "",
+      "district": "",
+      "farming_type": "",
+      "createdAt": "2026-02-21T03:55:25.734Z",
+      "updatedAt": "2026-02-21T03:55:25.734Z"
+    },
+    {
+      "_id": "mem_11_mlvxgc17",
+      "email": "testbot@example.com",
+      "password": "$2b$10$k0yXIryYAwj7BB9R66wx1.IhI.WhEIri8KIg34N.x13CVHvHkqLRq",
+      "name": "Test Bot",
+      "mobile_number": "",
+      "preferred_language": "en",
+      "state": "",
+      "district": "",
+      "farming_type": "",
+      "createdAt": "2026-02-21T06:18:00.043Z",
+      "updatedAt": "2026-02-21T06:18:00.043Z"
+    }
+  ],
+  "farms": [
+    {
+      "_id": "mem_2_mlvse4r6",
+      "userId": "mem_1_mlvsczhh",
+      "farm_name": "hi",
+      "state": "Odisha",
+      "area": "7",
+      "terrain_type": "sloping",
+      "water_source": "rainfed, canal, borewell",
+      "crop_type": "cotton",
+      "sowing_date": "2025-10-22",
+      "latitude": 19.0493,
+      "longitude": 83.8324,
+      "status": "Healthy",
+      "createdAt": "2026-02-21T03:56:19.219Z",
+      "updatedAt": "2026-02-21T03:56:19.219Z"
+    },
+    {
+      "_id": "mem_3_mlvsysg0",
+      "userId": "mem_1_mlvsczhh",
+      "farm_name": "coffee",
+      "state": "Odisha",
+      "area": "1",
+      "terrain_type": "sloping",
+      "water_source": "rainfed, borewell, canal, drip, sprinkler",
+      "crop_type": "Wheat",
+      "sowing_date": null,
+      "latitude": 19.0493,
+      "longitude": 83.8324,
+      "status": "Healthy",
+      "createdAt": "2026-02-21T04:12:23.040Z",
+      "updatedAt": "2026-02-21T04:12:23.040Z"
+    },
+    {
+      "_id": "mem_12_mlvxhc5l",
+      "userId": "mem_11_mlvxgc17",
+      "farm_name": "Test Farm Local",
+      "state": "Maharashtra",
+      "area": 5,
+      "terrain_type": "plain",
+      "water_source": "rainfed",
+      "crop_type": "Wheat",
+      "sowing_date": "2023-11-01",
+      "latitude": 18.5204,
+      "longitude": 73.8567,
+      "status": "Healthy",
+      "createdAt": "2026-02-21T06:18:46.858Z",
+      "updatedAt": "2026-02-21T06:18:46.858Z"
+    }
+  ],
+  "images": [
+    {
+      "_id": "mem_4_mlvt5sqf",
+      "farm_id": "mem_3_mlvsysg0",
+      "image_url": "/uploads/1771647470004-949256929.jpg",
+      "image_type": "leaf",
+      "analysis_result": null,
+      "confidence_score": null,
+      "createdAt": "2026-02-21T04:17:50.008Z",
+      "updatedAt": "2026-02-21T04:17:50.008Z"
+    },
+    {
+      "_id": "mem_5_mlvtap0z",
+      "farm_id": "mem_3_mlvsysg0",
+      "image_url": "/uploads/1771647698482-113890024.jpg",
+      "image_type": "leaf",
+      "analysis_result": null,
+      "confidence_score": null,
+      "createdAt": "2026-02-21T04:21:38.484Z",
+      "updatedAt": "2026-02-21T04:21:38.484Z"
+    },
+    {
+      "_id": "mem_6_mlvu8nkv",
+      "farm_id": "mem_3_mlvsysg0",
+      "image_url": "/uploads/1771649282909-100290175.jpg",
+      "image_type": "leaf",
+      "analysis_result": null,
+      "confidence_score": null,
+      "createdAt": "2026-02-21T04:48:02.911Z",
+      "updatedAt": "2026-02-21T04:48:02.911Z"
+    },
+    {
+      "_id": "mem_7_mlvua6gd",
+      "farm_id": "mem_2_mlvse4r6",
+      "image_url": "/uploads/1771649354028-744110433.jpg",
+      "image_type": "leaf",
+      "analysis_result": null,
+      "confidence_score": null,
+      "createdAt": "2026-02-21T04:49:14.030Z",
+      "updatedAt": "2026-02-21T04:49:14.030Z"
+    },
+    {
+      "_id": "mem_8_mlvw2crz",
+      "farm_id": "mem_3_mlvsysg0",
+      "image_url": "/uploads/1771652348206-540068409.jpg",
+      "image_type": "leaf",
+      "analysis_result": null,
+      "confidence_score": null,
+      "createdAt": "2026-02-21T05:39:08.208Z",
+      "updatedAt": "2026-02-21T05:39:08.208Z"
+    },
+    {
+      "_id": "mem_9_mlvwy8fu",
+      "farm_id": "mem_3_mlvsysg0",
+      "image_url": "/uploads/1771653835577-127366195.jpg",
+      "image_type": "leaf",
+      "analysis_result": null,
+      "confidence_score": null,
+      "createdAt": "2026-02-21T06:03:55.578Z",
+      "updatedAt": "2026-02-21T06:03:55.578Z"
+    },
+    {
+      "_id": "mem_10_mlvwyraa",
+      "farm_id": "mem_3_mlvsysg0",
+      "image_url": "/uploads/1771653860001-995064417.jpg",
+      "image_type": "leaf",
+      "analysis_result": null,
+      "confidence_score": null,
+      "createdAt": "2026-02-21T06:04:20.002Z",
+      "updatedAt": "2026-02-21T06:04:20.002Z"
+    },
+    {
+      "_id": "mem_13_mlvz81vw",
+      "farm_id": "mem_3_mlvsysg0",
+      "image_url": "/uploads/1771657652874-355271163.jpg",
+      "image_type": "leaf",
+      "analysis_result": null,
+      "confidence_score": null,
+      "createdAt": "2026-02-21T07:07:32.876Z",
+      "updatedAt": "2026-02-21T07:07:32.876Z"
+    }
+  ],
+  "advisories": [],
+  "notifications": [],
+  "_nextId": 14
+}

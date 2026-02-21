@@ -1,22 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const { getWeather } = require('../services/weatherService');
-const { getIsConnected } = require('../config/db');
+const { getSupabase } = require('../config/db');
 const { protect } = require('../middleware/authMiddleware');
-
-// Mongoose model
-let Farm;
-try { Farm = require('../models/Farm'); } catch (e) { }
-
-// Memory store
-const { FarmStore } = require('../memoryStore');
 
 // Helper
 async function getFarm(farmId, userId) {
-    if (getIsConnected()) {
-        return Farm.findOne({ _id: farmId, userId });
-    }
-    return FarmStore.findOne({ _id: farmId, userId });
+    const supabase = getSupabase();
+    const { data } = await supabase
+        .from('farms')
+        .select('*')
+        .eq('id', farmId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (data) data._id = data.id;
+    return data;
 }
 
 // Get weather by lat/lon query params
@@ -42,11 +41,14 @@ router.get('/farm/:farmId', protect, async (req, res) => {
             return res.status(404).json({ message: 'Farm not found' });
         }
 
-        if (!farm.latitude || !farm.longitude) {
+        const lat = farm.latitude || farm.location?.lat;
+        const lon = farm.longitude || farm.location?.lon;
+
+        if (!lat || !lon) {
             return res.status(400).json({ message: 'Farm does not have coordinates set' });
         }
 
-        const weatherData = await getWeather(farm.latitude, farm.longitude);
+        const weatherData = await getWeather(lat, lon);
         res.status(200).json({ farm_name: farm.farm_name, ...weatherData });
     } catch (error) {
         res.status(500).json({ message: error.message });

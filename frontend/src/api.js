@@ -1,9 +1,13 @@
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const API = axios.create({
-    baseURL: 'http://localhost:5000/api',
+    baseURL: API_BASE_URL,
     headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+        'Bypass-Tunnel-Reminder': 'true'
     }
 });
 
@@ -66,7 +70,7 @@ export const weatherAPI = {
 export const aiAPI = {
     getAdvisory: (farm_id, query, image_analysis) => API.post('/ai/advisory', { farm_id, query, image_analysis }),
     getAdvisoryHistory: (farmId) => API.get(`/ai/advisory/farm/${farmId}`),
-    chat: (query, farmData) => API.post('/ai/chat', { query, farmData })
+    chat: (messages, farm_id) => API.post('/ai/chat', { messages, farm_id })
 };
 
 // Image API
@@ -81,8 +85,10 @@ export const imageAPI = {
 // Government Schemes API
 export const schemeAPI = {
     getSchemes: (state) => API.get('/schemes', { params: state ? { state } : {} }),
+    getRealtimeSchemes: (state) => API.get('/schemes/realtime', { params: state ? { state } : {} }),
     getSchemeById: (id) => API.get(`/schemes/${id}`),
-    seedSchemes: () => API.post('/schemes/seed')
+    seedSchemes: () => API.post('/schemes/seed'),
+    chatSchemes: (messages, schemesContext) => API.post('/schemes/chat', { messages, schemesContext })
 };
 
 // Notification API
@@ -101,6 +107,11 @@ export const cropAPI = {
 // Location API
 export const locationAPI = {
     getSatelliteImage: (lat, lon) => API.get('/location/satellite', { params: { lat, lon } })
+};
+
+// Mandi Prices API
+export const mandiAPI = {
+    getPrices: (farmId, state, district) => API.get('/mandi-prices', { params: { farm_id: farmId, state, district } })
 };
 
 export default API;

@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { getIsConnected } = require('../config/db');
+const { getSupabase } = require('../config/db');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 
@@ -9,8 +9,8 @@ const otpStore = {};
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER || 'kisansahayakapp@gmail.com', // Replace with real or use ENV
-        pass: process.env.EMAIL_PASS || 'dummy_password' // Replace with App Password
+        user: process.env.EMAIL_USER || 'kisansahayakapp@gmail.com',
+        pass: process.env.EMAIL_PASS || 'dummy_password'
     }
 });
 
@@ -27,38 +27,35 @@ exports.register = async (req, res) => {
     }
 
     try {
-        let user;
+        const supabase = getSupabase();
+        const normalizedEmail = email.toLowerCase().trim();
 
-        if (getIsConnected()) {
-            const User = require('../models/User');
-            const existingUser = await User.findOne({ email });
-            if (existingUser) {
-                return res.status(400).json({ message: 'User already exists with this email' });
-            }
-            user = await User.create({ email, password, name: name || '' });
-        } else {
-            const { UserStore } = require('../memoryStore');
-            const existingUser = await UserStore.findOne({ email: email.toLowerCase().trim() });
-            if (existingUser) {
-                return res.status(400).json({ message: 'User already exists with this email' });
-            }
-            user = await UserStore.create({ email, password, name: name || '' });
+        const { data: existingUser } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', normalizedEmail)
+            .maybeSingle();
+
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists with this email' });
         }
 
-        const token = generateToken(user._id);
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const { data: user, error } = await supabase
+            .from('users')
+            .insert([{ email: normalizedEmail, password: hashedPassword, name: name || '' }])
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        const token = generateToken(user.id);
 
         res.status(201).json({
             token,
-            user: {
-                _id: user._id,
-                email: user.email,
-                name: user.name,
-                mobile_number: user.mobile_number || '',
-                preferred_language: user.preferred_language || 'en',
-                state: user.state || '',
-                district: user.district || '',
-                farming_type: user.farming_type || ''
-            }
+            user: { ...user, _id: user.id }
         });
     } catch (error) {
         console.error('Register error:', error.message);
@@ -75,38 +72,30 @@ exports.login = async (req, res) => {
     }
 
     try {
-        let user, isMatch;
+        const supabase = getSupabase();
+        const normalizedEmail = email.toLowerCase().trim();
 
-        if (getIsConnected()) {
-            const User = require('../models/User');
-            user = await User.findOne({ email });
-            if (!user) return res.status(401).json({ message: 'Invalid email or password' });
-            isMatch = await user.matchPassword(password);
-        } else {
-            const { UserStore } = require('../memoryStore');
-            user = await UserStore.findOne({ email: email.toLowerCase().trim() });
-            if (!user) return res.status(401).json({ message: 'Invalid email or password' });
-            isMatch = await UserStore.matchPassword(user, password);
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', normalizedEmail)
+            .maybeSingle();
+
+        if (error || !user) {
+            return res.status(401).json({ message: 'Invalid email or password' });
         }
+
+        const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-        const token = generateToken(user._id);
+        const token = generateToken(user.id);
 
         res.status(200).json({
             token,
-            user: {
-                _id: user._id,
-                email: user.email,
-                name: user.name,
-                mobile_number: user.mobile_number || '',
-                preferred_language: user.preferred_language || 'en',
-                state: user.state || '',
-                district: user.district || '',
-                farming_type: user.farming_type || ''
-            }
+            user: { ...user, _id: user.id }
         });
     } catch (error) {
         console.error('Login error:', error.message);
@@ -117,19 +106,18 @@ exports.login = async (req, res) => {
 // Get user profile
 exports.getProfile = async (req, res) => {
     try {
-        let user;
-        if (getIsConnected()) {
-            const User = require('../models/User');
-            user = await User.findById(req.user._id).select('-password');
-        } else {
-            const { UserStore } = require('../memoryStore');
-            user = await UserStore.findById(req.user._id);
-            if (user) {
-                const { password, ...safe } = user;
-                user = safe;
-            }
-        }
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        const supabase = getSupabase();
+        const userId = req.user._id || req.user.id;
+
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('id, name, email, mobile_number, farming_type, preferred_language, state, district')
+            .eq('id', userId)
+            .maybeSingle();
+
+        if (error || !user) return res.status(404).json({ message: 'User not found' });
+
+        user._id = user.id; // Map id to _id for frontend compatibility
         res.status(200).json({ user });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -139,46 +127,33 @@ exports.getProfile = async (req, res) => {
 // Update profile
 exports.updateProfile = async (req, res) => {
     const { name, mobile_number, preferred_language, state, district, farming_type } = req.body;
+    const userId = req.user._id || req.user.id;
 
     try {
-        let user;
+        const supabase = getSupabase();
 
-        if (getIsConnected()) {
-            const User = require('../models/User');
-            user = await User.findById(req.user._id);
-            if (!user) return res.status(404).json({ message: 'User not found' });
-            if (name !== undefined) user.name = name;
-            if (mobile_number !== undefined) user.mobile_number = mobile_number;
-            if (preferred_language !== undefined) user.preferred_language = preferred_language;
-            if (state !== undefined) user.state = state;
-            if (district !== undefined) user.district = district;
-            if (farming_type !== undefined) user.farming_type = farming_type;
-            await user.save();
-        } else {
-            const { UserStore } = require('../memoryStore');
-            user = await UserStore.findById(req.user._id);
-            if (!user) return res.status(404).json({ message: 'User not found' });
-            if (name !== undefined) user.name = name;
-            if (mobile_number !== undefined) user.mobile_number = mobile_number;
-            if (preferred_language !== undefined) user.preferred_language = preferred_language;
-            if (state !== undefined) user.state = state;
-            if (district !== undefined) user.district = district;
-            if (farming_type !== undefined) user.farming_type = farming_type;
-            await UserStore.save(user);
-        }
+        const updates = {};
+        if (name !== undefined) updates.name = name;
+        if (mobile_number !== undefined) updates.mobile_number = mobile_number;
+        if (preferred_language !== undefined) updates.preferred_language = preferred_language;
+        if (state !== undefined) updates.state = state;
+        if (district !== undefined) updates.district = district;
+        if (farming_type !== undefined) updates.farming_type = farming_type;
 
-        res.status(200).json({
-            user: {
-                _id: user._id,
-                email: user.email,
-                name: user.name,
-                mobile_number: user.mobile_number || '',
-                preferred_language: user.preferred_language || 'en',
-                state: user.state || '',
-                district: user.district || '',
-                farming_type: user.farming_type || ''
-            }
-        });
+        updates.updated_at = new Date().toISOString();
+
+        const { data: user, error } = await supabase
+            .from('users')
+            .update(updates)
+            .eq('id', userId)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        user._id = user.id;
+
+        res.status(200).json({ user });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -190,29 +165,26 @@ exports.forgotPassword = async (req, res) => {
     if (!email) return res.status(400).json({ message: 'Email is required' });
 
     try {
-        let user;
-        if (getIsConnected()) {
-            const User = require('../models/User');
-            user = await User.findOne({ email });
-        } else {
-            const { UserStore } = require('../memoryStore');
-            user = await UserStore.findOne({ email: email.toLowerCase().trim() });
-        }
+        const supabase = getSupabase();
+        const normalizedEmail = email.toLowerCase().trim();
+
+        const { data: user } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', normalizedEmail)
+            .maybeSingle();
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Generate 6 digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Store OTP with 10 minute expiry
-        otpStore[email.toLowerCase().trim()] = {
+        otpStore[normalizedEmail] = {
             otp,
             expiresAt: Date.now() + 10 * 60 * 1000
         };
 
-        // Send Email
         const mailOptions = {
             from: process.env.EMAIL_USER || 'kisansahayakapp@gmail.com',
             to: email,
@@ -227,7 +199,6 @@ exports.forgotPassword = async (req, res) => {
             `
         };
 
-        // Log to console for easy testing if email fails
         console.log(`[DEV ONLY] OTP for ${email}: ${otp}`);
 
         try {
@@ -268,23 +239,19 @@ exports.resetPassword = async (req, res) => {
     }
 
     try {
-        if (getIsConnected()) {
-            const User = require('../models/User');
-            const user = await User.findOne({ email: normalizedEmail });
-            const salt = await bcrypt.genSalt(10);
-            user.password = await bcrypt.hash(newPassword, salt);
-            await user.save();
-        } else {
-            const { UserStore } = require('../memoryStore');
-            const user = await UserStore.findOne({ email: normalizedEmail });
-            const salt = await bcrypt.genSalt(10);
-            user.password = await bcrypt.hash(newPassword, salt);
-            await UserStore.save(user);
-        }
+        const supabase = getSupabase();
 
-        // Clean up OTP
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        const { error } = await supabase
+            .from('users')
+            .update({ password: hashedPassword, updated_at: new Date().toISOString() })
+            .eq('email', normalizedEmail);
+
+        if (error) throw error;
+
         delete otpStore[normalizedEmail];
-
         res.status(200).json({ message: 'Password reset successful' });
     } catch (error) {
         res.status(500).json({ message: error.message });

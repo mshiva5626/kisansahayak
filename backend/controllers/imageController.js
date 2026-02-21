@@ -1,21 +1,19 @@
-const { getIsConnected } = require('../config/db');
+const { getSupabase } = require('../config/db');
 const { analyzeImageWithAI } = require('../services/imageAnalysisService');
 const path = require('path');
 
-// Mongoose models
-let Image, Farm;
-try { Image = require('../models/Image'); } catch (e) { }
-try { Farm = require('../models/Farm'); } catch (e) { }
-
-// Memory stores
-const { FarmStore, ImageStore } = require('../memoryStore');
-
 // Helper
 async function getFarm(farmId, userId) {
-    if (getIsConnected()) {
-        return Farm.findOne({ _id: farmId, userId });
-    }
-    return FarmStore.findOne({ _id: farmId, userId });
+    const supabase = getSupabase();
+    const { data } = await supabase
+        .from('farms')
+        .select('*')
+        .eq('id', farmId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (data) data._id = data.id;
+    return data;
 }
 
 // Upload an image for a farm
@@ -26,32 +24,61 @@ exports.uploadImage = async (req, res) => {
         }
 
         const { farm_id, image_type } = req.body;
+        const userId = req.user._id || req.user.id;
 
         if (!farm_id) {
             return res.status(400).json({ message: 'farm_id is required' });
         }
 
-        const farm = await getFarm(farm_id, req.user._id);
+        const farm = await getFarm(farm_id, userId);
         if (!farm) {
             return res.status(404).json({ message: 'Farm not found' });
         }
 
-        const image_url = `/uploads/${req.file.filename}`;
+        const fs = require('fs');
+        const fileBuffer = fs.readFileSync(req.file.path);
+        const fileName = req.file.filename;
 
-        let image;
-        if (getIsConnected()) {
-            image = await Image.create({
-                farm_id,
-                image_url,
-                image_type: image_type || 'field'
+        console.log(`\n--- SUPABASE STORAGE UPLOAD ---`);
+        console.log(`Starting upload for: ${fileName}`);
+
+        const supabase = getSupabase();
+
+        // Attempt to upload to Supabase Storage
+        const { data: uploadData, error: storageError } = await supabase.storage
+            .from('farm_images')
+            .upload(fileName, fileBuffer, {
+                contentType: req.file.mimetype,
+                upsert: true
             });
-        } else {
-            image = await ImageStore.create({
-                farm_id,
-                image_url,
-                image_type: image_type || 'field'
-            });
+
+        if (storageError) {
+            console.error('❌ Supabase Storage Error:', storageError.message);
+            throw new Error(`Cloud storage upload failed: ${storageError.message}. Make sure you created a public bucket named 'farm_images' in your Supabase dashboard.`);
         }
+
+        console.log(`✅ Upload successful:`, uploadData.path);
+
+        const { data: publicUrlData } = supabase.storage
+            .from('farm_images')
+            .getPublicUrl(uploadData.path);
+
+        const image_url = publicUrlData.publicUrl;
+
+        console.log(`Public URL generated:`, image_url);
+
+        const { data: image, error } = await supabase
+            .from('images')
+            .insert([{
+                farm_id,
+                image_url,
+                image_type: image_type || 'field'
+            }])
+            .select()
+            .single();
+
+        if (error) throw error;
+        image._id = image.id;
 
         res.status(201).json({ image });
     } catch (error) {
@@ -63,38 +90,46 @@ exports.uploadImage = async (req, res) => {
 // Analyze an uploaded image with AI
 exports.analyzeImage = async (req, res) => {
     try {
-        let image;
-        if (getIsConnected()) {
-            image = await Image.findById(req.params.id);
-        } else {
-            image = await ImageStore.findById(req.params.id);
-        }
+        const supabase = getSupabase();
+        const userId = req.user._id || req.user.id;
 
-        if (!image) {
+        const { data: image, error: imgError } = await supabase
+            .from('images')
+            .select('*')
+            .eq('id', req.params.id)
+            .maybeSingle();
+
+        if (imgError || !image) {
             return res.status(404).json({ message: 'Image not found' });
         }
 
-        const farm = await getFarm(image.farm_id, req.user._id);
-        if (!farm) {
-            return res.status(403).json({ message: 'Access denied' });
+        const farm = await getFarm(image.farm_id, userId);
+
+        let imagePath = image.image_url;
+
+        // If it's still a local path from older test data, resolve it, otherwise use the URL directly
+        if (!imagePath.startsWith('http')) {
+            imagePath = path.join(__dirname, '..', imagePath);
         }
 
-        const imagePath = path.join(__dirname, '..', image.image_url);
+        console.log(`\n--- TRIGGERING GEMINI ANALYSIS ---`);
+        console.log(`Analyzing image: ${imagePath}`);
 
         const analysisResult = await analyzeImageWithAI(imagePath, image.image_type, farm);
 
         // Save analysis result
-        image.analysis_result = analysisResult.analysis;
-        image.confidence_score = analysisResult.confidence_score;
+        const { error: updateError } = await supabase
+            .from('images')
+            .update({
+                analysis_result: analysisResult.analysis,
+                confidence_score: analysisResult.confidence_score
+            })
+            .eq('id', image.id);
 
-        if (getIsConnected()) {
-            await image.save();
-        } else {
-            await ImageStore.save(image);
-        }
+        if (updateError) throw updateError;
 
         res.status(200).json({
-            image_id: image._id,
+            image_id: image.id,
             image_type: image.image_type,
             analysis_result: analysisResult.analysis,
             confidence_score: analysisResult.confidence_score,
@@ -109,17 +144,22 @@ exports.analyzeImage = async (req, res) => {
 // Get all images for a farm
 exports.getImagesByFarm = async (req, res) => {
     try {
-        const farm = await getFarm(req.params.farmId, req.user._id);
+        const userId = req.user._id || req.user.id;
+        const farm = await getFarm(req.params.farmId, userId);
         if (!farm) {
             return res.status(404).json({ message: 'Farm not found' });
         }
 
-        let images;
-        if (getIsConnected()) {
-            images = await Image.find({ farm_id: req.params.farmId }).sort({ createdAt: -1 });
-        } else {
-            images = await ImageStore.find({ farm_id: req.params.farmId });
-        }
+        const supabase = getSupabase();
+        const { data: rawImages, error } = await supabase
+            .from('images')
+            .select('*')
+            .eq('farm_id', req.params.farmId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const images = rawImages.map(img => ({ ...img, _id: img.id }));
 
         res.status(200).json({ images });
     } catch (error) {

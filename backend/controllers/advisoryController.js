@@ -1,34 +1,18 @@
-const { getIsConnected } = require('../config/db');
+const { getSupabase } = require('../config/db');
 const { getAIAdvisory } = require('../services/aiService');
 const { getWeather } = require('../services/weatherService');
-
-// Mongoose models (only used when MongoDB is connected)
-let Advisory, Farm, User, Scheme;
-try { Advisory = require('../models/Advisory'); } catch (e) { }
-try { Farm = require('../models/Farm'); } catch (e) { }
-try { User = require('../models/User'); } catch (e) { }
-try { Scheme = require('../models/Scheme'); } catch (e) { }
-
-// Memory stores
-const { FarmStore, UserStore, AdvisoryStore, SchemeStore } = require('../memoryStore');
-const schemeSeedData = require('../config/schemeSeedData');
-SchemeStore.load(schemeSeedData);
 
 // Helper: get schemes for state
 async function getSchemesForState(state) {
     if (!state) return [];
     try {
-        if (getIsConnected() && Scheme) {
-            return await Scheme.find({
-                $or: [
-                    { scheme_type: 'central' },
-                    { state: { $regex: new RegExp(state, 'i') } }
-                ]
-            }).limit(5);
-        }
-        // Memory store
-        const schemes = await SchemeStore.find(state ? { state } : {});
-        return schemes.slice(0, 5);
+        const supabase = getSupabase();
+        const { data } = await supabase
+            .from('schemes')
+            .select('*')
+            .or(`scheme_type.eq.central,state.ilike.%${state}%`)
+            .limit(5);
+        return data || [];
     } catch (e) {
         console.error('Error fetching schemes for AI config:', e);
         return [];
@@ -37,66 +21,87 @@ async function getSchemesForState(state) {
 
 // Helper: get farm by id + userId
 async function getFarm(farmId, userId) {
-    if (getIsConnected()) {
-        return Farm.findOne({ _id: farmId, userId });
-    }
-    return FarmStore.findOne({ _id: farmId, userId });
+    const supabase = getSupabase();
+    const { data } = await supabase
+        .from('farms')
+        .select('*')
+        .eq('id', farmId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (data) data._id = data.id;
+    return data;
 }
 
 // Helper: get user
 async function getUser(userId) {
-    if (getIsConnected()) {
-        return User.findById(userId).select('-password');
-    }
-    const user = await UserStore.findById(userId);
-    if (user) {
-        const { password, ...rest } = user;
-        return rest;
-    }
-    return null;
+    const supabase = getSupabase();
+    const { data } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (data) data._id = data.id;
+    return data;
 }
 
 // Helper: save advisory
 async function saveAdvisory(data) {
-    if (getIsConnected()) {
-        return Advisory.create(data);
-    }
-    return AdvisoryStore.create(data);
+    const supabase = getSupabase();
+    const { data: adv, error } = await supabase
+        .from('advisories')
+        .insert([data])
+        .select()
+        .single();
+
+    if (error) throw error;
+    if (adv) adv._id = adv.id;
+    return adv;
 }
 
 // Get a full AI advisory for a farm
 exports.getAdvisory = async (req, res) => {
     try {
         const { farm_id, query, image_analysis } = req.body;
+        const userId = req.user._id || req.user.id;
 
         if (!farm_id || !query) {
             return res.status(400).json({ message: 'farm_id and query are required' });
         }
 
-        const farm = await getFarm(farm_id, req.user._id);
+        const farm = await getFarm(farm_id, userId);
         if (!farm) {
             return res.status(404).json({ message: 'Farm not found' });
         }
 
         // Conditional Feature Logic (Rule 2)
-        if (!farm.crop_type || !farm.latitude || !farm.longitude) {
+        const lat = farm.latitude || farm.location?.lat;
+        const lon = farm.longitude || farm.location?.lon;
+
+        console.log(`[DEBUG getAdvisory] Farm: ${farm.farm_name}, Crop: ${farm.crop_type}, Lat: ${lat}, Lon: ${lon}, Raw Farm Object:`, JSON.stringify(farm));
+
+        if (!farm.crop_type || !lat || !lon) {
             return res.status(200).json({
-                response: 'Insufficient farm setup. Please complete farm configuration.',
+                response: 'Insufficient farm setup. Please complete your farm configuration including crop type and location to receive specific advice.',
                 weather: null,
                 created_at: new Date()
             });
         }
 
-        const farmer = await getUser(req.user._id);
+        const farmer = await getUser(userId);
 
         // Fetch weather if coordinates available
         let weatherData = null;
         try {
-            weatherData = await getWeather(farm.latitude, farm.longitude);
+            console.log(`\n--- WEATHER API REQUEST ---`);
+            console.log(`Coordinates: Lat ${lat}, Lon ${lon}`);
+            weatherData = await getWeather(lat, lon);
+            console.log(`Weather Fetched: ${weatherData.temperature || weatherData.temp}°C, ${weatherData.condition}`);
         } catch (err) {
-            console.error('Weather fetch failed for advisory:', err.message);
+            console.error('\n❌ Weather fetch failed for advisory:', err.message);
             return res.status(200).json({
-                response: 'Insufficient farm setup. Please complete farm configuration.',
+                response: 'Weather data temporarily unavailable for your location. Please try again later.',
                 weather: null,
                 created_at: new Date()
             });
@@ -136,7 +141,7 @@ exports.getAdvisory = async (req, res) => {
         const advisoryText = await getAIAdvisory(query, context);
 
         const advisory = await saveAdvisory({
-            farm_id: farm._id,
+            farm_id: farm._id || farm.id,
             advisory_text: advisoryText,
             weather_snapshot: weatherData,
             query: query
@@ -146,7 +151,7 @@ exports.getAdvisory = async (req, res) => {
             advisory_id: advisory._id,
             response: advisoryText,
             weather: weatherData,
-            created_at: advisory.createdAt
+            created_at: advisory.created_at || new Date()
         });
     } catch (error) {
         console.error('Advisory error:', error.message);
@@ -157,19 +162,25 @@ exports.getAdvisory = async (req, res) => {
 // Get advisory history for a farm
 exports.getAdvisoryHistory = async (req, res) => {
     try {
-        const farm = await getFarm(req.params.farmId, req.user._id);
+        const userId = req.user._id || req.user.id;
+        const farmId = req.params.farmId;
+
+        const farm = await getFarm(farmId, userId);
         if (!farm) {
             return res.status(404).json({ message: 'Farm not found' });
         }
 
-        let advisories;
-        if (getIsConnected()) {
-            advisories = await Advisory.find({ farm_id: req.params.farmId })
-                .sort({ createdAt: -1 })
-                .limit(50);
-        } else {
-            advisories = await AdvisoryStore.find({ farm_id: req.params.farmId });
-        }
+        const supabase = getSupabase();
+        const { data: rawAdvisories, error } = await supabase
+            .from('advisories')
+            .select('*')
+            .eq('farm_id', farmId)
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+        if (error) throw error;
+
+        const advisories = rawAdvisories.map(a => ({ ...a, _id: a.id }));
 
         res.status(200).json({ advisories });
     } catch (error) {
@@ -177,46 +188,72 @@ exports.getAdvisoryHistory = async (req, res) => {
     }
 };
 
-// Simple chat endpoint (lighter than full advisory)
 exports.chat = async (req, res) => {
     try {
-        const { query, farmData } = req.body;
-        if (!query) {
-            return res.status(400).json({ message: 'Query is required' });
+        const { messages, farm_id } = req.body;
+        const userId = req.user._id || req.user.id;
+
+        if (!messages || !Array.isArray(messages) || messages.length === 0 || !farm_id) {
+            return res.status(400).json({ message: 'messages (array) and farm_id are required' });
         }
 
-        // Enforce Rule 2 Checks
-        if (!farmData || !farmData.crop_type || !farmData.latitude || !farmData.longitude) {
-            return res.status(200).json({ response: 'Insufficient farm setup. Please complete farm configuration.' });
+        const latestQuery = messages[messages.length - 1].content;
+
+        // 2b) Fetch farm by farm_id from Supabase
+        const farm = await getFarm(farm_id, userId);
+        if (!farm) {
+            return res.status(404).json({ message: 'Farm not found' });
         }
 
+        // 2c) Validate farm contains: crop, latitude, longitude
+        const lat = farm.latitude || farm.location?.lat;
+        const lon = farm.longitude || farm.location?.lon;
+
+        console.log(`[DEBUG chat] Farm: ${farm.farm_name}, Crop: ${farm.crop_type}, Lat: ${lat}, Lon: ${lon}, Raw Farm Object:`, JSON.stringify(farm));
+
+        if (!farm.crop_type || !lat || !lon) {
+            return res.status(400).json({ message: 'Incomplete farm setup. Please complete configuration.' });
+        }
+
+        const farmer = await getUser(userId);
+
+        // 3) Backend MUST fetch weather using farm coordinates
+        let weatherData = null;
+        try {
+            console.log(`\n--- WEATHER API REQUEST (Chat) ---`);
+            weatherData = await getWeather(lat, lon);
+            console.log(`Weather Fetched: ${weatherData.temperature || weatherData.temp}°C, ${weatherData.condition}`);
+        } catch (err) {
+            console.error('\n❌ Weather fetch for chat failed:', err.message);
+            return res.status(500).json({ message: 'Weather data unavailable. Aborting AI request.' });
+        }
+
+        const stateForSchemes = farm.state || farmer?.state;
+        const schemesData = await getSchemesForState(stateForSchemes);
+
+        // 4) Construct unified prompt
         const context = {
-            farmer: { name: req.user.name || 'Farmer' },
-            farm: farmData || {},
-            weather: null,
-            image_analysis: null
+            farmer: { name: farmer?.name, state: farmer?.state, district: farmer?.district, farming_type: farmer?.farming_type },
+            farm: farm,
+            weather: weatherData,
+            image_analysis: null,
+            schemes: schemesData
         };
 
-        // Fetch real weather, fail if unreachable
-        try {
-            context.weather = await getWeather(farmData.latitude, farmData.longitude);
-        } catch (err) {
-            console.error('Weather fetch for chat failed:', err.message);
-            return res.status(200).json({ response: 'Insufficient farm setup. Please complete farm configuration.' });
-        }
+        // 5) Backend MUST call AI Service
+        console.log(`Triggering AI Service for chat context...`);
+        const responseText = await getAIAdvisory(messages, context);
 
-        // If farmData has state/district, enrich farmer context
-        if (farmData?.state) {
-            context.farmer.state = farmData.state;
-        }
+        // 6) Backend MUST save advisory to Supabase
+        await saveAdvisory({
+            farm_id: farm._id || farm.id,
+            advisory_text: responseText,
+            weather_snapshot: weatherData,
+            query: latestQuery
+        });
 
-        const stateForSchemes = context.farmer.state;
-        if (stateForSchemes) {
-            context.schemes = await getSchemesForState(stateForSchemes);
-        }
-
-        const response = await getAIAdvisory(query, context);
-        res.status(200).json({ response });
+        // 7) Backend MUST return advisory to frontend
+        res.status(200).json({ response: responseText });
     } catch (error) {
         console.error('Chat error:', error.message);
         res.status(500).json({ message: error.message });

@@ -64,9 +64,19 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
     };
 
     const handleNext = async () => {
+        if (step === 1) {
+            if (!formData.name || !formData.area) return alert('Please provide farm name and area.');
+        } else if (step === 2) {
+            if (!formData.latitude || !formData.longitude) return alert('Please pin your farm location.');
+        } else if (step === 3) {
+            if (!formData.terrain || formData.waterSources.length === 0) return alert('Please select terrain and at least one water source.');
+        }
+
         if (step < 4) {
             setStep(step + 1);
         } else {
+            if (!formData.crop) return alert('Please specify the primary crop.');
+
             try {
                 setIsLoading(true);
                 const payload = {

@@ -21,6 +21,7 @@ import CropScannerViewfinder from './screens/CropScannerViewfinder';
 import AICopilotProcessingState from './screens/AICopilotProcessingState';
 import FarmerProfileSetup from './screens/FarmerProfileSetup';
 import SatelliteImagery from './screens/SatelliteImagery';
+import LiveMarketPrices from './screens/LiveMarketPrices';
 
 import { authAPI } from './api';
 
@@ -28,8 +29,9 @@ function App() {
   const [currentScreen, setCurrentScreen] = useState('welcome');
   const [language, setLanguage] = useState('en');
   const [userProfile, setUserProfile] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [scanResult, setScanResult] = useState(null);
+  const [chatContext, setChatContext] = useState(null);
   const [selectedFarmId, setSelectedFarmId] = useState(null);
 
   useEffect(() => {
@@ -43,6 +45,15 @@ function App() {
   }, []);
 
   const navigateTo = (screen) => {
+    // Implement strict auth blocking per user requirements
+    const publicScreens = ['welcome', 'language', 'login'];
+    const token = localStorage.getItem('token');
+
+    if (!publicScreens.includes(screen) && !token) {
+      console.warn(`Blocked navigation to ${screen} without auth token. Redirecting to login.`);
+      setCurrentScreen('login');
+      return;
+    }
     setCurrentScreen(screen);
   };
 
@@ -130,7 +141,10 @@ function App() {
       )}
       {currentScreen === 'dashboard' && (
         <Dashboard
-          onAICopilotClick={() => navigateTo('chat')}
+          onAICopilotClick={() => {
+            setChatContext(null);
+            navigateTo('chat');
+          }}
           onNotificationClick={() => navigateTo('notifications')}
           onProfileClick={() => navigateTo('account-info')}
           onScanClick={() => navigateTo('scanner')}
@@ -138,6 +152,7 @@ function App() {
           onFarmSwitcherClick={() => navigateTo('farm-switcher')}
           onSchemesClick={() => navigateTo('schemes')}
           onTodayFocusClick={() => navigateTo('priority-tasks')}
+          onMandiPricesClick={() => navigateTo('mandi-prices')}
           onNavigate={navigateTo}
           userProfile={userProfile}
           selectedFarmId={selectedFarmId}
@@ -183,7 +198,10 @@ function App() {
       {currentScreen === 'farm-center' && (
         <FarmActionCenter
           onBack={() => navigateTo('farm-list')}
-          onAICopilotClick={() => navigateTo('chat')}
+          onAICopilotClick={() => {
+            setChatContext(null);
+            navigateTo('chat');
+          }}
           onNavigate={(screen) => {
             if (screen === 'satellite') navigateTo('satellite');
             else navigateTo(screen);
@@ -201,6 +219,8 @@ function App() {
           onBack={() => navigateTo('dashboard')}
           selectedFarmId={selectedFarmId}
           userProfile={userProfile}
+          chatContext={chatContext}
+          clearContext={() => setChatContext(null)}
         />
       )}
       {currentScreen === 'notifications' && (
@@ -232,7 +252,10 @@ function App() {
       {currentScreen === 'scan-results' && (
         <CropAnalysisResults
           onBack={() => navigateTo('dashboard')}
-          onViewTreatment={() => navigateTo('chat')}
+          onViewTreatment={() => {
+            setChatContext({ type: 'crop_scan', data: scanResult });
+            navigateTo('chat');
+          }}
           scanResult={scanResult}
         />
       )}
@@ -261,7 +284,10 @@ function App() {
         <TodayPriorityTasks
           onBack={() => navigateTo('dashboard')}
           onTaskDone={() => console.log('Task done')}
-          onViewTreatment={() => navigateTo('chat')}
+          onViewTreatment={() => {
+            setChatContext(null);
+            navigateTo('chat');
+          }}
           onNavigate={navigateTo}
         />
       )}
@@ -269,6 +295,13 @@ function App() {
         <CropScannerViewfinder
           onBack={() => navigateTo('dashboard')}
           onCapture={handleScanCapture}
+          selectedFarmId={selectedFarmId}
+        />
+      )}
+      {currentScreen === 'mandi-prices' && (
+        <LiveMarketPrices
+          onBack={() => navigateTo('dashboard')}
+          userProfile={userProfile}
           selectedFarmId={selectedFarmId}
         />
       )}
