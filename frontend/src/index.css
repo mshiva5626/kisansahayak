@@ -65,6 +65,28 @@ body {
   scrollbar-width: none;
 }
 
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe Area Paddings for PWA/Mobile */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 20px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
 /* iOS-like Blur */
 .backdrop-blur-ios {
   backdrop-filter: blur(20px);
@@ -84,6 +106,102 @@ body {
   border: 1px solid rgba(238, 189, 43, 0.1);
 }
 
+/* Glass Buttons with Glow (From new designs) */
+@keyframes glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(93, 138, 42, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.1);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(93, 138, 42, 0.7), inset 0 0 20px rgba(255, 255, 255, 0.2);
+  }
+}
+
+.glass-glow-button {
+  background: linear-gradient(135deg, rgba(93, 138, 42, 0.9) 0%, rgba(76, 117, 32, 1) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  animation: glow 3s infinite ease-in-out;
+}
+
+.glass-glow-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: 0.5s;
+}
+
+.glass-glow-button:hover::before {
+  left: 100%;
+}
+
+.glass-glow-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(93, 138, 42, 0.5);
+}
+
+.glass-glow-button:active {
+  transform: translateY(0);
+}
+
+@keyframes glass-glow {
+  0% {
+    background-position: 0% 50%;
+    box-shadow: 0 0 15px rgba(19, 236, 19, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.1);
+  }
+
+  50% {
+    background-position: 100% 50%;
+    box-shadow: 0 0 25px rgba(19, 236, 19, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.2);
+  }
+
+  100% {
+    background-position: 0% 50%;
+    box-shadow: 0 0 15px rgba(19, 236, 19, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.1);
+  }
+}
+
+.btn-glass-glow {
+  background: linear-gradient(135deg, #13ec13 0%, #0ea80e 50%, #13ec13 100%);
+  background-size: 200% 200%;
+  animation: glass-glow 4s ease infinite;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-glass-glow::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(45deg);
+  transition: 0.5s;
+}
+
+.btn-glass-glow:hover::after {
+  left: 100%;
+}
+
+/* Header Curve Utility */
+.header-curve {
+  border-bottom-left-radius: 2rem;
+  border-bottom-right-radius: 2rem;
+}
+
 /* Hero Glow Effect */
 .hero-glow {
   background: radial-gradient(circle, rgba(238, 189, 43, 0.4) 0%, rgba(238, 189, 43, 0) 70%);
@@ -92,6 +210,21 @@ body {
 /* Camera Scanner Effects */
 .camera-overlay {
   background: radial-gradient(circle, transparent 40%, rgba(16, 34, 24, 0.6) 80%);
+}
+
+.scan-line {
+  animation: scan 2.5s ease-in-out infinite;
+  background: linear-gradient(to bottom, transparent, #13ec6d, transparent);
+  opacity: 0.6;
+}
+
+.corner-border {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-color: #13ec6d;
+  border-style: solid;
+  transition: all 0.3s ease;
 }
 
 @keyframes scan {
@@ -120,7 +253,20 @@ body {
 
 /* Glass Panel */
 .glass-panel {
-  @apply bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10;
+  @apply bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/60 dark:border-white/10;
+}
+
+/* Dark theme specific override for glass-panel from detailed_weather_insights */
+.dark .glass-panel {
+  background: rgba(22, 47, 33, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(19, 236, 109, 0.1);
+}
+
+.gradient-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Message bubble tails */

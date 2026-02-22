@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kisan Sahayak Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "primary-dark": "#0db80d",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                        "brand-green": "#5d8a2a",
+                        "brand-blue": "#205493",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                    backgroundImage: {
+                        'farmer-pattern': "url('https://images.unsplash.com/photo-1595267175252-47517c2dc1b9?q=80&w=1000&auto=format&fit=crop')"
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(93, 138, 42, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.1); }
+            50% { box-shadow: 0 0 25px rgba(93, 138, 42, 0.7), inset 0 0 20px rgba(255, 255, 255, 0.2); }
+        }
+        .glass-glow-button {
+            background: linear-gradient(135deg, rgba(93, 138, 42, 0.9) 0%, rgba(76, 117, 32, 1) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: glow 3s infinite ease-in-out;
+        }
+        .glass-glow-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        .glass-glow-button:hover::before {
+            left: 100%;
+        }
+        .glass-glow-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(93, 138, 42, 0.5);
+        }
+        .glass-glow-button:active {
+            transform: translateY(0);
+        }
+    </style></head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased h-screen flex flex-col overflow-hidden text-slate-900 dark:text-slate-100">
+<header class="relative pt-24 pb-20 px-6 flex flex-col items-center justify-center rounded-b-[2.5rem] shadow-lg z-20 shrink-0 overflow-hidden min-h-[320px]">
+<div class="absolute inset-0 z-0">
+<img alt="Golden wheat field sunset" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAl9s9050b-jlOfCaRfnfIzJZqr8Fpc57EBR92FlTqV7Gnk1nTjlV-cCf01-MPaunVG7ef8WyTCCWJzLtBoP3gNPkDPaJets5eeme5ve4E71jj1UZ_NTasKwuwBkWwhnf--0J0ePVGWI0-05C-A1Lm8Yuj3xvdVcCvbyH4v2uqT84Rp7BPEenmJV_Jcbd0Yr8nGfr1yTmZw2x1jzo3C75FRpScNtrubONiDpq-atZG3lDch6b7cL7-BLxeFXVztXiKASNxuhNKX7TfG"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/30"></div>
+</div>
+<div class="flex flex-col items-center justify-center gap-2 w-full relative z-10 mt-auto mb-4">
+<div class="text-center flex flex-col items-center drop-shadow-lg">
+<h1 class="text-[36px] font-extrabold tracking-tight leading-none text-white uppercase drop-shadow-md font-display">
+KISAN SAHAYAK
+</h1>
+<p class="text-white text-xl font-bold mt-1 tracking-wide drop-shadow-md">किसान सहायक</p>
+</div>
+</div>
+</header>
+<main class="flex-1 relative flex flex-col w-full max-w-md mx-auto z-10 -mt-8">
+<div class="absolute inset-0 z-0 opacity-[0.06] bg-farmer-pattern bg-cover bg-center pointer-events-none grayscale" data-alt="Indian farmer working in a field"></div>
+<div class="flex-1 overflow-y-auto no-scrollbar relative z-10 px-6 pb-4">
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 mb-6 border border-slate-100 dark:border-slate-700">
+<div class="mb-8 pt-2 text-center sm:text-left">
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Welcome Back</h2>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Please login to access your dashboard</p>
+</div>
+<form class="space-y-6" onsubmit="event.preventDefault();">
+<div class="space-y-1.5">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Mobile Number or Email</label>
+<div class="relative flex items-center group">
+<span class="absolute left-4 text-slate-400 group-focus-within:text-brand-green transition-colors duration-200">
+<span class="material-symbols-outlined">person</span>
+</span>
+<input class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg py-3.5 pl-12 pr-4 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all duration-200" placeholder="e.g. 9876543210" type="text"/>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Password</label>
+<div class="relative flex items-center group">
+<span class="absolute left-4 text-slate-400 group-focus-within:text-brand-green transition-colors duration-200">
+<span class="material-symbols-outlined">lock</span>
+</span>
+<input class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg py-3.5 pl-12 pr-12 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all duration-200" placeholder="Enter your password" type="password"/>
+<button class="absolute right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+<div class="flex justify-end pt-1">
+<a class="text-sm font-medium text-brand-green hover:text-green-700 transition-colors" href="#">Forgot Password?</a>
+</div>
+</div>
+<button class="w-full glass-glow-button text-white font-bold text-lg py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 mt-4 tracking-wider uppercase">
+<span>LOGIN</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+<div class="relative py-2 mt-2">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
+</div>
+<div class="relative flex justify-center text-xs uppercase tracking-wider">
+<span class="px-2 bg-white dark:bg-slate-800 text-slate-400 font-semibold">Secure &amp; Encrypted</span>
+</div>
+</div>
+</form>
+</div>
+<div class="p-4 text-center">
+<p class="text-slate-600 dark:text-slate-400 text-sm">
+                    Don't have an account? 
+                    <a class="font-bold text-brand-green ml-1 hover:underline" href="#">Register Here</a>
+</p>
+</div>
+</div>
+</main>
+</body></html>

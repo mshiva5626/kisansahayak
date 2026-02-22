@@ -2,7 +2,7 @@ import farmerImg from '../assets/farmer.jpg';
 
 const WelcomeScreen = ({ onGetStarted, onLogin }) => {
     return (
-        <div className="mx-auto max-w-md h-screen flex flex-col bg-white overflow-hidden relative font-sans">
+        <div className="w-full min-h-full flex flex-col bg-white overflow-x-hidden relative font-sans">
             {/* Top App Bar - Solid Green */}
             <div className="bg-[#0B4324] w-full pt-10 pb-4 px-6 flex justify-between items-center z-20 shrink-0">
                 <div className="flex items-center space-x-3">

@@ -128,10 +128,40 @@ const SchemesDashboard = ({ onBack, onNotificationClick, onNavigate, userProfile
 
                 {/* Loading */}
                 {isLoading && (
-                    <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                        <h3 className="font-semibold text-gray-800 dark:text-gray-200">Generating AI Schemes</h3>
-                        <p className="text-sm text-gray-500 mt-2 max-w-[250px]">Analyzing your location and profile to find the most relevant real-time agricultural schemes...</p>
+                    <div className="px-5 space-y-4 py-4 mt-2">
+                        <style>{`
+                            @keyframes shimmerSlide {
+                                100% { transform: translateX(100%); }
+                            }
+                        `}</style>
+                        <div className="flex flex-col items-center justify-center py-6 px-6 text-center mb-2 animate-pulse">
+                            <div className="relative flex justify-center items-center w-16 h-16 mb-4">
+                                <div className="absolute inset-0 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                                <div className="absolute inset-2 rounded-full border-4 border-[#13ec13]/20 border-b-[#13ec13] animate-[spin_1.5s_reverse_infinite]"></div>
+                                <span className="material-icons-round text-primary text-2xl drop-shadow-sm">smart_toy</span>
+                            </div>
+                            <h3 className="font-bold text-gray-800 dark:text-gray-200 text-lg">Curating AI Schemes</h3>
+                            <p className="text-xs text-gray-500 mt-2 max-w-[250px]">Scanning government databases to find maximum benefits for your profile...</p>
+                        </div>
+                        {[1, 2].map((i) => (
+                            <div key={i} className="bg-surface-light dark:bg-surface-dark rounded-2xl p-5 shadow-soft border border-gray-100 dark:border-gray-800 relative overflow-hidden">
+                                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/50 dark:via-white/5 to-transparent z-10" style={{ animation: 'shimmerSlide 2s infinite' }}></div>
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="w-16 h-5 bg-gray-200 dark:bg-gray-700/50 rounded-md"></div>
+                                    <div className="w-20 h-3 bg-gray-200 dark:bg-gray-700/50 rounded-md"></div>
+                                </div>
+                                <div className="w-3/4 h-5 bg-gray-200 dark:bg-gray-700/50 rounded-md mb-3"></div>
+                                <div className="space-y-2 mb-4">
+                                    <div className="w-full h-3 bg-gray-100 dark:bg-gray-800/50 rounded-md"></div>
+                                    <div className="w-5/6 h-3 bg-gray-100 dark:bg-gray-800/50 rounded-md"></div>
+                                </div>
+                                <div className="w-full h-16 bg-gray-50 dark:bg-gray-800/30 rounded-lg mb-3"></div>
+                                <div className="flex justify-between items-center mt-4">
+                                    <div className="w-24 h-4 bg-gray-200 dark:bg-gray-700/50 rounded-md"></div>
+                                    <div className="w-24 h-8 bg-primary/20 dark:bg-primary/10 rounded-lg"></div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
 

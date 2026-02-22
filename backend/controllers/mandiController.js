@@ -18,7 +18,7 @@ exports.getMandiPrices = async (req, res) => {
             return res.status(400).json({ message: "Farmer State and District are required to locate nearby markets." });
         }
 
-        // Fetch farm details to get the active crop
+        // Fetch farm details to get the default active crop if not explicitly requested
         const supabase = getSupabase();
         const { data: farm, error: farmError } = await supabase
             .from('farms')
@@ -30,9 +30,9 @@ exports.getMandiPrices = async (req, res) => {
             return res.status(404).json({ message: "Farm not found." });
         }
 
-        const crop = farm.crop_type;
+        const crop = req.query.crop || farm.crop_type;
         if (!crop) {
-            return res.status(400).json({ message: "No crop is set for this farm." });
+            return res.status(400).json({ message: "No crop is set for this farm or requested." });
         }
 
         // Fetch Real-time Prices

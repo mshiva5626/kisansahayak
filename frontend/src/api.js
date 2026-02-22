@@ -111,7 +111,12 @@ export const locationAPI = {
 
 // Mandi Prices API
 export const mandiAPI = {
-    getPrices: (farmId, state, district) => API.get('/mandi-prices', { params: { farm_id: farmId, state, district } })
+    getPrices: (farmId, state, district, crop) => API.get('/mandi-prices', { params: { farm_id: farmId, state, district, crop } })
+};
+
+// Soil API
+export const soilAPI = {
+    analyzeSoil: (farmId, imageBase64) => API.post('/soil/analyze', { farmId, image: imageBase64 })
 };
 
 export default API;

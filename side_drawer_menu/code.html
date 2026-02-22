@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Kisan Sahayak Side Drawer</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<!-- Backdrop Dimmer Overlay -->
+<div class="fixed inset-0 z-50 flex overflow-hidden">
+<!-- Slightly dimmed background -->
+<div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+<!-- Side Drawer Container -->
+<div class="relative flex w-[85%] max-w-sm flex-col bg-white dark:bg-slate-900 h-full shadow-2xl transition-transform duration-300">
+<!-- Header: Farmer Profile Card -->
+<div class="bg-background-light dark:bg-slate-800 p-6 pt-10 border-b border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-4">
+<!-- Profile Picture Placeholder -->
+<div class="relative">
+<div class="size-16 rounded-full overflow-hidden border-2 border-primary/20 bg-slate-200 dark:bg-slate-700">
+<img class="w-full h-full object-cover" data-alt="Profile photo of farmer Rajesh Kumar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_EMzwW1UD_3HaBNWPRYu9NxPfygzMNe722_KCw8tdIsu6rwE0Zg3sRTLT5t_UcB7E0Wt6k_4vnW2_hJYEk8V9LPKLSQCAR38LMPi6cgGbrUtTW38V3_xH7L5L7zEm8-eTONlvHSfKGyCfOMuzsXNXFPhZAKl5Uug7TWDUOwdgrYAi5Tyn3VK3FOIdtVsJt3gNePZio7Q2eOFzHVjJizFUNXLLzwQnVmsAvptUAnWIBJPO6wzo7AqEU0C7QUJNDKBo3CoVsaHlGVlb"/>
+</div>
+<!-- Verified Badge -->
+<div class="absolute -bottom-1 -right-1 bg-white dark:bg-slate-900 rounded-full p-0.5 shadow-sm">
+<span class="material-symbols-outlined text-primary text-[20px] fill-current block">check_circle</span>
+</div>
+</div>
+<div class="flex flex-col">
+<h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-none mb-1">Rajesh Kumar</h2>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">ID: KSN-8829</p>
+<div class="mt-2 flex items-center gap-1.5 bg-primary/10 px-2 py-0.5 rounded-full w-fit">
+<span class="text-[10px] font-bold uppercase tracking-wider text-primary">Verified Farmer</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Navigation List Scrollable Area -->
+<nav class="flex-1 overflow-y-auto py-4">
+<div class="px-2">
+<p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-4 pb-3">Agricultural Services</p>
+<ul class="space-y-1">
+<!-- Active State: My Farms -->
+<li class="relative flex items-center h-14 bg-primary/10 border-l-4 border-primary px-4 transition-colors">
+<span class="material-symbols-outlined text-primary mr-4" style="font-variation-settings: 'FILL' 1">agriculture</span>
+<span class="text-slate-900 dark:text-slate-100 font-bold flex-1">My Farms</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+</li>
+<!-- List Items -->
+<li class="flex items-center h-14 px-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400 mr-4">gavel</span>
+<span class="text-slate-700 dark:text-slate-300 font-medium flex-1">Government Schemes</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+</li>
+<li class="flex items-center h-14 px-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400 mr-4">history_edu</span>
+<span class="text-slate-700 dark:text-slate-300 font-medium flex-1">Advisory History</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+</li>
+<li class="flex items-center h-14 px-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400 mr-4">cloud_sync</span>
+<span class="text-slate-700 dark:text-slate-300 font-medium flex-1">Weather Insights</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+</li>
+<li class="flex items-center h-14 px-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400 mr-4">trending_up</span>
+<span class="text-slate-700 dark:text-slate-300 font-medium flex-1">Market Trends (Mandi Bhav)</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+</li>
+</ul>
+<div class="h-px bg-slate-100 dark:bg-slate-800 my-4 mx-4"></div>
+<p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-4 pb-3">Support &amp; Info</p>
+<ul class="space-y-1">
+<li class="flex items-center h-14 px-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400 mr-4">contact_support</span>
+<span class="text-slate-700 dark:text-slate-300 font-medium flex-1">Help &amp; Support</span>
+</li>
+<li class="flex items-center h-14 px-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400 mr-4">info</span>
+<span class="text-slate-700 dark:text-slate-300 font-medium flex-1">About Kisan Sahayak</span>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Footer: Logout & Version -->
+<div class="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+<button class="flex items-center gap-4 w-full h-12 px-4 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold active:scale-95 transition-all">
+<span class="material-symbols-outlined">logout</span>
+<span>Logout</span>
+</button>
+<p class="mt-4 text-center text-xs text-slate-400 dark:text-slate-600">v1.0.4 • Powered by Kisan Sahayak Tech</p>
+</div>
+</div>
+<!-- Empty space on right (clickable to close) -->
+<div class="flex-1 h-full"></div>
+</div>
+<!-- Background Content Mockup (to show overlay effect) -->
+<div class="p-6 space-y-6 opacity-20 pointer-events-none">
+<div class="h-12 w-full bg-slate-300 rounded-lg"></div>
+<div class="grid grid-cols-2 gap-4">
+<div class="h-32 bg-slate-300 rounded-xl"></div>
+<div class="h-32 bg-slate-300 rounded-xl"></div>
+</div>
+<div class="h-64 w-full bg-slate-300 rounded-2xl"></div>
+<div class="h-24 w-full bg-slate-300 rounded-lg"></div>
+</div>
+</body></html>

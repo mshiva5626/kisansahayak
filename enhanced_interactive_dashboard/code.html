@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kisan Sahayak Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "primary-dark": "#0fae0f",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px"},
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'card': '0 0 0 1px rgba(0,0,0,0.03), 0 2px 8px rgba(0,0,0,0.04)',
+                        'premium': '0 10px 30px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+                        'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)'
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .safe-top {
+            padding-top: env(safe-area-inset-top, 20px);
+        }
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display antialiased selection:bg-primary selection:text-black">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark">
+<header class="relative bg-gradient-to-b from-[#0a3f0a] to-[#145314] text-white pt-4 pb-8 safe-top rounded-b-[2rem] shadow-lg z-10">
+<div class="px-6 flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+<span class="material-symbols-outlined text-primary text-[24px] transition-all duration-300">agriculture</span>
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tight">Kisan Sahayak</h1>
+<p class="text-xs text-white/70 font-medium">Professional Farming</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors relative">
+<span class="material-symbols-outlined text-white text-[24px] transition-all duration-300">notifications</span>
+<span class="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-red-500 border border-[#145314]"></span>
+</button>
+<div class="h-10 w-10 rounded-full border-2 border-primary overflow-hidden bg-white/20" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAOO1ZMRXDAIAnTIPfpumR9dP8lsjywbxcGgq208gNgYfkck1bs33cvSVxzP6vQ2DZNJx9wa_leijdaIL_zlcKKnYCqsAM3dbZ6Lvti9cJsHpaGvZzyga9HbDpOE6RnE8rXAdQe8Vg6YoUvx1FHEWXkE378Cx6S-64gnUF5hAmqWrg4j9AeAWqwHQewo-2G3BRyWwVsgyIlkGTrMIT5nTPCAhqO0w6yotYhBpzoMiRTZE8Iu3HvBLhn546xHp0zkfO8sPwNK58668aR'); background-size: cover; background-position: center;">
+</div>
+</div>
+</div>
+<div class="px-6 flex justify-between text-center pb-4">
+<div class="flex flex-col items-center">
+<span class="text-2xl font-bold text-white">24°C</span>
+<span class="text-xs text-white/70 flex items-center gap-1"><span class="material-symbols-outlined text-[14px] transition-all duration-300">wb_sunny</span> Sunny</span>
+</div>
+<div class="h-10 w-[1px] bg-white/20"></div>
+<div class="flex flex-col items-center">
+<span class="text-2xl font-bold text-white">₹2,450</span>
+<span class="text-xs text-white/70">Wheat / Qtl</span>
+</div>
+<div class="h-10 w-[1px] bg-white/20"></div>
+<div class="flex flex-col items-center">
+<span class="text-2xl font-bold text-primary">Active</span>
+<span class="text-xs text-white/70">Status</span>
+</div>
+</div>
+</header>
+<main class="flex-1 px-4 -mt-6 pb-24 z-20 relative">
+<div class="mb-6 overflow-x-auto hide-scrollbar flex gap-4 snap-x snap-mandatory">
+<div class="snap-center shrink-0 w-[85%] h-40 rounded-xl overflow-hidden relative shadow-md group hover:shadow-2xl transition-shadow duration-300">
+<div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-10 flex flex-col justify-center p-5">
+<span class="bg-primary text-black text-[10px] font-bold px-2 py-0.5 rounded-full w-fit mb-2">Subsidy Scheme</span>
+<h3 class="text-white font-bold text-xl leading-tight w-3/4 mb-1">PM-Kisan Benefits</h3>
+<p class="text-white/80 text-xs mb-3">Next installment releasing soon</p>
+<button class="text-white bg-white/20 hover:bg-primary hover:text-black hover:scale-105 active:scale-95 backdrop-blur-sm text-xs font-semibold px-4 py-2 rounded-lg w-fit transition-all duration-300">Check Status</button>
+</div>
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD6rTykEoLw0FAsqaXZjNpLhE_Et9y0ZLltrar7tGnvNsbTo5Il98Spalex59RUpC1ovjnhbX87dhGKBehVB9pQ190wlN2LjY8MxRhlqrFTyrdCmW_BCM-gc7gG-utp2ejSEIwJ8uEV11BI0SpEaOazeqffOorRHa7r1MFQ1VHXQhhusrmAOYUGv4qeslP9MnKFy6yH1S25E0YA6Tm_bDHj6qZsWQhYFz89kQuZEVpDKfhmA3xIX5cRO2DgXRG-c8msJw13qX5hZaLg');"></div>
+</div>
+<div class="snap-center shrink-0 w-[85%] h-40 rounded-xl overflow-hidden relative shadow-md group hover:shadow-2xl transition-shadow duration-300">
+<div class="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-900/40 to-transparent z-10 flex flex-col justify-center p-5">
+<span class="bg-blue-400 text-black text-[10px] font-bold px-2 py-0.5 rounded-full w-fit mb-2">New Offer</span>
+<h3 class="text-white font-bold text-xl leading-tight w-3/4 mb-1">Solar Pump 50% Off</h3>
+<p class="text-white/80 text-xs mb-3">Save electricity costs today</p>
+<button class="text-white bg-white/20 hover:bg-primary hover:text-black hover:scale-105 active:scale-95 backdrop-blur-sm text-xs font-semibold px-4 py-2 rounded-lg w-fit transition-all duration-300">Apply Now</button>
+</div>
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBfroD5SxbYM2BsmbodcmetFS2IeMErpKQIwOChdXb9LAT2Z-PSc9Gt8kRPr8fLnIRCWmsYZifSIybOFmGq8mnHx_4Ny3-K91P90F8Xe5COZQlXccSskNNB75KX5T1QTGfUhUtV9cXKasuB-042doT_CWxWPsSbo0z2X_1MA9619rcpKbxMkgD_G8-pW8TAgx9CBRQtVTv-1sxy-Blkq6WMQEkK37MF2ASUNdFBa4bJ57ThUyDPaFr2sco1Xs3bWBqLeiEfp7bTKekr');"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1a2e1a] rounded-xl shadow-soft p-5 mb-6 border border-slate-100 dark:border-slate-800 shadow-premium">
+<h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-wider text-xs">Services</h2>
+<div class="grid grid-cols-4 gap-y-4 gap-x-2">
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-12 w-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined text-purple-600 text-[24px] transition-all duration-300">cloud</span>
+</div>
+<span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Weather</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined text-blue-600 text-[24px] transition-all duration-300">smart_toy</span>
+</div>
+<span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Copilot</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-12 w-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined text-orange-600 text-[24px] transition-all duration-300">description</span>
+</div>
+<span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Schemes</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-12 w-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined text-green-600 text-[24px] transition-all duration-300">qr_code_scanner</span>
+</div>
+<span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Scan</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-12 w-12 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined text-pink-600 text-[24px] transition-all duration-300">storefront</span>
+</div>
+<span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Mandi</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-12 w-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined text-indigo-600 text-[24px] transition-all duration-300">local_shipping</span>
+</div>
+<span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Transport</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-12 w-12 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined text-teal-600 text-[24px] transition-all duration-300">science</span>
+</div>
+<span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Soil Test</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-12 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined text-slate-600 text-[24px] transition-all duration-300">grid_view</span>
+</div>
+<span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">More</span>
+</button>
+</div>
+</div>
+<div class="mb-6">
+<div class="flex items-center justify-between mb-3 px-1">
+<h2 class="text-lg font-bold text-slate-900 dark:text-white">News &amp; Advisory</h2>
+<a class="text-sm font-semibold text-primary-dark hover:text-primary dark:text-primary transition-colors flex items-center" href="#">View All <span class="material-symbols-outlined text-sm ml-0.5 transition-all duration-300">chevron_right</span></a>
+</div>
+<div class="flex flex-col gap-3">
+<div class="bg-white dark:bg-[#1a2e1a] p-4 rounded-xl shadow-card border border-l-4 border-l-red-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800 dark:border-r-slate-800 flex gap-4 items-start hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+<div class="h-12 w-12 rounded-lg bg-red-50 dark:bg-red-900/20 flex-shrink-0 flex items-center justify-center text-red-600">
+<span class="material-symbols-outlined transition-all duration-300">thunderstorm</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Heavy Rain Alert</h3>
+<span class="text-[10px] text-slate-400">2h ago</span>
+</div>
+<p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Heavy rainfall expected in your district over the next 48 hours. Ensure drainage in low-lying fields.</p>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1a2e1a] p-4 rounded-xl shadow-card border border-slate-100 dark:border-slate-800 flex gap-4 items-start hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+<div class="h-12 w-12 rounded-lg bg-green-50 dark:bg-green-900/20 flex-shrink-0 flex items-center justify-center text-green-600">
+<span class="material-symbols-outlined transition-all duration-300">psychiatry</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Wheat Sowing Tips</h3>
+<span class="text-[10px] text-slate-400">5h ago</span>
+</div>
+<p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Dr. Sharma advises optimal soil moisture levels before sowing the new HD-3086 variety.</p>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1a2e1a] p-4 rounded-xl shadow-card border border-slate-100 dark:border-slate-800 flex gap-4 items-start hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+<div class="h-12 w-12 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex-shrink-0 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined transition-all duration-300">trending_up</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white mb-1">MSP Increased</h3>
+<span class="text-[10px] text-slate-400">1d ago</span>
+</div>
+<p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Government announces 7% hike in MSP for Rabi crops for the upcoming season.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mb-6">
+<div class="flex items-center justify-between mb-3 px-1">
+<h2 class="text-lg font-bold text-slate-900 dark:text-white">Market Trends</h2>
+<span class="text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">Updated: 10m ago</span>
+</div>
+<div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+<div class="min-w-[140px] bg-white dark:bg-[#1a2e1a] p-4 rounded-xl shadow-card border border-slate-100 dark:border-slate-800 flex flex-col gap-2 hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+<div class="flex items-center justify-between">
+<div class="h-8 w-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-yellow-700 dark:text-yellow-400 text-lg transition-all duration-300">spa</span>
+</div>
+<span class="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded flex items-center">
+<span class="material-symbols-outlined text-[10px] mr-0.5 transition-all duration-300">trending_up</span> 2%
+                            </span>
+</div>
+<div>
+<p class="text-xs text-slate-500 dark:text-slate-400">Wheat</p>
+<p class="text-lg font-bold text-slate-900 dark:text-white">₹2,450</p>
+</div>
+</div>
+<div class="min-w-[140px] bg-white dark:bg-[#1a2e1a] p-4 rounded-xl shadow-card border border-slate-100 dark:border-slate-800 flex flex-col gap-2 hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+<div class="flex items-center justify-between">
+<div class="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-red-700 dark:text-red-400 text-lg transition-all duration-300">nutrition</span>
+</div>
+<span class="text-xs font-bold text-red-600 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded flex items-center">
+<span class="material-symbols-outlined text-[10px] mr-0.5 transition-all duration-300">trending_down</span> 0.5%
+                            </span>
+</div>
+<div>
+<p class="text-xs text-slate-500 dark:text-slate-400">Tomato</p>
+<p class="text-lg font-bold text-slate-900 dark:text-white">₹1,200</p>
+</div>
+</div>
+<div class="min-w-[140px] bg-white dark:bg-[#1a2e1a] p-4 rounded-xl shadow-card border border-slate-100 dark:border-slate-800 flex flex-col gap-2 hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+<div class="flex items-center justify-between">
+<div class="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-orange-700 dark:text-orange-400 text-lg transition-all duration-300">grain</span>
+</div>
+<span class="text-xs font-bold text-slate-600 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded flex items-center">
+<span class="material-symbols-outlined text-[10px] mr-0.5 transition-all duration-300">remove</span> 0%
+                            </span>
+</div>
+<div>
+<p class="text-xs text-slate-500 dark:text-slate-400">Corn</p>
+<p class="text-lg font-bold text-slate-900 dark:text-white">₹1,890</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 w-full bg-white dark:bg-[#142614] border-t border-slate-100 dark:border-slate-800 shadow-[0_-5px_20px_-5px_rgba(0,0,0,0.1)] z-50 safe-bottom">
+<div class="flex justify-around items-end pt-2 pb-1">
+<a class="flex flex-col items-center gap-1 w-16 group" href="#">
+<div class="bg-primary/20 dark:bg-primary/10 px-4 py-1.5 rounded-full transition-all group-hover:bg-primary/30 shadow-inner-soft">
+<span class="material-symbols-outlined text-primary-dark dark:text-primary text-[24px] filled-icon transition-all duration-300" style="font-variation-settings: 'FILL' 1;">home</span>
+</div>
+<span class="text-[11px] font-bold text-primary-dark dark:text-primary text-primary-dark dark:text-primary font-bold">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 w-16 group" href="#">
+<span class="material-symbols-outlined text-slate-400 dark:text-slate-500 text-[24px] group-hover:text-primary transition-colors transition-all duration-300">potted_plant</span>
+<span class="text-[11px] font-medium text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors">My Farm</span>
+</a>
+<a class="flex flex-col items-center gap-1 w-16 group" href="#">
+<span class="material-symbols-outlined text-slate-400 dark:text-slate-500 text-[24px] group-hover:text-primary transition-colors transition-all duration-300">storefront</span>
+<span class="text-[11px] font-medium text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors">Mandi</span>
+</a>
+<a class="flex flex-col items-center gap-1 w-16 group" href="#">
+<span class="material-symbols-outlined text-slate-400 dark:text-slate-500 text-[24px] group-hover:text-primary transition-colors transition-all duration-300">person</span>
+<span class="text-[11px] font-medium text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors">Account</span>
+</a>
+</div>
+</nav>
+</div>
+</body></html>

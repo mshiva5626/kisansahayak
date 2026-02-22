@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Market Prices Mandi Bhav - Kisan Sahayak</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13", // Neon Green
+                        "primary-dark": "#0ea30e", // Darker Green for text/backgrounds
+                        "secondary": "#1e293b", // Slate 800
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1a1a1a",
+                        "border-light": "#e2e8f0",
+                        "border-dark": "#333333",
+                        "trend-up": "#16a34a",
+                        "trend-down": "#dc2626",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        "soft": "0 2px 8px -2px rgba(0, 0, 0, 0.05)",
+                        "card": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased selection:bg-primary/30">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-hidden max-w-md mx-auto bg-white dark:bg-black shadow-2xl">
+<!-- Header Section -->
+<header class="bg-primary dark:bg-primary-dark pb-6 pt-12 px-5 rounded-b-[2rem] shadow-lg z-10 relative overflow-hidden">
+<!-- Decorative Pattern -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl pointer-events-none"></div>
+<!-- Top Bar: Location & Profile -->
+<div class="flex items-center justify-between mb-6 relative z-10">
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-2xl">location_on</span>
+<div class="flex flex-col">
+<span class="text-xs font-medium opacity-80 uppercase tracking-wider">Your Location</span>
+<div class="flex items-center gap-1 font-bold text-lg leading-none cursor-pointer">
+                            Indore, MP
+                            <span class="material-symbols-outlined text-sm">expand_more</span>
+</div>
+</div>
+</div>
+<button class="relative p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors text-white">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-primary"></span>
+</button>
+</div>
+<!-- Title -->
+<h1 class="text-white text-2xl font-bold mb-4 relative z-10">Mandi Bhav</h1>
+<!-- Search Bar -->
+<div class="relative z-10">
+<label class="relative flex w-full items-center">
+<div class="absolute left-4 flex items-center justify-center text-slate-400">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="w-full rounded-xl border-none bg-white py-3.5 pl-12 pr-12 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-white/50 shadow-soft text-base font-medium" placeholder="Search commodities or mandis" type="text"/>
+<button class="absolute right-3 p-1.5 rounded-lg text-primary hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined">mic</span>
+</button>
+</label>
+</div>
+</header>
+<!-- Main Content Scroll Area -->
+<main class="flex-1 overflow-y-auto pb-24 scrollbar-hide bg-slate-50 dark:bg-background-dark">
+<!-- Trending Commodities Carousel -->
+<section class="mt-6">
+<div class="px-5 mb-3 flex items-center justify-between">
+<h2 class="text-lg font-bold text-slate-900 dark:text-white">Trending Commodities</h2>
+<a class="text-primary-dark dark:text-primary text-sm font-semibold hover:underline" href="#">View All</a>
+</div>
+<div class="flex overflow-x-auto gap-4 px-5 pb-4 scrollbar-hide snap-x">
+<!-- Item 1 -->
+<div class="snap-start shrink-0 flex flex-col items-center gap-2">
+<div class="w-16 h-16 rounded-2xl bg-white dark:bg-surface-dark shadow-soft flex items-center justify-center p-2 border border-slate-100 dark:border-border-dark relative overflow-hidden group">
+<div class="absolute inset-0 bg-orange-50 dark:bg-orange-900/20 group-hover:opacity-100 opacity-0 transition-opacity"></div>
+<img alt="Wheat grains close up" class="w-full h-full object-cover rounded-xl" data-alt="Golden wheat grains texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxuado7N1n1nZJLvPSAN7_rraX4vM3c71fFjeqQs9bs0Gxm4MRarhjM_g49By2OOUX0C4xOGcK5fKUIuyGpea60zztxKr16XM93jykeUlpsrRsgCcX8zkrIAQkv1MaUzY87gu9WrpVAnp35zS4EhrQwYlHHCUS4Y5JxBA8qtJhhh5ZmXv3OPzGCtB1OuG6gQafAuEyI2SDXP4qKZ-1n-L3nZgUXeh_1KLYgyX4TvI5JkF5Xkcwy0xFYVBrLhWO7bVCqx460OS0zr6w"/>
+</div>
+<span class="text-xs font-medium text-slate-700 dark:text-slate-300">Wheat</span>
+</div>
+<!-- Item 2 -->
+<div class="snap-start shrink-0 flex flex-col items-center gap-2">
+<div class="w-16 h-16 rounded-2xl bg-white dark:bg-surface-dark shadow-soft flex items-center justify-center p-2 border border-slate-100 dark:border-border-dark relative overflow-hidden group">
+<div class="absolute inset-0 bg-yellow-50 dark:bg-yellow-900/20 group-hover:opacity-100 opacity-0 transition-opacity"></div>
+<img alt="Soybean plants in field" class="w-full h-full object-cover rounded-xl" data-alt="Green soybean plants" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoLLdBCSiLC2X49N61MPDdVP8d_nhxBSgkZ-bZjjUwaI3jmeRuo7uDTvNO_8-HZbE5EBJeBVrKDho9JulZBYhRUWl9mLuL_XlfW4gn-P-QHcbbX0BGcEqYVGom3FjEoqYrvroNnfc-05JFRLwTQEkOL9yTzvgMkWRi0lnpWsmWSpJVuA1wQo2GIJQeTHVGJ56F1YeGwZpddLhEvinjgZlK7Ml_9qhMKGIAmGVZv4WAPexBDRFZBhWVt9oA_6iWZR4zYDzDtbofjsry"/>
+</div>
+<span class="text-xs font-medium text-slate-700 dark:text-slate-300">Soybean</span>
+</div>
+<!-- Item 3 -->
+<div class="snap-start shrink-0 flex flex-col items-center gap-2">
+<div class="w-16 h-16 rounded-2xl bg-white dark:bg-surface-dark shadow-soft flex items-center justify-center p-2 border border-slate-100 dark:border-border-dark relative overflow-hidden group">
+<div class="absolute inset-0 bg-red-50 dark:bg-red-900/20 group-hover:opacity-100 opacity-0 transition-opacity"></div>
+<img alt="Red onions pile" class="w-full h-full object-cover rounded-xl" data-alt="Pile of red onions" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBz-_eEkVOWgTf9-LEFZeEo3EFZEveXQpxeQb8z8emA1j85TpA5jP46HF0OMxqY06JYqdBZtTfNiWQikhPf-xMBgF_pF5aU6Yee8XI4FQfJnPY8YOKR5ztrf53hy3OPChFy529S30Ivk_xm5lJNcP6JdikeJixDCYCAW6jpJ-O4iDA9M9AWQRuDQpA46oBDzMEtq1OR5fhQb9LFMOACcJ0F9beMhk53DZkopOSnvLD0VQ5lDZWOjHbr2kTYcdz_V-TEtAdwPSp3THth"/>
+</div>
+<span class="text-xs font-medium text-slate-700 dark:text-slate-300">Onion</span>
+</div>
+<!-- Item 4 -->
+<div class="snap-start shrink-0 flex flex-col items-center gap-2">
+<div class="w-16 h-16 rounded-2xl bg-white dark:bg-surface-dark shadow-soft flex items-center justify-center p-2 border border-slate-100 dark:border-border-dark relative overflow-hidden group">
+<div class="absolute inset-0 bg-green-50 dark:bg-green-900/20 group-hover:opacity-100 opacity-0 transition-opacity"></div>
+<img alt="Green chana chickpeas" class="w-full h-full object-cover rounded-xl" data-alt="Fresh green chickpeas" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAe_nqRh7Gquewoj7q8AqFQbvxGH77X259CATgauFLVzt3a3dngAezzxRvrT2flRGo0PttZBg5S_L2hVbk8aQWuxvKDBXvBf1CP3Z8mCiFADL-_mWRYF60IveVrw-XpZ_8DrU4QO3VHf95ZdOLMaUTk_yk0YL0HVc7wOypPKjuxPeGnwyAYTlwoFCLkjqsORdABAubptTKElYofBS4vM6Cy6YPydjhAR-lTHK_pAN-4OewQ0VpcZR81tLMtpjcOudletoT7YnhZlwgl"/>
+</div>
+<span class="text-xs font-medium text-slate-700 dark:text-slate-300">Chana</span>
+</div>
+<!-- Item 5 -->
+<div class="snap-start shrink-0 flex flex-col items-center gap-2">
+<div class="w-16 h-16 rounded-2xl bg-white dark:bg-surface-dark shadow-soft flex items-center justify-center p-2 border border-slate-100 dark:border-border-dark relative overflow-hidden group">
+<div class="absolute inset-0 bg-slate-50 dark:bg-slate-800 group-hover:opacity-100 opacity-0 transition-opacity"></div>
+<img alt="Cotton balls" class="w-full h-full object-cover rounded-xl" data-alt="Soft white cotton balls" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKaF0aesspq5vxrzVgiIKknavq1F26z5DihIibpPRNC63BTJtaPLyfAmObkSJyLd1Oy2eMnyfYNsJ_uVXgSdFCAjzOsUBGzVrOMa9amx72Hfjfp0ne-qUjIYj17Q6jDNSiQWprRq-z4H8emOMSm14lgNcUgS6lxaPdTQgyT77qDNQxPFYeLZgVYYTqwQOR0WMxzyDeqYHVQK_zc1rPE4K9tQULt3ZZebMTWhKxfPtqZs6QsU55P33O1W24xXt6zodQ2gLu6f-uSehT"/>
+</div>
+<span class="text-xs font-medium text-slate-700 dark:text-slate-300">Cotton</span>
+</div>
+</div>
+</section>
+<!-- Live Mandi Rates List -->
+<section class="px-5 mt-2">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-lg font-bold text-slate-900 dark:text-white">Live Mandi Rates</h2>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs font-medium bg-white dark:bg-surface-dark px-2 py-1 rounded-md shadow-sm">
+<span class="material-symbols-outlined text-sm">tune</span>
+                        Filter
+                    </div>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Card 1 -->
+<div class="bg-white dark:bg-surface-dark rounded-xl shadow-card border border-slate-100 dark:border-border-dark overflow-hidden">
+<div class="p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-slate-900 dark:text-white text-lg">Wheat</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase tracking-wide">Lokwan</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">storefront</span>
+                                        Indore Mandi
+                                    </p>
+</div>
+<div class="text-right">
+<p class="text-2xl font-bold text-slate-900 dark:text-white">₹2,450<span class="text-sm font-normal text-slate-500 ml-1">/qt</span></p>
+<div class="flex items-center justify-end gap-1 text-trend-up text-xs font-bold bg-green-50 dark:bg-green-900/30 px-1.5 py-0.5 rounded ml-auto w-fit">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                                        ₹20
+                                    </div>
+</div>
+</div>
+<div class="border-t border-slate-100 dark:border-border-dark pt-3 flex items-center justify-between text-xs">
+<div class="flex gap-4">
+<div class="flex flex-col">
+<span class="text-slate-400 dark:text-slate-500 mb-0.5">Range</span>
+<span class="font-semibold text-slate-700 dark:text-slate-300">₹2,380 - ₹2,510</span>
+</div>
+<div class="flex flex-col">
+<span class="text-slate-400 dark:text-slate-500 mb-0.5">Arrivals</span>
+<span class="font-semibold text-slate-700 dark:text-slate-300">200 Tonnes</span>
+</div>
+</div>
+<span class="text-slate-400 text-[10px]">Updated: 10m ago</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white dark:bg-surface-dark rounded-xl shadow-card border border-slate-100 dark:border-border-dark overflow-hidden">
+<div class="p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-slate-900 dark:text-white text-lg">Soybean</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase tracking-wide">Yellow</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">storefront</span>
+                                        Ujjain Mandi
+                                    </p>
+</div>
+<div class="text-right">
+<p class="text-2xl font-bold text-slate-900 dark:text-white">₹4,800<span class="text-sm font-normal text-slate-500 ml-1">/qt</span></p>
+<div class="flex items-center justify-end gap-1 text-trend-down text-xs font-bold bg-red-50 dark:bg-red-900/30 px-1.5 py-0.5 rounded ml-auto w-fit">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+                                        ₹50
+                                    </div>
+</div>
+</div>
+<div class="border-t border-slate-100 dark:border-border-dark pt-3 flex items-center justify-between text-xs">
+<div class="flex gap-4">
+<div class="flex flex-col">
+<span class="text-slate-400 dark:text-slate-500 mb-0.5">Range</span>
+<span class="font-semibold text-slate-700 dark:text-slate-300">₹4,700 - ₹4,850</span>
+</div>
+<div class="flex flex-col">
+<span class="text-slate-400 dark:text-slate-500 mb-0.5">Arrivals</span>
+<span class="font-semibold text-slate-700 dark:text-slate-300">150 Tonnes</span>
+</div>
+</div>
+<span class="text-slate-400 text-[10px]">Updated: 25m ago</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white dark:bg-surface-dark rounded-xl shadow-card border border-slate-100 dark:border-border-dark overflow-hidden">
+<div class="p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-slate-900 dark:text-white text-lg">Onion</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase tracking-wide">Red Nasik</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">storefront</span>
+                                        Nashik Mandi
+                                    </p>
+</div>
+<div class="text-right">
+<p class="text-2xl font-bold text-slate-900 dark:text-white">₹1,200<span class="text-sm font-normal text-slate-500 ml-1">/qt</span></p>
+<div class="flex items-center justify-end gap-1 text-slate-500 text-xs font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded ml-auto w-fit">
+<span class="material-symbols-outlined text-sm">remove</span>
+                                        Stable
+                                    </div>
+</div>
+</div>
+<div class="border-t border-slate-100 dark:border-border-dark pt-3 flex items-center justify-between text-xs">
+<div class="flex gap-4">
+<div class="flex flex-col">
+<span class="text-slate-400 dark:text-slate-500 mb-0.5">Range</span>
+<span class="font-semibold text-slate-700 dark:text-slate-300">₹1,100 - ₹1,300</span>
+</div>
+<div class="flex flex-col">
+<span class="text-slate-400 dark:text-slate-500 mb-0.5">Arrivals</span>
+<span class="font-semibold text-slate-700 dark:text-slate-300">500 Tonnes</span>
+</div>
+</div>
+<span class="text-slate-400 text-[10px]">Updated: 1h ago</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-white dark:bg-surface-dark rounded-xl shadow-card border border-slate-100 dark:border-border-dark overflow-hidden">
+<div class="p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-slate-900 dark:text-white text-lg">Cotton</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase tracking-wide">Desi</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">storefront</span>
+                                        Khargone Mandi
+                                    </p>
+</div>
+<div class="text-right">
+<p class="text-2xl font-bold text-slate-900 dark:text-white">₹6,150<span class="text-sm font-normal text-slate-500 ml-1">/qt</span></p>
+<div class="flex items-center justify-end gap-1 text-trend-up text-xs font-bold bg-green-50 dark:bg-green-900/30 px-1.5 py-0.5 rounded ml-auto w-fit">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                                        ₹150
+                                    </div>
+</div>
+</div>
+<div class="border-t border-slate-100 dark:border-border-dark pt-3 flex items-center justify-between text-xs">
+<div class="flex gap-4">
+<div class="flex flex-col">
+<span class="text-slate-400 dark:text-slate-500 mb-0.5">Range</span>
+<span class="font-semibold text-slate-700 dark:text-slate-300">₹6,000 - ₹6,300</span>
+</div>
+<div class="flex flex-col">
+<span class="text-slate-400 dark:text-slate-500 mb-0.5">Arrivals</span>
+<span class="font-semibold text-slate-700 dark:text-slate-300">80 Tonnes</span>
+</div>
+</div>
+<span class="text-slate-400 text-[10px]">Updated: 2h ago</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Helper Text -->
+<p class="text-center text-slate-400 text-xs mt-8 mb-4">
+                    Prices are indicative and subject to change. <br/> Powered by Kisan Sahayak
+                </p>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full max-w-md bg-white dark:bg-surface-dark border-t border-slate-100 dark:border-border-dark pb-safe">
+<div class="flex justify-around items-center h-16 px-2">
+<a class="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-400 hover:text-primary-dark dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[28px]">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full gap-1 text-primary-dark dark:text-primary" href="#">
+<span class="material-symbols-outlined text-[28px] fill">bar_chart</span>
+<span class="text-[10px] font-bold">Mandi</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-400 hover:text-primary-dark dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[28px]">partly_cloudy_day</span>
+<span class="text-[10px] font-medium">Weather</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-400 hover:text-primary-dark dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[28px]">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+<!-- Safe Area Spacer for iOS Home Indicator -->
+<div class="h-4 w-full bg-white dark:bg-surface-dark"></div>
+</nav>
+</div>
+</body></html>
