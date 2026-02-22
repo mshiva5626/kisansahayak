@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#114011"/>
+  <g transform="translate(256, 240)">
+    <!-- Seedling stem -->
+    <rect x="-8" y="-20" width="16" height="120" rx="8" fill="#00d100"/>
+    <!-- Left leaf -->
+    <ellipse cx="-45" cy="-40" rx="40" ry="20" fill="#00d100" transform="rotate(-30 -45 -40)"/>
+    <!-- Right leaf -->
+    <ellipse cx="45" cy="-70" rx="40" ry="20" fill="#4ade80" transform="rotate(30 45 -70)"/>
+    <!-- Top leaf -->
+    <ellipse cx="0" cy="-100" rx="25" ry="45" fill="#00d100"/>
+    <!-- Soil -->
+    <rect x="-100" y="90" width="200" height="30" rx="15" fill="#8B4513"/>
+    <!-- AI dots -->
+    <circle cx="-80" cy="-90" r="5" fill="#4ade80" opacity="0.6"/>
+    <circle cx="80" cy="-50" r="4" fill="#4ade80" opacity="0.5"/>
+    <circle cx="-60" cy="20" r="3" fill="#4ade80" opacity="0.4"/>
+    <circle cx="70" cy="30" r="4" fill="#4ade80" opacity="0.5"/>
+  </g>
+  <!-- App name -->
+  <text x="256" y="430" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="48" fill="white">KS</text>
+</svg>

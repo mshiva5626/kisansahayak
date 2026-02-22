@@ -1,0 +1,32 @@
+{
+    "name": "Kisan Sahayak",
+    "short_name": "KisanApp",
+    "description": "AI Copilot for Intelligent Farm Operations - Weather, Mandi Prices, Crop Analysis & Soil Testing",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0a140a",
+    "theme_color": "#114011",
+    "orientation": "portrait",
+    "scope": "/",
+    "icons": [
+        {
+            "src": "/icons/icon-512.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-512.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ],
+    "categories": [
+        "agriculture",
+        "weather",
+        "productivity"
+    ],
+    "lang": "en-IN",
+    "dir": "ltr"
+}

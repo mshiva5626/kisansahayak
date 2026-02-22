@@ -3,9 +3,20 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="icon" type="image/svg+xml" href="/icons/icon-512.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kisan Sahayak</title>
+  <meta name="description"
+    content="AI Copilot for Intelligent Farm Operations - Weather, Mandi Prices, Crop Analysis & Soil Testing" />
+
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#114011" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Kisan Sahayak" />
+  <link rel="apple-touch-icon" href="/icons/icon-512.svg" />
+  <link rel="manifest" href="/manifest.json" />
+
   <!-- Google Fonts & Material Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap"
@@ -22,6 +33,16 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
+  <script>
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
 </body>
 
 </html>
