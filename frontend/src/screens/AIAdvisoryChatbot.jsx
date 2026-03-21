@@ -6,8 +6,12 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
     const [inputText, setInputText] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [farmData, setFarmData] = useState(null);
+    const [isListening, setIsListening] = useState(false);
     const scrollRef = useRef(null);
+    const recognitionRef = useRef(null);
     const hasProcessedContext = useRef(false);
+    const initialTextRef = useRef('');
+    const ignoreResultRef = useRef(false);
 
     // Load farm data on mount
     useEffect(() => {
@@ -114,8 +118,69 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         }
     }, [messages]);
 
+    const toggleListening = () => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert("Voice input is not supported in your browser.");
+            return;
+        }
+
+        if (!recognitionRef.current) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            const langMap = {
+                'Hindi': 'hi-IN',
+                'Marathi': 'mr-IN',
+                'Tamil': 'ta-IN',
+                'Telugu': 'te-IN',
+                'English': 'en-IN'
+            };
+            // Defaulting to hi-IN as it supports mixed English/Hindi extremely well for Indian context
+            recognition.lang = langMap[userProfile?.preferred_language] || 'hi-IN';
+
+            recognition.onstart = () => setIsListening(true);
+
+            recognition.onresult = (event) => {
+                if (ignoreResultRef.current) return;
+                let transcript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                const newText = initialTextRef.current ? initialTextRef.current + ' ' + transcript : transcript;
+                setInputText(newText);
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech Recognition Error:", event.error);
+                setIsListening(false);
+            };
+
+            recognition.onend = () => {
+                setIsListening(false);
+            };
+
+            recognitionRef.current = recognition;
+        }
+
+        if (isListening) {
+            recognitionRef.current.stop();
+        } else {
+            ignoreResultRef.current = false;
+            initialTextRef.current = inputText;
+            recognitionRef.current.start();
+        }
+    };
+
     const handleSend = async () => {
         if (!inputText.trim()) return;
+
+        if (isListening && recognitionRef.current) {
+            ignoreResultRef.current = true;
+            recognitionRef.current.stop();
+            setIsListening(false);
+        }
 
         const userMsg = {
             id: Date.now(),
@@ -276,12 +341,21 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                     <div className="flex-1 bg-neutral-surface-light dark:bg-neutral-surface-dark rounded-2xl px-4 py-3 flex items-center gap-2 border border-transparent focus-within:border-primary/50 transition-colors">
                         <textarea
                             className="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-neutral-text-light dark:text-neutral-text-dark placeholder-neutral-muted-light dark:placeholder-neutral-muted-dark resize-none max-h-24"
-                            placeholder={farmData ? `Ask about your ${farmData.crop_type || 'crop'}...` : 'Ask about crops, weather...'}
+                            placeholder={isListening ? 'Listening...' : (farmData ? `Ask about your ${farmData.crop_type || 'crop'}...` : 'Ask about crops, weather...')}
                             rows="1"
                             value={inputText}
                             onChange={(e) => setInputText(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
                         ></textarea>
+
+                        <button
+                            onClick={toggleListening}
+                            className={`flex-shrink-0 p-2 rounded-full transition-colors ${isListening ? 'text-red-500 bg-red-500/10' : 'text-neutral-muted-light dark:text-neutral-muted-dark hover:bg-black/5 dark:hover:bg-white/5'}`}
+                        >
+                            <span className="material-icons-round text-[22px]">
+                                {isListening ? 'mic' : 'mic_none'}
+                            </span>
+                        </button>
                     </div>
                     <button
                         onClick={handleSend}
