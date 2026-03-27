@@ -196,7 +196,7 @@ const callGeminiDirect = async (prompt, base64Image, mimeType) => {
 
 const callOpenRouter = async (model, prompt, base64Image, mimeType) => {
     const { OpenRouter } = require('@openrouter/sdk');
-    const openrouter = new OpenRouter({ apiKey: process.env.OPENROUTER_API_KEY || GEMINI_API_KEY });
+    const openrouter = new OpenRouter({ apiKey: process.env.CROP_ANALYSIS_API_KEY });
     
     console.log(`[Crop AI] Sending request to ${model} via @openrouter/sdk...`);
     
@@ -246,7 +246,7 @@ const parseResponse = (responseText) => {
     return parsed;
 };
 
-const analyzeImageWithAI = async (imagePath, imageType, farm) => {
+const analyzeImageWithAI = async (imagePath, imageType, farm = {}) => {
     try {
         // Read image file and convert to base64
         let base64Image = '';
@@ -298,10 +298,10 @@ const analyzeImageWithAI = async (imagePath, imageType, farm) => {
         } else {
             // Path B: OpenRouter Fallback sequence
             const VISION_MODELS = [
+                'nvidia/nemotron-nano-12b-v2-vl:free',
                 'google/gemma-3-27b-it:free',
                 'qwen/qwen2.5-vl-32b-instruct:free',
-                'moonshotai/kimi-vl-a3b-thinking:free',
-                'nvidia/nemotron-nano-12b-v2-vl:free'
+                'moonshotai/kimi-vl-a3b-thinking:free'
             ];
 
             for (let i = 0; i < VISION_MODELS.length; i++) {
