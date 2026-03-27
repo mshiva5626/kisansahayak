@@ -195,16 +195,13 @@ const callGeminiDirect = async (prompt, base64Image, mimeType) => {
 };
 
 const callOpenRouter = async (model, prompt, base64Image, mimeType) => {
-    const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-    const response = await fetch(OPENROUTER_URL, {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${GEMINI_API_KEY}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost:5000",
-            "X-Title": "Kisan Sahayak Crop Disease Scanner"
-        },
-        body: JSON.stringify({
+    const { OpenRouter } = require('@openrouter/sdk');
+    const openrouter = new OpenRouter({ apiKey: process.env.OPENROUTER_API_KEY || GEMINI_API_KEY });
+    
+    console.log(`[Crop AI] Sending request to ${model} via @openrouter/sdk...`);
+    
+    const response = await openrouter.chat.send({
+        chatGenerationParams: {
             model: model,
             messages: [
                 {
@@ -217,20 +214,16 @@ const callOpenRouter = async (model, prompt, base64Image, mimeType) => {
             ],
             stream: false,
             temperature: 0.2
-        })
+        }
     });
 
-    const result = await response.json();
-
-    if (!response.ok) {
-        throw new Error(`API ${response.status}: ${result.error?.message || JSON.stringify(result).substring(0, 200)}`);
+    const resultText = response?.choices?.[0]?.message?.content;
+    
+    if (!resultText) {
+        throw new Error("No text returned from OpenRouter SDK.");
     }
-
-    if (!result.choices || result.choices.length === 0) {
-        throw new Error("No choices returned from API.");
-    }
-
-    return result.choices[0].message.content;
+    
+    return resultText;
 };
 
 const parseResponse = (responseText) => {
