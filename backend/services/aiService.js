@@ -163,7 +163,7 @@ const getAIAdvisory = async (queryOrMessages, context = {}) => {
                 }
 
                 const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-                    model: 'google/gemini-1.5-flash', // Correctly mapped OpenRouter Gemini Model
+                    model: 'arcee-ai/trinity-mini:free',
                     messages: orMessages,
                     temperature: 0.7
                 }, {
