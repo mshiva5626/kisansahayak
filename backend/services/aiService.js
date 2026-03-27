@@ -183,6 +183,33 @@ const getAIAdvisory = async (queryOrMessages, context = {}) => {
             }
         }
 
+        // --- ULTIMATE MOCK/POLLINATIONS FALLBACK (ZERO-LATENCY, FREE) ---
+        console.log('🔄 Attempting ultimate keyless fallback to Pollinations AI...');
+        try {
+            // Flatten context into single string for Pollinations URL
+            let promptText = buildPrompt(context) + '\n\n';
+            if (Array.isArray(queryOrMessages)) {
+                promptText += queryOrMessages.map(m => m.role + ': ' + m.content).join('\n') + '\nassistant: ';
+            } else {
+                promptText += 'user: ' + queryOrMessages + '\nassistant: ';
+            }
+            
+            // Limit payload size to avoid URL Length restrictions
+            promptText = promptText.substring(0, 3000);
+            
+            const response = await fetch('https://text.pollinations.ai/' + encodeURIComponent(promptText));
+            if (response.ok) {
+                const text = await response.text();
+                console.log('\n--- POLLINATIONS FALLBACK RESPONSE ---');
+                console.log(text.substring(0, 500) + '...\n');
+                return text;
+            } else {
+                console.error('❌ Pollinations Fallback Error:', response.status);
+            }
+        } catch(finalErr) {
+            console.error('❌ Pollinations Fallback Catch Error:', finalErr.message);
+        }
+
         throw new Error('AI Service is temporarily unavailable due to high traffic. Please try again later.');
     }
 };

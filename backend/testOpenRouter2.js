@@ -3,12 +3,12 @@ const axios = require('axios');
 const KEY_1 = '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';
 const KEY_2 = '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';
 
-async function testKey(name, key) {
+async function testKey(name, key, model) {
     try {
-        console.log(`Testing ${name}...`);
+        console.log(`\nTesting ${name} with ${model}...`);
         const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-            model: 'google/gemini-1.5-flash',
-            messages: [{ role: 'user', content: 'test message please respond with hello' }],
+            model: model,
+            messages: [{ role: 'user', content: 'say hello' }],
         }, {
             headers: {
                 'Authorization': `Bearer ${key}`,
@@ -18,12 +18,12 @@ async function testKey(name, key) {
         });
         console.log(`[SUCCESS] ${name}:`, response.data.choices[0].message.content);
     } catch (e) {
-        console.log(`[ERROR] ${name}:`, e.response?.data || e.message);
+        console.log(`[ERROR] ${name}:`, JSON.stringify(e.response?.data || e.message));
     }
 }
 
 async function run() {
-    await testKey('Image Analysis Key', KEY_1);
-    await testKey('Chatbot Key', KEY_2);
+    await testKey('Chatbot Key (Free Model)', KEY_2, 'meta-llama/llama-3-8b-instruct:free');
+    await testKey('Chatbot Key (Gemini)', KEY_2, 'google/gemini-1.5-flash');
 }
 run();
