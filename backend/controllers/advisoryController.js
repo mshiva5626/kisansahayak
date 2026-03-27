@@ -199,63 +199,31 @@ exports.chat = async (req, res) => {
 
         const latestQuery = messages[messages.length - 1].content;
 
-        // 2b) Fetch farm by farm_id from Supabase
+        // Fetch farm to ensure it exists and to retain logging (Rule: don't break routes)
         const farm = await getFarm(farm_id, userId);
         if (!farm) {
             return res.status(404).json({ message: 'Farm not found' });
         }
 
-        // 2c) Validate farm contains: crop, latitude, longitude
-        const lat = farm.latitude || farm.location?.lat;
-        const lon = farm.longitude || farm.location?.lon;
+        // --- NEW DEDICATED CHATBOT LOGIC ---
+        console.log(`Triggering Dedicated Chatbot Service...`);
+        const { getChatbotResponse } = require('../services/chatbotService');
+        
+        // As requested: Send user message -> Get response -> Extract text safely -> Return response
+        const responseText = await getChatbotResponse(messages);
 
-        console.log(`[DEBUG chat] Farm: ${farm.farm_name}, Crop: ${farm.crop_type}, Lat: ${lat}, Lon: ${lon}, Raw Farm Object:`, JSON.stringify(farm));
-
-        if (!farm.crop_type || !lat || !lon) {
-            return res.status(400).json({ message: 'Incomplete farm setup. Please complete configuration.' });
-        }
-
-        const farmer = await getUser(userId);
-
-        // 3) Backend MUST fetch weather using farm coordinates
-        let weatherData = null;
-        try {
-            console.log(`\n--- WEATHER API REQUEST (Chat) ---`);
-            weatherData = await getWeather(lat, lon);
-            console.log(`Weather Fetched: ${weatherData.temperature || weatherData.temp}°C, ${weatherData.condition}`);
-        } catch (err) {
-            console.error('\n❌ Weather fetch for chat failed:', err.message);
-            return res.status(500).json({ message: 'Weather data unavailable. Aborting AI request.' });
-        }
-
-        const stateForSchemes = farm.state || farmer?.state;
-        const schemesData = await getSchemesForState(stateForSchemes);
-
-        // 4) Construct unified prompt
-        const context = {
-            farmer: { name: farmer?.name, state: farmer?.state, district: farmer?.district, farming_type: farmer?.farming_type },
-            farm: farm,
-            weather: weatherData,
-            image_analysis: null,
-            schemes: schemesData
-        };
-
-        // 5) Backend MUST call AI Service
-        console.log(`Triggering AI Service for chat context...`);
-        const responseText = await getAIAdvisory(messages, context);
-
-        // 6) Backend MUST save advisory to Supabase
+        // Keep existing route behavior: save interaction to history
         await saveAdvisory({
             farm_id: farm._id || farm.id,
             advisory_text: responseText,
-            weather_snapshot: weatherData,
+            weather_snapshot: null, // intentionally stripped out per "only chatbot logic" request
             query: latestQuery
         });
 
-        // 7) Backend MUST return advisory to frontend
         res.status(200).json({ response: responseText });
     } catch (error) {
         console.error('Chat error:', error.message);
-        res.status(500).json({ message: error.message });
+        // Error handling requirement
+        res.status(500).json({ message: 'AI service unavailable, try again later' });
     }
 };
