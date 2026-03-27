@@ -174,10 +174,39 @@ const getAIAdvisory = async (queryOrMessages, context = {}) => {
                     }
                 });
 
-                const text = response.data.choices[0].message.content;
+                const result = response.data; // axios response has data property
+
+                if (!response.status || response.status < 200 || response.status >= 300) {
+                    throw new Error(`API Error ${response.status}: ${JSON.stringify(result).substring(0, 100)}`);
+                }
+
+                if (!result.choices || result.choices.length === 0) {
+                    throw new Error("No choices returned from OpenRouter API.");
+                }
+
+                let outputText = result.choices[0].message.content;
+
+                // --- HOTFIX FOR ARCEE-AI / REASONING MODEL JSON LEAKS ---
+                // If the free model dumps its internal JSON block into the content, strip it
+                if (outputText && outputText.startsWith('{"role"')) {
+                    const match = outputText.match(/^\{[\s\S]*?(?:"tool_calls":\[\]|"reasoning_content"[^}]*)\}\s*(.*)$/ism);
+                    if (match && match[1]) {
+                        outputText = match[1];
+                    } else {
+                        // Aggressive fallback to split at the likely end of the JSON block
+                        const splitParts = outputText.split(']}');
+                        if (splitParts.length > 1) {
+                            outputText = splitParts.slice(1).join(']}').trim();
+                        } else {
+                            // Strip anything inside outer brackets that sits at the very start
+                            outputText = outputText.replace(/^\{[\s\S]*?\}\s*(?=[a-zA-Z])/i, '').trim();
+                        }
+                    }
+                }
+
                 console.log('\n--- OPENROUTER FALLBACK RESPONSE ---');
-                console.log(text.substring(0, 500) + '...\n');
-                return text;
+                console.log(outputText.substring(0, 500) + '...\n');
+                return outputText;
             } catch (fallbackError) {
                 console.error('❌ OpenRouter Fallback Error:', fallbackError.message);
             }
