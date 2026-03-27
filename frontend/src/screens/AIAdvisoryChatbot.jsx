@@ -12,6 +12,9 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
     const hasProcessedContext = useRef(false);
     const initialTextRef = useRef('');
     const ignoreResultRef = useRef(false);
+    const latestInputRef = useRef('');
+    const shouldAutoSendRef = useRef(false);
+    
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [playingMessageId, setPlayingMessageId] = useState(null);
     const autoSpeakNext = useRef(false);
@@ -182,7 +185,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         if (!recognitionRef.current) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const recognition = new SpeechRecognition();
-            recognition.continuous = true;
+            recognition.continuous = false; // Stop automatically when the user pauses
             recognition.interimResults = true;
 
             const langMap = {
@@ -208,11 +211,13 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                 }
                 const newText = initialTextRef.current ? initialTextRef.current + ' ' + transcript : transcript;
                 setInputText(newText);
+                latestInputRef.current = newText;
             };
 
             recognition.onerror = (event) => {
                 console.error("Speech Recognition Error:", event.error);
                 setIsListening(false);
+                shouldAutoSendRef.current = false;
             };
 
             recognition.onend = () => {
@@ -223,19 +228,37 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         }
 
         if (isListening) {
-            recognitionRef.current.stop();
+            recognitionRef.current.stop(); // This triggers onend which handles the auto-send
         } else {
             ignoreResultRef.current = false;
+            shouldAutoSendRef.current = true;
             initialTextRef.current = inputText;
+            latestInputRef.current = inputText;
             recognitionRef.current.start();
         }
     };
 
+    // Auto-send effect when listening naturally or manually stops
+    useEffect(() => {
+        if (!isListening && shouldAutoSendRef.current && latestInputRef.current.trim()) {
+            shouldAutoSendRef.current = false;
+            autoSpeakNext.current = true;
+            // Instantly sync the final text and trigger send
+            setInputText(latestInputRef.current);
+            setTimeout(() => {
+                document.getElementById('send-btn')?.click();
+            }, 50);
+        }
+    }, [isListening]);
+
     const handleSend = async () => {
-        if (!inputText.trim()) return;
+        if (!inputText.trim() && !latestInputRef.current.trim()) return;
+
+        const currentText = inputText.trim() ? inputText : latestInputRef.current;
 
         if (isListening && recognitionRef.current) {
             ignoreResultRef.current = true;
+            shouldAutoSendRef.current = false;
             recognitionRef.current.stop();
             setIsListening(false);
             autoSpeakNext.current = true; // Auto-speak AI reply since user sent via voice
@@ -247,7 +270,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
 
         const userMsg = {
             id: Date.now(),
-            text: inputText,
+            text: currentText,
             isAI: false,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
@@ -255,6 +278,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         const newMessages = [...messages, userMsg];
         setMessages(newMessages);
         setInputText('');
+        latestInputRef.current = '';
         setIsTyping(true);
 
         // Format history for backend OpenRouter API
@@ -435,8 +459,9 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                         </button>
                     </div>
                     <button
+                        id="send-btn"
                         onClick={handleSend}
-                        disabled={!inputText.trim() || isTyping}
+                        disabled={(!inputText.trim() && !latestInputRef.current.trim()) || isTyping}
                         className="flex-shrink-0 w-12 h-12 mb-0 rounded-full bg-primary text-white dark:text-neutral-surface-dark shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 disabled:scale-100"
                     >
                         <span className="material-icons-round text-xl translate-x-0.5">send</span>

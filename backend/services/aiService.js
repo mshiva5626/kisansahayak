@@ -1,6 +1,8 @@
 const { GoogleGenAI } = require('@google/genai');
+const axios = require('axios');
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.CROP_ANALYSIS_API_KEY || 'AIzaSyDNR_3NGNFbiM_tWLtnAjcGnOLI3eGtxao';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.CROP_ANALYSIS_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const GEMINI_MODEL = 'gemini-2.0-flash';
 const buildPrompt = (context) => {
     const { farmer, farm, weather, image_analysis } = context;
@@ -142,7 +144,40 @@ const getAIAdvisory = async (queryOrMessages, context = {}) => {
         return text;
     } catch (error) {
         console.error('\n❌ Gemini API Error:', error.message);
-        throw new Error('AI Service is temporarily unavailable. Please try again later.');
+        
+        // --- FALLBACK TO OPENROUTER ---
+        if (OPENROUTER_API_KEY) {
+            console.log('🔄 Attempting fallback to OpenRouter API...');
+            try {
+                let orMessages = [{ role: 'system', content: buildPrompt(context) }];
+                if (Array.isArray(queryOrMessages)) {
+                    orMessages = orMessages.concat(queryOrMessages);
+                } else {
+                    orMessages.push({ role: 'user', content: queryOrMessages });
+                }
+
+                const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+                    model: 'google/gemini-2.5-flash', // OpenRouter path for latest Gemini
+                    messages: orMessages,
+                    temperature: 0.7
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                        'HTTP-Referer': 'http://localhost:5000',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const text = response.data.choices[0].message.content;
+                console.log('\n--- OPENROUTER FALLBACK RESPONSE ---');
+                console.log(text.substring(0, 500) + '...\n');
+                return text;
+            } catch (fallbackError) {
+                console.error('❌ OpenRouter Fallback Error:', fallbackError.message);
+            }
+        }
+
+        throw new Error('AI Service is temporarily unavailable due to high traffic. Please try again later.');
     }
 };
 
