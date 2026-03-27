@@ -107,6 +107,12 @@ Next Action:
 const getAIAdvisory = async (queryOrMessages, context = {}) => {
     try {
         const systemPrompt = buildPrompt(context);
+        
+        // Immediate Bypass to OpenRouter if no valid Google API Key
+        if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIza')) {
+            throw new Error('Bypassing Gemini SDK (No AIza API key explicitly found for GenAI)');
+        }
+        
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
         let contents = [];
@@ -157,7 +163,7 @@ const getAIAdvisory = async (queryOrMessages, context = {}) => {
                 }
 
                 const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-                    model: 'google/gemini-2.5-flash', // OpenRouter path for latest Gemini
+                    model: 'google/gemini-1.5-flash', // Correctly mapped OpenRouter Gemini Model
                     messages: orMessages,
                     temperature: 0.7
                 }, {
