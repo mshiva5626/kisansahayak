@@ -23,6 +23,7 @@ import FarmerProfileSetup from './screens/FarmerProfileSetup';
 import SatelliteImagery from './screens/SatelliteImagery';
 import LiveMarketPrices from './screens/LiveMarketPrices';
 import SoilHealthReport from './screens/SoilHealthReport';
+import FertilizerMarketplace from './screens/FertilizerMarketplace';
 
 import { authAPI } from './api';
 
@@ -290,15 +291,11 @@ function App() {
           {currentScreen === 'risk-alert' && (
             <RiskAlertDetails onBack={() => navigateTo('dashboard')} />
           )}
-          {currentScreen === 'priority-tasks' && (
-            <TodayPriorityTasks
+          {currentScreen === 'fertilizer-marketplace' && (
+            <FertilizerMarketplace
               onBack={() => navigateTo('dashboard')}
-              onTaskDone={() => console.log('Task done')}
-              onViewTreatment={() => {
-                setChatContext(null);
-                navigateTo('chat');
-              }}
-              onNavigate={navigateTo}
+              userProfile={userProfile}
+              selectedFarmId={selectedFarmId}
             />
           )}
           {currentScreen === 'scanner' && (

@@ -193,11 +193,11 @@ const Dashboard = ({ onProfileClick, onNotificationClick, onAICopilotClick, onSc
                                         </div>
                                         <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">My Farms</span>
                                     </button>
-                                    <button onClick={onTodayFocusClick} className="flex flex-col items-center gap-2 group">
-                                        <div className="h-12 w-12 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
-                                            <span className="material-symbols-outlined text-teal-600 text-[24px] transition-all duration-300">task_alt</span>
+                                    <button onClick={() => onNavigate('fertilizer-marketplace')} className="flex flex-col items-center gap-2 group">
+                                        <div className="h-12 w-12 rounded-xl bg-[#e0f2fe] dark:bg-[#0c4a6e] flex items-center justify-center transition-transform group-hover:scale-105">
+                                            <span className="material-symbols-outlined text-[#0284c7] text-[24px] transition-all duration-300">shopping_bag</span>
                                         </div>
-                                        <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">Tasks</span>
+                                        <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">Fertilizers</span>
                                     </button>
                                     <button onClick={onSoilTestClick} className="flex flex-col items-center gap-2 group">
                                         <div className="h-12 w-12 rounded-xl bg-[#dcfce7] dark:bg-[#114011] flex items-center justify-center transition-transform group-hover:scale-105">
