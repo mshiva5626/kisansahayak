@@ -1,13 +1,14 @@
-const ARCEE_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const ARCEE_MODEL = 'arcee-ai/trinity-large-preview:free';
-const ARCEE_API_KEY = process.env.ARCEE_API_KEY || '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';
+const { GoogleGenAI } = require('@google/genai');
 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.CROP_ANALYSIS_API_KEY || 'AIzaSyDNR_3NGNFbiM_tWLtnAjcGnOLI3eGtxao';
+const GEMINI_MODEL = 'gemini-2.0-flash';
 const buildPrompt = (context) => {
     const { farmer, farm, weather, image_analysis } = context;
 
     let prompt = `You are a Senior Agricultural Operations Advisor. You must provide highly professional, precise, crisp, and friendly advice.
 
 CRITICAL RULES:
+- YOU MUST detect the language of the user's input query and YOU MUST respond in EXACTLY the same language. For example, if the user asks in Hindi, you must reply in Hindi. Do not use English unless the user used English. This is extremely important.
 - BE CONCISE AND PRECISE. Use exact scientific calculations where applicable. Analyze the provided farm data (area size, exact weather temperature/humidity, crop type) and output specific numbers (e.g., NPK ratios, calculated water requirements in liters, exact dates).
 - Never mention AI, models, algorithms, or machine learning.
 - Use professional agronomy and agricultural language.
@@ -103,54 +104,44 @@ Next Action:
 
 const getAIAdvisory = async (queryOrMessages, context = {}) => {
     try {
-        const prompt = buildPrompt(context);
+        const systemPrompt = buildPrompt(context);
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
-        let apiMessages = [{ role: 'system', content: prompt }];
+        let contents = [];
 
         if (Array.isArray(queryOrMessages)) {
-            // Include full chat history
-            apiMessages = apiMessages.concat(queryOrMessages);
+            // Map chat history to Gemini format
+            contents = queryOrMessages.map(msg => {
+                // Gemini expects roles 'user' or 'model'. OpenRouter/OpenAI uses 'assistant'.
+                const role = msg.role === 'assistant' ? 'model' : 'user';
+                return { role, parts: [{ text: msg.content }] };
+            });
         } else {
             // Single query (fallback)
-            apiMessages.push({ role: 'user', content: queryOrMessages });
+            contents = [{ role: 'user', parts: [{ text: queryOrMessages }] }];
         }
 
-        console.log('\n--- ARCEE AI (OPENROUTER) API REQUEST ---');
-        console.log(`Model: ${ARCEE_MODEL}`);
+        console.log('\n--- GEMINI 2.0 FLASH API REQUEST ---');
         console.log(`Context Keys: ${Object.keys(context).join(', ')}`);
 
-        // Use native Node fetch (available in newer Node versions) or require it if using older ones
-        // Assuming global fetch is available since Node 18+
-        const response = await fetch(ARCEE_URL, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${ARCEE_API_KEY}`,
-                'HTTP-Referer': 'http://localhost:5173',
-                'X-Title': 'Kisan Sahayak Farm Copilot',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: ARCEE_MODEL,
-                messages: apiMessages,
-                stream: false // Wait for full response, UI is not built for streaming yet
-            })
+        const response = await ai.models.generateContent({
+            model: GEMINI_MODEL,
+            contents: contents,
+            config: {
+                systemInstruction: systemPrompt,
+                temperature: 0.7
+            }
         });
 
-        if (!response.ok) {
-            const errorBody = await response.text();
-            throw new Error(`Arcee AI responded with status: ${response.status} - ${errorBody}`);
-        }
+        const text = response.text;
 
-        const data = await response.json();
-        const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
-
-        console.log('\n--- ARCEE AI API RESPONSE ---');
+        console.log('\n--- GEMINI 2.0 FLASH API RESPONSE ---');
         console.log(text.substring(0, 500) + (text.length > 500 ? '...\n[Truncated]' : ''));
         console.log('---------------------------\n');
 
         return text;
     } catch (error) {
-        console.error('\n❌ Arcee AI API Error:', error.message);
+        console.error('\n❌ Gemini API Error:', error.message);
         throw new Error('AI Service is temporarily unavailable. Please try again later.');
     }
 };

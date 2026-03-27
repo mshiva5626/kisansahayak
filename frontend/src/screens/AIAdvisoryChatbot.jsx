@@ -12,6 +12,61 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
     const hasProcessedContext = useRef(false);
     const initialTextRef = useRef('');
     const ignoreResultRef = useRef(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [playingMessageId, setPlayingMessageId] = useState(null);
+    const autoSpeakNext = useRef(false);
+
+    // Stop speaking utility
+    const stopSpeaking = () => {
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+            setIsSpeaking(false);
+            setPlayingMessageId(null);
+        }
+    };
+
+    // Toggle playback for a message
+    const togglePlayback = (msg) => {
+        if (isSpeaking && playingMessageId === msg.id) {
+            stopSpeaking();
+            return;
+        }
+        
+        stopSpeaking();
+        if (!('speechSynthesis' in window)) return;
+        
+        // Strip out non-spoken markdown
+        let textToRead = msg.text.replace(/\*\*/g, '').replace(/#/g, '').replace(/-/g, '').trim();
+        const utterance = new SpeechSynthesisUtterance(textToRead);
+        
+        const langMap = {
+            'hi': 'hi-IN', 'mr': 'mr-IN', 'ta': 'ta-IN', 'te': 'te-IN', 
+            'en': 'en-IN', 'gu': 'gu-IN', 'bn': 'bn-IN', 'pa': 'pa-IN'
+        };
+        utterance.lang = langMap[userProfile?.preferred_language] || 'hi-IN';
+        
+        utterance.onstart = () => {
+            setIsSpeaking(true);
+            setPlayingMessageId(msg.id);
+        };
+        utterance.onend = () => {
+            setIsSpeaking(false);
+            setPlayingMessageId(null);
+        };
+        utterance.onerror = () => {
+            setIsSpeaking(false);
+            setPlayingMessageId(null);
+        };
+
+        window.speechSynthesis.speak(utterance);
+    };
+
+    // Cleanup speech on unmount
+    useEffect(() => {
+        return () => {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+        };
+    }, []);
 
     // Load farm data on mount
     useEffect(() => {
@@ -131,11 +186,14 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
             recognition.interimResults = true;
 
             const langMap = {
-                'Hindi': 'hi-IN',
-                'Marathi': 'mr-IN',
-                'Tamil': 'ta-IN',
-                'Telugu': 'te-IN',
-                'English': 'en-IN'
+                'hi': 'hi-IN',
+                'mr': 'mr-IN',
+                'ta': 'ta-IN',
+                'te': 'te-IN',
+                'en': 'en-IN',
+                'gu': 'gu-IN',
+                'bn': 'bn-IN',
+                'pa': 'pa-IN'
             };
             // Defaulting to hi-IN as it supports mixed English/Hindi extremely well for Indian context
             recognition.lang = langMap[userProfile?.preferred_language] || 'hi-IN';
@@ -180,7 +238,12 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
             ignoreResultRef.current = true;
             recognitionRef.current.stop();
             setIsListening(false);
+            autoSpeakNext.current = true; // Auto-speak AI reply since user sent via voice
+        } else {
+            autoSpeakNext.current = false;
         }
+
+        stopSpeaking(); // Stop any active playback when starting a new message
 
         const userMsg = {
             id: Date.now(),
@@ -223,6 +286,11 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
             setMessages(prev => [...prev, aiMsg]);
+            
+            if (autoSpeakNext.current) {
+                autoSpeakNext.current = false;
+                setTimeout(() => togglePlayback(aiMsg), 200);
+            }
         } catch (error) {
             console.error('AI Error:', error);
             const msgText = error.response?.data?.message || "I'm having trouble connecting right now. Please check your internet connection and try again.";
@@ -313,9 +381,18 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                             </div>
                         )}
                         <div className={`flex flex-col gap-1 max-w-[85%] ${msg.isAI ? '' : 'items-end'}`}>
-                            <div className={`${msg.isAI ? 'bg-white dark:bg-neutral-surface-dark rounded-bl-none text-neutral-text-light dark:text-neutral-text-dark border border-neutral-surface-light dark:border-white/5' : 'bg-primary rounded-br-none text-white dark:text-neutral-surface-dark font-medium'} p-4 rounded-2xl shadow-card text-[15px] leading-relaxed relative`}>
+                            <div className={`${msg.isAI ? 'bg-white dark:bg-neutral-surface-dark rounded-bl-none text-neutral-text-light dark:text-neutral-text-dark border border-neutral-surface-light dark:border-white/5' : 'bg-primary rounded-br-none text-white dark:text-neutral-surface-dark font-medium'} p-4 rounded-2xl shadow-card text-[15px] leading-relaxed relative group`}>
                                 {msg.isAI ? (
-                                    <div className="text-sm leading-relaxed">{renderAIText(msg.text)}</div>
+                                    <>
+                                        <div className="text-sm leading-relaxed">{renderAIText(msg.text)}</div>
+                                        <button 
+                                            onClick={() => togglePlayback(msg)}
+                                            className={`absolute -right-3 -bottom-3 p-1.5 rounded-full shadow-sm border transition-all ${playingMessageId === msg.id ? 'bg-primary text-white border-primary animate-pulse shadow-primary/30 z-10' : 'bg-white dark:bg-neutral-surface-dark text-neutral-muted-light dark:text-neutral-muted-dark border-neutral-surface-light dark:border-white/10 hover:bg-neutral-surface-light dark:hover:bg-white/5 opacity-0 group-hover:opacity-100 focus:opacity-100'}`}
+                                            title={playingMessageId === msg.id ? "Stop Speaking" : "Listen to response"}
+                                        >
+                                            <span className="material-icons-round text-sm">{playingMessageId === msg.id ? 'stop' : 'volume_up'}</span>
+                                        </button>
+                                    </>
                                 ) : (
                                     <p>{msg.text}</p>
                                 )}
@@ -338,7 +415,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
             {/* Bottom Input Section */}
             <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-background-dark border-t border-neutral-surface-light dark:border-white/5 pb-10 pt-2 z-30">
                 <div className="px-4 flex items-end gap-2">
-                    <div className="flex-1 bg-neutral-surface-light dark:bg-neutral-surface-dark rounded-2xl px-4 py-3 flex items-center gap-2 border border-transparent focus-within:border-primary/50 transition-colors">
+                    <div className={`flex-1 rounded-2xl px-4 py-3 flex items-center gap-2 border transition-all duration-300 ${isListening ? 'border-red-500/50 ring-2 ring-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.15)] bg-red-50/50 dark:bg-red-900/10' : 'bg-neutral-surface-light dark:bg-neutral-surface-dark border-transparent focus-within:border-primary/50'}`}>
                         <textarea
                             className="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-neutral-text-light dark:text-neutral-text-dark placeholder-neutral-muted-light dark:placeholder-neutral-muted-dark resize-none max-h-24"
                             placeholder={isListening ? 'Listening...' : (farmData ? `Ask about your ${farmData.crop_type || 'crop'}...` : 'Ask about crops, weather...')}

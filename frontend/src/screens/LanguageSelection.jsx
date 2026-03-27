@@ -14,6 +14,20 @@ const LanguageSelection = ({ onContinue }) => {
 
     const [selectedLang, setSelectedLang] = useState('English');
 
+    const handleContinue = () => {
+        const codes = {
+            'English': 'en',
+            'Hindi': 'hi',
+            'Punjabi': 'pa',
+            'Marathi': 'mr',
+            'Telugu': 'te',
+            'Tamil': 'ta',
+            'Gujarati': 'gu',
+            'Bengali': 'bn'
+        };
+        onContinue(codes[selectedLang] || 'en');
+    };
+
     return (
         <div className="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-100 min-h-screen flex flex-col antialiased selection:bg-primary selection:text-white">
             {/* Safe Area Spacer */}
@@ -61,7 +75,7 @@ const LanguageSelection = ({ onContinue }) => {
             {/* Footer Action */}
             <footer className="fixed bottom-0 left-0 right-0 p-6 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 z-10">
                 <button
-                    onClick={() => onContinue(selectedLang === 'Hindi' ? 'hi' : selectedLang === 'Marathi' ? 'mr' : 'en')}
+                    onClick={handleContinue}
                     className="w-full bg-primary hover:bg-primary-dark text-black dark:text-gray-900 font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
                     <span>Continue</span>

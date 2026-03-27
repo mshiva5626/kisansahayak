@@ -143,6 +143,10 @@ const ProfileSettings = ({ onBack, onSave, onNavigate, userProfile, setUserProfi
                                         <option value="hi">Hindi</option>
                                         <option value="mr">Marathi</option>
                                         <option value="te">Telugu</option>
+                                        <option value="ta">Tamil</option>
+                                        <option value="gu">Gujarati</option>
+                                        <option value="bn">Bengali</option>
+                                        <option value="pa">Punjabi</option>
                                     </select>
                                 </div>
                             ) : (

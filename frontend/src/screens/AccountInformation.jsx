@@ -21,6 +21,12 @@ const AccountInformation = ({ onBack, onNavigate, userProfile, onLogout }) => {
 
     const displayProfile = profile || userProfile || {};
 
+    const langNames = {
+        'en': 'English', 'hi': 'Hindi', 'পা': 'Punjabi', 'pa': 'Punjabi',
+        'mr': 'Marathi', 'te': 'Telugu', 'ta': 'Tamil', 'gu': 'Gujarati', 'bn': 'Bengali'
+    };
+    const displayLanguage = langNames[displayProfile.preferred_language] || displayProfile.preferred_language || 'English';
+
     return (
         <div className="w-full max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen relative flex flex-col font-display antialiased">
             {/* Header */}
@@ -75,7 +81,7 @@ const AccountInformation = ({ onBack, onNavigate, userProfile, onLogout }) => {
                             { label: 'Mobile', val: displayProfile.mobile_number || 'Not set', icon: 'phone' },
                             { label: 'State', val: displayProfile.state || 'Not set', icon: 'location_on' },
                             { label: 'District', val: displayProfile.district || 'Not set', icon: 'map' },
-                            { label: 'Language', val: displayProfile.preferred_language || 'English', icon: 'translate' }
+                            { label: 'Language', val: displayLanguage, icon: 'translate' }
                         ].map((detail, idx) => (
                             <div key={idx} className="flex items-start gap-3">
                                 <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center shrink-0">
