@@ -2,7 +2,7 @@ const { GoogleGenAI } = require('@google/genai');
 const axios = require('axios');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.CROP_ANALYSIS_API_KEY;
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
 const GEMINI_MODEL = 'gemini-2.0-flash';
 const buildPrompt = (context) => {
     const { farmer, farm, weather, image_analysis } = context;
