@@ -162,49 +162,30 @@ const getAIAdvisory = async (queryOrMessages, context = {}) => {
                     orMessages.push({ role: 'user', content: queryOrMessages });
                 }
 
-                const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-                    model: 'arcee-ai/trinity-mini:free',
-                    messages: orMessages,
-                    temperature: 0.7
-                }, {
-                    headers: {
-                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-                        'HTTP-Referer': 'http://localhost:5000',
-                        'Content-Type': 'application/json'
+                const { OpenRouter } = require("@openrouter/sdk");
+                const openrouter = new OpenRouter({ apiKey: OPENROUTER_API_KEY });
+                
+                console.log('📡 Streaming via OpenRouter SDK (model: nemotron-3-super-120b)...');
+                const stream = await openrouter.chat.send({
+                    chatGenerationParams: {
+                        model: "nvidia/nemotron-3-super-120b-a12b:free",
+                        messages: orMessages,
+                        stream: true
                     }
                 });
 
-                const result = response.data; // axios response has data property
-
-                if (!response.status || response.status < 200 || response.status >= 300) {
-                    throw new Error(`API Error ${response.status}: ${JSON.stringify(result).substring(0, 100)}`);
-                }
-
-                if (!result.choices || result.choices.length === 0) {
-                    throw new Error("No choices returned from OpenRouter API.");
-                }
-
-                let outputText = result.choices[0].message.content;
-
-                // --- HOTFIX FOR ARCEE-AI / REASONING MODEL JSON LEAKS ---
-                // If the free model dumps its internal JSON block into the content, strip it
-                if (outputText && outputText.startsWith('{"role"')) {
-                    const match = outputText.match(/^\{[\s\S]*?(?:"tool_calls":\[\]|"reasoning_content"[^}]*)\}\s*(.*)$/ism);
-                    if (match && match[1]) {
-                        outputText = match[1];
-                    } else {
-                        // Aggressive fallback to split at the likely end of the JSON block
-                        const splitParts = outputText.split(']}');
-                        if (splitParts.length > 1) {
-                            outputText = splitParts.slice(1).join(']}').trim();
-                        } else {
-                            // Strip anything inside outer brackets that sits at the very start
-                            outputText = outputText.replace(/^\{[\s\S]*?\}\s*(?=[a-zA-Z])/i, '').trim();
-                        }
+                let outputText = "";
+                for await (const chunk of stream) {
+                    const content = chunk.choices[0]?.delta?.content;
+                    if (content) {
+                        outputText += content;
+                    }
+                    if (chunk.usage && chunk.usage.reasoningTokens) {
+                        console.log(`\n🧠 Reasoning tokens generated: ${chunk.usage.reasoningTokens}`);
                     }
                 }
 
-                console.log('\n--- OPENROUTER FALLBACK RESPONSE ---');
+                console.log('\n--- OPENROUTER SDK RESPONSE ---');
                 console.log(outputText.substring(0, 500) + '...\n');
                 return outputText;
             } catch (fallbackError) {
