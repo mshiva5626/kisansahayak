@@ -200,7 +200,7 @@ const CropAnalysisResults = ({ onBack, onViewTreatment, scanResult }) => {
                                 className="w-full bg-slate-900 dark:bg-slate-100 hover:bg-black text-white dark:text-slate-900 font-bold py-3.5 px-6 rounded-2xl shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                             >
                                 <span className="material-icons text-[20px]">psychology</span>
-                                <span>Discuss with Farm Advisor</span>
+                                <span>Get AI Suggestion</span>
                             </button>
                         )}
                         <button
