@@ -158,9 +158,8 @@ Return ONLY a valid JSON object. No markdown, no code fences, no explanation tex
 
 const { GoogleGenAI } = require('@google/genai');
 
-const API_KEY = process.env.CROP_ANALYSIS_API_KEY || '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';
-// If the user's key starts with AIza, it's a direct Google Gemini key. If sk-or, it's an OpenRouter key.
-const GEMINI_API_KEY = process.env.CROP_ANALYSIS_API_KEY || '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';
+const API_KEY = process.env.CROP_ANALYSIS_API_KEY;
+const GEMINI_API_KEY = process.env.CROP_ANALYSIS_API_KEY;
 
 // Determine if we should use official Google SDK or OpenRouter fallback based on key prefix
 const useOfficialGemini = GEMINI_API_KEY.startsWith('AIza');
