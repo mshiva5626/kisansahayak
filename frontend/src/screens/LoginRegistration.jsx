@@ -103,7 +103,7 @@ const LoginRegistration = ({ onLogin, onRegister, onBack }) => {
                     <div className="absolute inset-0 z-0 opacity-[0.06] bg-farmer-pattern bg-cover bg-center pointer-events-none grayscale" data-alt="Indian farmer working in a field"></div>
                 )}
                 <div className={`flex-1 overflow-y-auto no-scrollbar relative z-10 px-6 ${isLogin ? 'pb-4' : 'pb-8'}`}>
-                    <div className={`bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-100 dark:border-slate-700 ${isLogin ? 'mb-6' : ''}`}>
+                    <div className={`krishi-glass rounded-2xl shadow-2xl p-6 border border-white/50 dark:border-white/10 ${isLogin ? 'mb-6' : ''}`}>
 
                         <div className="mb-8 pt-2 text-center sm:text-left">
                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">

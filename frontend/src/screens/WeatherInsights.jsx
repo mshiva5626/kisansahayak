@@ -106,24 +106,24 @@ const WeatherInsights = ({ onBack, onNavigate, selectedFarmId }) => {
     }
 
     return (
-        <div className="flex flex-col min-h-full bg-[#0a140a] font-display text-white relative">
+        <div className="flex flex-col min-h-full bg-gradient-to-b from-[#03140A] to-[#081d11] font-display text-white relative">
             {/* Ambient Background Gradient for Weather */}
-            <div className={`fixed inset-0 z-0 pointer-events-none transition-colors duration-1000 ${weather?.condition?.toLowerCase().includes('rain') ? 'bg-gradient-to-b from-[#1a2b3c] to-[#0a140a]' : 'bg-gradient-to-b from-[#0a2e1a] to-[#0a140a]'}`}></div>
+            <div className={`fixed inset-0 z-0 pointer-events-none transition-colors duration-1000 ${weather?.condition?.toLowerCase().includes('rain') ? 'bg-gradient-to-b from-[#111e2e] to-[#03140A]' : 'bg-gradient-to-b from-[#042414] to-[#03140A]'}`}></div>
 
             {/* Header */}
-            <header className="px-5 pt-12 pb-6 relative z-10 sticky top-0 bg-[#0a140a]/80 backdrop-blur-xl border-b border-[#1a3a1a]">
+            <header className="px-5 pt-12 pb-6 relative z-10 sticky top-0 krishi-glass border-b border-white/10 shadow-md">
                 <div className="flex items-center justify-between">
-                    <button onClick={onBack} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1a2e1a] border border-[#2a4a2a] text-[#8abf8a] hover:text-white transition-all">
+                    <button onClick={onBack} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-white/20 text-[#8abf8a] hover:text-white transition-all cursor-pointer tactile-btn">
                         <span className="material-symbols-outlined text-xl">arrow_back</span>
                     </button>
                     <div className="text-center flex-1">
-                        <h1 className="text-xl font-bold tracking-wide">Weather Insights</h1>
-                        <p className="text-[#8abf8a] text-xs flex items-center justify-center gap-1 mt-0.5">
+                        <h1 className="text-xl font-bold tracking-wide text-white">Weather Insights</h1>
+                        <p className="text-[#8abf8a] text-xs flex items-center justify-center gap-1 mt-0.5 font-semibold">
                             <span className="material-symbols-outlined text-[12px]">location_on</span>
                             {locationName}
                         </p>
                     </div>
-                    <button className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1a2e1a] border border-[#2a4a2a] text-[#8abf8a] hover:text-white transition-all">
+                    <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-white/20 text-[#8abf8a] hover:text-white transition-all cursor-pointer tactile-btn">
                         <span className="material-symbols-outlined text-xl">share</span>
                     </button>
                 </div>
@@ -135,23 +135,23 @@ const WeatherInsights = ({ onBack, onNavigate, selectedFarmId }) => {
                 {/* Hero Current Weather */}
                 {weather && (
                     <div className="relative text-center pb-6">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#13ec6d]/10 rounded-full blur-3xl -z-10"></div>
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#0ED054]/10 rounded-full blur-3xl -z-10"></div>
                         <div className="flex justify-center mb-2">
                             {weather.condition?.toLowerCase().includes('rain') ? (
-                                <span className="material-symbols-outlined text-6xl text-blue-400 drop-shadow-[0_0_15px_rgba(96,165,250,0.5)]">rainy</span>
+                                <span className="material-symbols-outlined text-7xl text-blue-400 drop-shadow-[0_0_15px_rgba(96,165,250,0.5)]">rainy</span>
                             ) : weather.condition?.toLowerCase().includes('cloud') ? (
-                                <span className="material-symbols-outlined text-6xl text-gray-300 drop-shadow-[0_0_15px_rgba(209,213,219,0.5)]">cloudy</span>
+                                <span className="material-symbols-outlined text-7xl text-gray-300 drop-shadow-[0_0_15px_rgba(209,213,219,0.5)]">cloudy</span>
                             ) : (
-                                <span className="material-symbols-outlined text-6xl text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">sunny</span>
+                                <span className="material-symbols-outlined text-7xl text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">sunny</span>
                             )}
                         </div>
                         <div className="flex items-start justify-center">
-                            <h2 className="text-[5rem] font-black leading-none tracking-tighter mix-blend-screen">{weather.temp}</h2>
+                            <h2 className="text-[5.5rem] font-black leading-none tracking-tighter mix-blend-screen drop-shadow-md">{weather.temp}</h2>
                             <span className="text-3xl font-bold mt-2 text-[#8abf8a]">°C</span>
                         </div>
-                        <p className="text-xl text-white font-medium capitalize mt-1 tracking-wide">{weather.condition}</p>
+                        <p className="text-xl text-white font-bold capitalize mt-1 tracking-wide">{weather.condition}</p>
                         <div className="flex items-center justify-center gap-3 mt-3">
-                            <span className="bg-[#1a2e1a] border border-[#2a4a2a] px-3 py-1 rounded-full text-xs text-[#8abf8a] font-medium flex items-center gap-1">
+                            <span className="bg-white/10 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-xs text-[#8abf8a] font-bold flex items-center gap-1">
                                 <span className="material-symbols-outlined text-[14px]">thermostat</span>
                                 Feels like {weather.temp + 1}°
                             </span>
@@ -161,8 +161,8 @@ const WeatherInsights = ({ onBack, onNavigate, selectedFarmId }) => {
 
                 {/* Metrics Grid */}
                 {weather && (
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-[#1a2e1a]/90 backdrop-blur-md border border-[#2a4a2a] shadow-lg rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group">
+                    <div className="grid grid-cols-2 gap-4 tilt-card-container">
+                        <div className="krishi-glass shadow-lg rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group tilt-card border border-white/20 dark:border-white/10">
                             <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition-all"></div>
                             <div className="flex items-center gap-2 text-[#a8dda8] text-[11px] uppercase tracking-widest font-bold">
                                 <span className="material-symbols-outlined text-blue-400 text-sm">water_drop</span>
@@ -172,7 +172,7 @@ const WeatherInsights = ({ onBack, onNavigate, selectedFarmId }) => {
                             <div className="text-[11px] font-bold text-[#8abf8a] mt-1">{weather.humidity > 70 ? 'High' : 'Normal'} Range</div>
                         </div>
 
-                        <div className="bg-[#1a2e1a]/90 backdrop-blur-md border border-[#2a4a2a] shadow-lg rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group">
+                        <div className="krishi-glass shadow-lg rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group tilt-card border border-white/20 dark:border-white/10">
                             <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-gray-400/10 rounded-full blur-xl group-hover:bg-gray-400/20 transition-all"></div>
                             <div className="flex items-center gap-2 text-[#a8dda8] text-[11px] uppercase tracking-widest font-bold">
                                 <span className="material-symbols-outlined text-gray-400 text-sm">air</span>
@@ -182,7 +182,7 @@ const WeatherInsights = ({ onBack, onNavigate, selectedFarmId }) => {
                             <div className="text-[11px] font-bold text-[#8abf8a] mt-1">{weather.wind > 20 ? 'Strong' : 'Light Breeze'}</div>
                         </div>
 
-                        <div className="bg-[#1a2e1a]/90 backdrop-blur-md border border-[#2a4a2a] shadow-lg rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group">
+                        <div className="krishi-glass shadow-lg rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group tilt-card border border-white/20 dark:border-white/10">
                             <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-blue-400/10 rounded-full blur-xl group-hover:bg-blue-400/20 transition-all"></div>
                             <div className="flex items-center gap-2 text-[#a8dda8] text-[11px] uppercase tracking-widest font-bold">
                                 <span className="material-symbols-outlined text-blue-400 text-sm">umbrella</span>
@@ -192,7 +192,7 @@ const WeatherInsights = ({ onBack, onNavigate, selectedFarmId }) => {
                             <div className="text-[11px] font-bold text-[#8abf8a] mt-1">Next 24 Hours</div>
                         </div>
 
-                        <div className="bg-[#1a2e1a]/90 backdrop-blur-md border border-[#2a4a2a] shadow-lg rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group">
+                        <div className="krishi-glass shadow-lg rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group tilt-card border border-white/20 dark:border-white/10">
                             <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-orange-500/10 rounded-full blur-xl group-hover:bg-orange-500/20 transition-all"></div>
                             <div className="flex items-center gap-2 text-[#a8dda8] text-[11px] uppercase tracking-widest font-bold">
                                 <span className="material-symbols-outlined text-orange-400 text-sm">wb_sunny</span>
@@ -206,21 +206,21 @@ const WeatherInsights = ({ onBack, onNavigate, selectedFarmId }) => {
 
                 {/* Agri-Insight Card */}
                 {weather && (
-                    <div className="relative mt-2 p-[1px] rounded-2xl overflow-hidden bg-gradient-to-r from-[#13ec6d] via-[#10b953] to-[#0a662e] shadow-[0_0_20px_rgba(19,236,109,0.15)]">
-                        <div className="bg-[#0f1f0f] rounded-2xl p-4 h-full">
+                    <div className="relative mt-2 p-[1px] rounded-2xl overflow-hidden bg-gradient-to-r from-[#0ED054] via-[#10b953] to-[#0a662e] shadow-[0_4px_24px_rgba(14,208,84,0.15)] tilt-card-container">
+                        <div className="krishi-glass rounded-2xl p-5 h-full border-none tilt-card">
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 shrink-0 rounded-full bg-[#13ec6d]/20 flex items-center justify-center border border-[#13ec6d]/30">
-                                    <span className="material-symbols-outlined text-[#13ec6d] text-2xl">psychology</span>
+                                <div className="w-12 h-12 shrink-0 rounded-full bg-[#0ED054]/20 flex items-center justify-center border border-[#0ED054]/30 shadow-md">
+                                    <span className="material-symbols-outlined text-[#0ED054] text-2xl font-bold">psychology</span>
                                 </div>
                                 <div>
                                     <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">
                                         AI Agronomist
-                                        <span className="w-2 h-2 rounded-full bg-[#13ec6d] animate-pulse"></span>
+                                        <span className="w-2 h-2 rounded-full bg-[#0ED054] animate-pulse"></span>
                                     </h3>
-                                    <p className="text-[#8abf8a] text-sm leading-relaxed mb-3">
+                                    <p className="text-[#8abf8a] text-sm leading-relaxed mb-3 font-semibold">
                                         {getAgriRecommendation()}
                                     </p>
-                                    <button className="text-[#13ec6d] text-xs font-bold uppercase tracking-wider flex items-center gap-1 hover:underline">
+                                    <button className="text-[#0ED054] text-xs font-bold uppercase tracking-wider flex items-center gap-1 hover:underline cursor-pointer">
                                         View Detailed Advisory <span className="material-symbols-outlined text-sm">arrow_forward</span>
                                     </button>
                                 </div>
@@ -232,11 +232,11 @@ const WeatherInsights = ({ onBack, onNavigate, selectedFarmId }) => {
                 {/* Detailed Forecast */}
                 {weather?.forecast && weather.forecast.length > 0 && (
                     <div className="mt-6">
-                        <h3 className="text-white font-bold tracking-wide mb-4">7-Day Forecast</h3>
-                        <div className="bg-[#1a2e1a]/90 backdrop-blur-md border border-[#2a4a2a] shadow-lg rounded-2xl overflow-hidden">
+                        <h3 className="text-white font-bold tracking-wide mb-4 text-lg">7-Day Forecast</h3>
+                        <div className="krishi-glass shadow-lg rounded-2xl overflow-hidden border border-white/20 dark:border-white/10">
                             <div className="flex flex-col">
                                 {weather.forecast.map((day, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-4 border-b last:border-0 border-[#2a4a2a]">
+                                    <div key={idx} className="flex items-center justify-between p-4 border-b last:border-0 border-white/10 hover:bg-white/5 transition-all">
                                         <div className="w-24 text-[15px] font-bold text-white">
                                             {new Date(day.date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' })}
                                         </div>

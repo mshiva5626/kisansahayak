@@ -14,7 +14,8 @@ const ProfileSettings = ({ onBack, onSave, onNavigate, userProfile, setUserProfi
         mobile_number: '',
         farming_type: '',
         state: '',
-        district: ''
+        district: '',
+        preferred_language: 'en'
     });
 
     useEffect(() => {
@@ -53,218 +54,232 @@ const ProfileSettings = ({ onBack, onSave, onNavigate, userProfile, setUserProfi
         }
     };
 
+    const inputClasses = "w-full bg-white/40 dark:bg-black/30 border border-white/60 dark:border-emerald-500/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 transition-all";
+
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-100 h-screen flex flex-col overflow-hidden antialiased">
+        <div className="bg-gradient-to-b from-[#fcfdfc] to-[#e3eae4] dark:from-[#03140A] dark:to-[#081d11] font-display text-slate-800 dark:text-slate-100 h-screen flex flex-col overflow-hidden antialiased relative">
+            {/* Ambient glows */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
             {/* Top Navigation */}
-            <header className="flex-none px-6 pt-12 pb-4 flex items-center justify-between bg-white dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-50">
-                <button onClick={onBack} className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-gray-800 dark:text-white">
+            <header className="flex-none px-6 pt-12 pb-4 flex items-center justify-between bg-white/30 dark:bg-[#03140A]/30 backdrop-blur-md sticky top-0 z-50 border-b border-white/20 dark:border-emerald-500/5">
+                <button 
+                    onClick={onBack} 
+                    className="p-2 -ml-2 rounded-full hover:bg-white/40 dark:hover:bg-white/5 transition-all text-slate-800 dark:text-white active:scale-90 tactile-btn"
+                >
                     <span className="material-icons-outlined text-2xl">chevron_left</span>
                 </button>
-                <h1 className="text-lg font-semibold tracking-tight">Profile & Settings</h1>
+                <h1 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">Profile & Settings</h1>
                 <button
                     onClick={handleSaveProfile}
                     disabled={isSaving}
-                    className={`p-2 -mr-2 font-medium text-sm transition-colors ${isEditing ? 'text-primary' : 'text-gray-500'}`}
+                    className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all active:scale-95 tactile-btn ${isEditing ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300'}`}
                 >
                     {isSaving ? 'Saving...' : isEditing ? 'Done' : 'Edit'}
                 </button>
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto no-scrollbar px-5 pb-24">
+            <main className="flex-1 overflow-y-auto no-scrollbar px-5 pb-24 relative z-10">
                 {/* Profile Card */}
-                <section className="mt-4 mb-8">
-                    <div className="bg-white dark:bg-white/5 rounded-2xl p-6 shadow-soft flex items-center gap-5 border border-gray-100 dark:border-white/5">
-                        <div className="relative">
-                            <img
-                                alt="Profile"
-                                className="w-20 h-20 rounded-full object-cover ring-4 ring-background-light dark:ring-background-dark"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAV30o_jGYgPGZ1dja5QIZVRGd-DySKW5BdoaQMBrg8FMLfZmSdEMaBo_8oqFXODQfyovEpfDZMKF5VOL6_INMSmMW_EMBiQp7R_rOJpvS8gfo5wOlYGNerF5sMRHtqTQALxNtSSduITDWdKiupOw44l3qFBlCsWBoSGGGmAAL_adQHVPCGJHYUN3W3I_LGoDXPrHGlHwtC3dixbuWvYuHUnGixQs1O8rkEg-fIr2GIH_pd7Ewcvz5jeM8OQyMhHGbeix0Bu4K-xSL3"
-                            />
-                            {isEditing && (
-                                <button className="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full shadow-lg hover:bg-primary-dark transition-colors flex items-center justify-center">
-                                    <span className="material-icons-outlined text-sm">photo_camera</span>
-                                </button>
-                            )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            {isEditing ? (
-                                <div className="space-y-2">
-                                    <input
-                                        type="text"
-                                        value={formData.name}
-                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        placeholder="Full Name"
-                                        className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={formData.mobile_number}
-                                        onChange={e => setFormData({ ...formData, mobile_number: e.target.value })}
-                                        placeholder="Mobile Number"
-                                        className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={formData.farming_type}
-                                        onChange={e => setFormData({ ...formData, farming_type: e.target.value })}
-                                        placeholder="Primary Crop (e.g. Cotton)"
-                                        className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary"
-                                    />
-                                    <input
-                                        type="email"
-                                        value={userProfile?.email || ''}
-                                        disabled
-                                        placeholder="Email (Read Only)"
-                                        className="w-full bg-gray-100 dark:bg-black/40 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-500 cursor-not-allowed outline-none"
-                                    />
-                                    <div className="flex gap-2">
+                <section className="mt-4 mb-5">
+                    <div className="krishi-glass rounded-2xl p-5 shadow-lg border border-white/50 dark:border-emerald-500/10">
+                        <div className="flex items-center gap-4">
+                            <div className="relative">
+                                <img
+                                    alt="Profile"
+                                    className="w-16 h-16 rounded-full object-cover ring-2 ring-emerald-500/40"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAV30o_jGYgPGZ1dja5QIZVRGd-DySKW5BdoaQMBrg8FMLfZmSdEMaBo_8oqFXODQfyovEpfDZMKF5VOL6_INMSmMW_EMBiQp7R_rOJpvS8gfo5wOlYGNerF5sMRHtqTQALxNtSSduITDWdKiupOw44l3qFBlCsWBoSGGGmAAL_adQHVPCGJHYUN3W3I_LGoDXPrHGlHwtC3dixbuWvYuHUnGixQs1O8rkEg-fIr2GIH_pd7Ewcvz5jeM8OQyMhHGbeix0Bu4K-xSL3"
+                                />
+                                {isEditing && (
+                                    <div className="absolute bottom-0 right-0 bg-emerald-500 text-white p-1 rounded-full shadow-md flex items-center justify-center border border-white dark:border-[#03140A]">
+                                        <span className="material-icons-outlined text-xs">photo_camera</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                {isEditing ? (
+                                    <div className="space-y-2">
                                         <input
                                             type="text"
-                                            value={formData.state}
-                                            onChange={e => setFormData({ ...formData, state: e.target.value })}
-                                            placeholder="State"
-                                            className="w-1/2 bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary"
+                                            value={formData.name}
+                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                            placeholder="Full Name"
+                                            className={inputClasses}
                                         />
                                         <input
                                             type="text"
-                                            value={formData.district}
-                                            onChange={e => setFormData({ ...formData, district: e.target.value })}
-                                            placeholder="District"
-                                            className="w-1/2 bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary"
+                                            value={formData.mobile_number}
+                                            onChange={e => setFormData({ ...formData, mobile_number: e.target.value })}
+                                            placeholder="Mobile Number"
+                                            className={inputClasses}
                                         />
-                                    </div>
-                                    <select
-                                        value={formData.preferred_language || 'en'}
-                                        onChange={e => setFormData({ ...formData, preferred_language: e.target.value })}
-                                        className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary"
-                                    >
-                                        <option value="en">English</option>
-                                        <option value="hi">Hindi</option>
-                                        <option value="mr">Marathi</option>
-                                        <option value="te">Telugu</option>
-                                        <option value="ta">Tamil</option>
-                                        <option value="gu">Gujarati</option>
-                                        <option value="bn">Bengali</option>
-                                        <option value="pa">Punjabi</option>
-                                    </select>
-                                </div>
-                            ) : (
-                                <>
-                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white truncate">{userProfile?.name || 'Farmer'}</h2>
-                                    <p className="text-sm text-gray-500 font-mono mt-0.5">{userProfile?.email}</p>
-                                    <div className="flex items-center text-gray-500 dark:text-gray-400 mt-1">
-                                        <span className="material-icons-outlined text-base mr-1">{userProfile?.mobile_number ? 'phone' : 'location_on'}</span>
-                                        <span className="text-sm truncate">{userProfile?.mobile_number || 'No phone set'} • {userProfile?.state || 'No state'}</span>
-                                    </div>
-                                    <div className="mt-2 flex flex-wrap gap-2">
-                                        <div className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-green-700 dark:text-green-300 border border-primary/20">
-                                            {userProfile?.farming_type || 'Crop Not Set'}
+                                        <input
+                                            type="text"
+                                            value={formData.farming_type}
+                                            onChange={e => setFormData({ ...formData, farming_type: e.target.value })}
+                                            placeholder="Primary Crop (e.g. Cotton)"
+                                            className={inputClasses}
+                                        />
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={formData.state}
+                                                onChange={e => setFormData({ ...formData, state: e.target.value })}
+                                                placeholder="State"
+                                                className={`${inputClasses} w-1/2`}
+                                            />
+                                            <input
+                                                type="text"
+                                                value={formData.district}
+                                                onChange={e => setFormData({ ...formData, district: e.target.value })}
+                                                placeholder="District"
+                                                className={`${inputClasses} w-1/2`}
+                                            />
+                                        </div>
+                                        <div className="relative">
+                                            <select
+                                                value={formData.preferred_language || 'en'}
+                                                onChange={e => setFormData({ ...formData, preferred_language: e.target.value })}
+                                                className={`${inputClasses} appearance-none pr-8`}
+                                                style={{ colorScheme: 'dark' }}
+                                            >
+                                                <option value="en" className="bg-white dark:bg-[#081d11] text-slate-900 dark:text-white">English</option>
+                                                <option value="hi" className="bg-white dark:bg-[#081d11] text-slate-900 dark:text-white">Hindi</option>
+                                                <option value="mr" className="bg-white dark:bg-[#081d11] text-slate-900 dark:text-white">Marathi</option>
+                                                <option value="te" className="bg-white dark:bg-[#081d11] text-slate-900 dark:text-white">Telugu</option>
+                                                <option value="ta" className="bg-white dark:bg-[#081d11] text-slate-900 dark:text-white">Tamil</option>
+                                                <option value="gu" className="bg-white dark:bg-[#081d11] text-slate-900 dark:text-white">Gujarati</option>
+                                                <option value="bn" className="bg-white dark:bg-[#081d11] text-slate-900 dark:text-white">Bengali</option>
+                                                <option value="pa" className="bg-white dark:bg-[#081d11] text-slate-900 dark:text-white">Punjabi</option>
+                                            </select>
+                                            <span className="material-icons-round text-emerald-500 absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">keyboard_arrow_down</span>
                                         </div>
                                     </div>
-                                </>
-                            )}
+                                ) : (
+                                    <>
+                                        <h2 className="text-base font-bold text-slate-950 dark:text-white truncate">{userProfile?.name || 'Farmer'}</h2>
+                                        <p className="text-[11px] text-slate-500 font-mono mt-0.5">{userProfile?.email}</p>
+                                        <div className="flex items-center text-slate-500 dark:text-slate-400 mt-1">
+                                            <span className="material-icons-outlined text-xs mr-1">{userProfile?.mobile_number ? 'phone' : 'location_on'}</span>
+                                            <span className="text-xs truncate">{userProfile?.mobile_number || 'No phone set'} • {userProfile?.state || 'No state'}</span>
+                                        </div>
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            <div className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 tracking-wider">
+                                                {userProfile?.farming_type || 'Crop Not Set'}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </section>
 
                 {/* Settings Group: Preferences */}
-                <section className="mb-6">
-                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">Preferences</h3>
-                    <div className="bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/5">
+                <section className="mb-5">
+                    <h3 className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest mb-2 ml-1">Preferences</h3>
+                    <div className="krishi-glass rounded-2xl overflow-hidden shadow-md border border-white/50 dark:border-emerald-500/10">
                         {[
-                            { label: 'Language', sub: 'English (India)', icon: 'translate', color: 'blue' },
-                            { label: 'Farm Details', sub: 'Crops, Soil Type, Size', icon: 'agriculture', color: 'amber' }
+                            { label: 'Language Selection', sub: 'Change preferred app language', icon: 'translate', screen: 'language', color: 'emerald' },
+                            { label: 'Farm Profiles', sub: 'Add, edit, or configure farms', icon: 'agriculture', screen: 'farm-list', color: 'emerald' }
                         ].map((item, idx) => (
-                            <button key={idx} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group border-b border-gray-100 dark:border-white/5 last:border-0">
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl bg-${item.color}-50 dark:bg-${item.color}-900/20 flex items-center justify-center text-${item.color}-600 dark:text-${item.color}-400`}>
-                                        <span className="material-icons-outlined">{item.icon}</span>
+                            <button 
+                                key={idx} 
+                                onClick={() => onNavigate(item.screen)}
+                                className="w-full flex items-center justify-between p-4 hover:bg-white/40 dark:hover:bg-white/5 transition-all group border-b border-white/20 dark:border-emerald-500/5 last:border-0 tactile-btn cursor-pointer"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                        <span className="material-icons-outlined text-lg">{item.icon}</span>
                                     </div>
                                     <div className="text-left">
-                                        <p className="text-base font-medium text-gray-900 dark:text-white">{item.label}</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">{item.sub}</p>
+                                        <p className="text-xs font-bold text-slate-900 dark:text-white">{item.label}</p>
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-none mt-0.5">{item.sub}</p>
                                     </div>
                                 </div>
-                                <span className="material-icons-outlined text-gray-400">chevron_right</span>
+                                <span className="material-icons-outlined text-slate-400 group-hover:text-emerald-500 transition-colors">chevron_right</span>
                             </button>
                         ))}
                     </div>
                 </section>
 
                 {/* Settings Group: Notifications */}
-                <section className="mb-6">
-                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">Alerts & Notifications</h3>
-                    <div className="bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/5">
+                <section className="mb-5">
+                    <h3 className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest mb-2 ml-1">Alerts & Notifications</h3>
+                    <div className="krishi-glass rounded-2xl overflow-hidden shadow-md border border-white/50 dark:border-emerald-500/10">
                         {/* Weather Alerts */}
-                        <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-white/5">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center text-sky-600 dark:text-sky-400">
-                                    <span className="material-icons-outlined">cloud</span>
+                        <div className="flex items-center justify-between p-4 border-b border-white/20 dark:border-emerald-500/5">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-sky-500/10 dark:bg-sky-500/20 flex items-center justify-center text-sky-600 dark:text-sky-400">
+                                    <span className="material-icons-outlined text-lg">cloud</span>
                                 </div>
                                 <div className="text-left">
-                                    <p className="text-base font-medium text-gray-900 dark:text-white">Weather Alerts</p>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Rain & Storm warnings</p>
+                                    <p className="text-xs font-bold text-slate-900 dark:text-white">Weather Alerts</p>
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-none mt-0.5">Rain & Storm warning updates</p>
                                 </div>
                             </div>
                             <div
                                 onClick={() => setWeatherAlerts(!weatherAlerts)}
-                                className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors duration-300 ${weatherAlerts ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
+                                className={`w-11 h-6 rounded-full relative cursor-pointer transition-all duration-300 border border-slate-200 dark:border-white/10 ${weatherAlerts ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-slate-200 dark:bg-white/5'}`}
                             >
-                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${weatherAlerts ? 'translate-x-7' : 'translate-x-1'}`}></div>
+                                <div className={`absolute top-0.5 w-[18px] h-[18px] rounded-full bg-white shadow-sm transition-transform duration-300 ${weatherAlerts ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
                             </div>
                         </div>
                         {/* Market Prices */}
                         <div className="flex items-center justify-between p-4">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                                    <span className="material-icons-outlined">currency_rupee</span>
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                    <span className="material-icons-outlined text-lg">currency_rupee</span>
                                 </div>
                                 <div className="text-left">
-                                    <p className="text-base font-medium text-gray-900 dark:text-white">Mandi Prices</p>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Daily APMC updates</p>
+                                    <p className="text-xs font-bold text-slate-900 dark:text-white">Mandi Prices</p>
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-none mt-0.5">Daily local APMC price updates</p>
                                 </div>
                             </div>
                             <div
                                 onClick={() => setMarketPrices(!marketPrices)}
-                                className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors duration-300 ${marketPrices ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
+                                className={`w-11 h-6 rounded-full relative cursor-pointer transition-all duration-300 border border-slate-200 dark:border-white/10 ${marketPrices ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-slate-200 dark:bg-white/5'}`}
                             >
-                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${marketPrices ? 'translate-x-7' : 'translate-x-1'}`}></div>
+                                <div className={`absolute top-0.5 w-[18px] h-[18px] rounded-full bg-white shadow-sm transition-transform duration-300 ${marketPrices ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
                             </div>
                         </div>
                     </div>
                 </section>
 
                 {/* Settings Group: Trust & AI */}
-                <section className="mb-8">
-                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">Trust & AI</h3>
-                    <div className="bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/5">
+                <section className="mb-6">
+                    <h3 className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest mb-2 ml-1">Trust & AI Advisory</h3>
+                    <div className="krishi-glass rounded-2xl overflow-hidden shadow-md border border-white/50 dark:border-emerald-500/10">
                         {[
-                            { label: 'AI Transparency', sub: 'How we use your farm data', icon: 'psychology', color: 'purple' },
-                            { label: 'Help & Support', sub: 'Contact our agronomists', icon: 'headset_mic', color: 'rose' }
+                            { label: 'AI Model Safety', sub: 'Learn how your crop logs are analyzed', icon: 'psychology', color: 'purple' },
+                            { label: 'Agronomist Support', sub: 'Reach certified agricultural assistance', icon: 'headset_mic', color: 'rose' }
                         ].map((item, idx) => (
-                            <button key={idx} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group border-b border-gray-100 dark:border-white/5 last:border-0">
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl bg-${item.color}-50 dark:bg-${item.color}-900/20 flex items-center justify-center text-${item.color}-600 dark:text-${item.color}-400`}>
-                                        <span className="material-icons-outlined">{item.icon}</span>
+                            <button key={idx} className="w-full flex items-center justify-between p-4 hover:bg-white/40 dark:hover:bg-white/5 transition-all group border-b border-white/20 dark:border-emerald-500/5 last:border-0 tactile-btn cursor-pointer">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-9 h-9 rounded-xl bg-${item.color}-500/10 dark:bg-${item.color}-500/20 flex items-center justify-center text-${item.color}-600 dark:text-${item.color}-400`}>
+                                        <span className="material-icons-outlined text-lg">{item.icon}</span>
                                     </div>
                                     <div className="text-left">
-                                        <p className="text-base font-medium text-gray-900 dark:text-white">{item.label}</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">{item.sub}</p>
+                                        <p className="text-xs font-bold text-slate-900 dark:text-white">{item.label}</p>
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-none mt-0.5">{item.sub}</p>
                                     </div>
                                 </div>
-                                <span className="material-icons-outlined text-gray-400">chevron_right</span>
+                                <span className="material-icons-outlined text-slate-400 group-hover:text-emerald-500 transition-colors">chevron_right</span>
                             </button>
                         ))}
                     </div>
                 </section>
 
                 {/* Logout */}
-                <button onClick={handleLogout} className="w-full bg-white dark:bg-white/5 text-red-500 dark:text-red-400 font-medium p-4 rounded-xl mb-8 border border-red-100 dark:border-red-900/30 shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center justify-center gap-2">
-                    <span className="material-icons-outlined text-xl">logout</span>
-                    Sign Out
+                <button 
+                    onClick={handleLogout} 
+                    className="w-full bg-white/40 dark:bg-white/5 text-red-500 dark:text-red-400 font-bold p-3.5 rounded-2xl mb-8 border border-red-500/20 shadow-md hover:bg-red-500/10 dark:hover:bg-red-900/20 transition-all flex items-center justify-center gap-2 cursor-pointer tactile-btn text-xs uppercase tracking-wider"
+                >
+                    <span className="material-icons-outlined text-base">logout</span>
+                    Sign Out Securely
                 </button>
-                <p className="text-center text-xs text-gray-400 mb-6">Kisan Sahayak v2.4.1</p>
+                <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 font-mono mb-4">Kisan Sahayak v2.5.0</p>
             </main>
 
             {/* Bottom Navigation */}

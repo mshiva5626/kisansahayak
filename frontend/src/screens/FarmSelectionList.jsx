@@ -39,111 +39,128 @@ const FarmSelectionList = ({ onBack, onAddFarm, onFarmClick, onNotificationClick
     };
 
     return (
-        <div className="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 font-display min-h-screen relative pb-24 antialiased">
-            {/* Status Bar Area */}
-            <div className="h-12 w-full bg-background-light dark:bg-background-dark sticky top-0 z-50"></div>
+        <div className="bg-gradient-to-b from-[#fcfdfc] to-[#e3eae4] dark:from-[#03140A] dark:to-[#081d11] text-slate-800 dark:text-slate-100 font-display min-h-screen relative pb-28 antialiased overflow-x-hidden">
+            {/* Ambient glows */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
             {/* Header Section */}
-            <header className="px-6 pb-2 sticky top-12 z-40 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm transition-colors duration-300">
-                <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/30">
-                            <img alt="User" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD56QhdLR2gWga3uccQ2jIOcISATWO_r_kR2VMzt8FiitPf3Vy708lx3DgXtTW9b3H0PYGFADXu9vtaYvrDJcoULmhnNsiZHjc6xtL0X4UknT-2A9xtHPnHULOQwHu2LpU_1G4Aq9i6SecS2wJDIjOx_YIuxlhmKaFBefWTb6x2hw8B1geqvqFCrLEaCeo-FTMxZsCYFEL6kD0ZUUeyEJe1mi4M0_K3JA7PoviCNLt2C_4nkJ92FQpvkQiJGFeyN0MgyDevoB9Ih-ah" />
+            <header className="px-6 pt-12 pb-3 sticky top-0 z-40 bg-white/30 dark:bg-[#03140A]/30 backdrop-blur-md transition-all border-b border-white/20 dark:border-emerald-500/5">
+                <div className="flex justify-between items-center mb-5">
+                    <div 
+                        onClick={() => onNavigate('account-info')}
+                        className="flex items-center gap-3 cursor-pointer active:scale-95 transition-all group"
+                    >
+                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 p-0.5 border border-emerald-500/30 relative">
+                            <span className="absolute inset-0 rounded-full border border-emerald-500/40 animate-pulse"></span>
+                            <img alt="User" className="w-full h-full object-cover rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD56QhdLR2gWga3uccQ2jIOcISATWO_r_kR2VMzt8FiitPf3Vy708lx3DgXtTW9b3H0PYGFADXu9vtaYvrDJcoULmhnNsiZHjc6xtL0X4UknT-2A9xtHPnHULOQwHu2LpU_1G4Aq9i6SecS2wJDIjOx_YIuxlhmKaFBefWTb6x2hw8B1geqvqFCrLEaCeo-FTMxZsCYFEL6kD0ZUUeyEJe1mi4M0_K3JA7PoviCNLt2C_4nkJ92FQpvkQiJGFeyN0MgyDevoB9Ih-ah" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Welcome back,</p>
-                            <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200">{userProfile?.name || 'Rajesh Kumar'}</h2>
+                            <p className="text-[10px] text-slate-400 dark:text-slate-400 font-bold uppercase tracking-wider leading-none mb-1">Active Profile</p>
+                            <h2 className="text-xs font-bold text-slate-900 dark:text-slate-200 group-hover:text-emerald-500 transition-colors leading-none">{userProfile?.name || 'Rajesh Kumar'}</h2>
                         </div>
                     </div>
                     <button
                         onClick={onNotificationClick}
-                        className="w-10 h-10 rounded-full bg-white dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-primary transition-colors"
+                        className="w-10 h-10 rounded-full bg-white/40 dark:bg-[#03140A]/50 backdrop-blur-md shadow-sm border border-white/60 dark:border-emerald-500/10 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 active:scale-90 transition-all tactile-btn cursor-pointer"
                     >
-                        <span className="material-icons-round">notifications</span>
+                        <span className="material-icons-round text-xl">notifications</span>
                     </button>
                 </div>
 
                 <div className="flex justify-between items-end mb-4">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">My Farms</h1>
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">Connected Farms</h1>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-400 leading-none mt-1 font-medium">Select a farm to open the digital task center.</p>
+                    </div>
                     <button
                         onClick={onAddFarm}
-                        className="bg-primary hover:bg-primary-dark text-black font-semibold py-2 px-4 rounded-full flex items-center gap-2 shadow-soft transition-all active:scale-95 text-sm"
+                        className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2.5 px-4 rounded-full flex items-center gap-1.5 shadow-md active:scale-95 transition-all text-xs tactile-btn cursor-pointer"
                     >
-                        <span className="material-icons-round text-lg">add</span>
+                        <span className="material-icons-round text-base">add</span>
                         <span>Add Farm</span>
                     </button>
                 </div>
 
                 {/* Search Bar */}
                 <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="material-icons-round text-gray-400 group-focus-within:text-primary transition-colors">search</span>
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500">
+                        <span className="material-icons-round text-lg transition-colors">search</span>
                     </div>
                     <input
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="block w-full pl-10 pr-3 py-3 border-none rounded-xl bg-white dark:bg-surface-dark text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 shadow-sm text-sm transition-shadow"
-                        placeholder="Search for a farm..."
+                        className="block w-full pl-10 pr-4 py-3 rounded-xl bg-white/40 dark:bg-black/30 border border-white/60 dark:border-emerald-500/10 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 shadow-sm text-xs transition-all"
+                        placeholder="Search farms by crop or title..."
                         type="text"
                     />
                 </div>
             </header>
 
             {/* Filters */}
-            <div className="px-6 py-4 flex gap-3 overflow-x-auto no-scrollbar">
+            <div className="px-6 py-4 flex gap-2.5 overflow-x-auto no-scrollbar shrink-0">
                 {['All', 'Healthy', 'Attention Needed'].map((filter) => (
                     <button
                         key={filter}
                         onClick={() => setActiveFilter(filter === 'All' ? 'All' : filter === 'Healthy' ? 'Good' : 'Alert')}
-                        className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium shadow-md transition-colors ${activeFilter === (filter === 'All' ? 'All' : filter === 'Healthy' ? 'Good' : 'Alert') ? 'bg-black dark:bg-white text-white dark:text-black' : 'bg-white dark:bg-surface-dark text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700'}`}
+                        className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all shadow-sm active:scale-95 tactile-btn cursor-pointer ${
+                            activeFilter === (filter === 'All' ? 'All' : filter === 'Healthy' ? 'Good' : 'Alert') 
+                                ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' 
+                                : 'bg-white/40 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-white/60 dark:border-emerald-500/10'
+                        }`}
                     >
-                        {filter} {filter === 'All' && <span className="ml-1 opacity-70 text-xs">{farms.length}</span>}
+                        {filter} {filter === 'All' && <span className="ml-1 opacity-70 text-[10px] font-mono">{farms.length}</span>}
                     </button>
                 ))}
             </div>
 
             {/* Farm List */}
-            <main className="px-6 space-y-4">
+            <main className="px-6 space-y-4 tilt-card-container">
                 {isLoading ? (
-                    <div className="flex flex-col items-center justify-center py-12 opacity-50">
-                        <span className="material-icons animate-spin text-4xl mb-2 text-primary">sync</span>
-                        <p className="text-sm font-medium">Loading your farms...</p>
+                    <div className="flex flex-col items-center justify-center py-16 opacity-60">
+                        <span className="material-icons animate-spin text-3xl mb-2 text-emerald-500">sync</span>
+                        <p className="text-xs font-bold tracking-wider uppercase text-slate-400">Syncing Farms...</p>
                     </div>
                 ) : filteredFarms.length === 0 ? (
-                    <div className="text-center py-12 px-6 bg-white/50 dark:bg-white/5 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800">
-                        <span className="material-icons text-4xl text-gray-300 mb-3">agriculture</span>
-                        <p className="text-gray-500 font-medium">No farms found. Add your first farm to get started!</p>
+                    <div className="text-center py-16 px-6 krishi-glass rounded-2xl border border-dashed border-emerald-500/20">
+                        <span className="material-icons text-4xl text-slate-300 dark:text-emerald-500/20 mb-3 animate-pulse">agriculture</span>
+                        <p className="text-slate-500 dark:text-slate-400 font-bold text-sm">No connected farms found.</p>
+                        <p className="text-xs text-slate-400 mt-1 max-w-[200px] mx-auto">Create a farm sheet to start scanning crops and tracking market values.</p>
                     </div>
-                ) : filteredFarms.map((farm) => (
-                    <div
-                        key={farm._id}
-                        onClick={() => onFarmClick(farm._id)}
-                        className="group bg-white dark:bg-surface-dark rounded-xl p-4 shadow-sm hover:shadow-soft border border-transparent hover:border-primary/30 transition-all duration-300 cursor-pointer active:scale-[0.99]"
-                    >
-                        <div className="flex items-start gap-4">
-                            <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden relative bg-gray-100">
-                                <img alt={farm.farm_name || farm.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src={getCropThumbnail(farm.crop_type || farm.crop || '')} />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                ) : (
+                    filteredFarms.map((farm) => (
+                        <div
+                            key={farm._id}
+                            onClick={() => onFarmClick(farm._id)}
+                            className="tilt-card krishi-glass rounded-2xl p-4 shadow-md border border-white/60 dark:border-emerald-500/10 hover:border-emerald-500/40 cursor-pointer transition-all duration-300 flex items-start gap-4"
+                        >
+                            <div className="w-18 h-18 flex-shrink-0 rounded-xl overflow-hidden relative bg-slate-100 dark:bg-[#081d11] border border-white/20 dark:border-emerald-500/10">
+                                <img 
+                                    alt={farm.farm_name || farm.name} 
+                                    className="w-full h-full object-cover transition-transform duration-500" 
+                                    src={getCropThumbnail(farm.crop_type || farm.crop || '')} 
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-start mb-1">
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">{farm.farm_name || farm.name || 'Unnamed Farm'}</h3>
-                                    <span className="material-icons-round text-gray-300 dark:text-gray-600 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+                                    <h3 className="text-base font-bold text-slate-905 dark:text-white truncate pr-2">{farm.farm_name || farm.name || 'Unnamed Farm'}</h3>
+                                    <span className="material-icons-round text-slate-400 dark:text-emerald-500/30 group-hover:text-emerald-500 transition-all text-lg">chevron_right</span>
                                 </div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1">
-                                    <span className="material-icons-round text-xs">grass</span> {farm.crop_type || farm.crop || 'Not set'}
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2.5 flex items-center gap-1 font-semibold">
+                                    <span className="material-icons-round text-emerald-500 text-xs">grass</span> 
+                                    <span>Primary Crop: {farm.crop_type || farm.crop || 'Not specified'}</span>
                                 </p>
-                                <div className="flex items-center gap-3">
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-green-700 dark:text-green-400 border border-primary/20">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                                <div className="flex items-center justify-between">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                         {farm.status || 'Active'}
                                     </span>
-                                    <span className="text-xs text-gray-400 dark:text-gray-500">{farm.area ? `${farm.area} acres` : ''}</span>
+                                    <span className="text-xs text-slate-400 dark:text-slate-400 font-bold">{farm.area ? `${farm.area} ${farm.unit || 'Acres'}` : ''}</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))
+                )}
             </main>
 
             {/* Bottom Navigation */}

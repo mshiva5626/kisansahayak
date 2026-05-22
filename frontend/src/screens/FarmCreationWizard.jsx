@@ -118,18 +118,24 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
         ? `${formData.latitude}° N, ${formData.longitude}° E`
         : 'Not set';
 
+    const inputClasses = "w-full px-4 py-3.5 rounded-xl bg-white/40 dark:bg-black/30 border border-white/60 dark:border-emerald-500/10 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 outline-none text-slate-905 dark:text-white transition-all text-sm";
+    const labelClasses = "block text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-2 ml-1";
+
     return (
-        <div className="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 font-display antialiased min-h-screen flex flex-col relative overflow-hidden selection:bg-primary selection:text-white">
+        <div className="bg-gradient-to-b from-[#fcfdfc] to-[#e3eae4] dark:from-[#03140A] dark:to-[#081d11] text-slate-800 dark:text-slate-100 font-display antialiased min-h-screen flex flex-col relative overflow-hidden">
+            {/* Ambient glows */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
             {/* Header */}
-            <header className={`flex items-center justify-between px-6 py-4 z-20 shrink-0 ${step === 2 ? 'absolute top-0 left-0 w-full' : ''}`}>
+            <header className={`flex items-center justify-between px-6 pt-12 pb-4 z-20 shrink-0 border-b border-white/20 dark:border-emerald-500/5 bg-white/30 dark:bg-[#03140A]/30 backdrop-blur-md ${step === 2 ? 'absolute top-0 left-0 w-full' : ''}`}>
                 <button
                     onClick={handleBack}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-white/10 shadow-sm active:scale-95 transition-transform"
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/40 dark:bg-white/10 shadow-sm active:scale-95 transition-transform text-slate-800 dark:text-white tactile-btn"
                 >
-                    <span className="material-icons text-gray-600 dark:text-white">arrow_back</span>
+                    <span className="material-icons">arrow_back</span>
                 </button>
-                <h1 className={`text-lg font-semibold tracking-tight ${step === 2 ? 'text-white drop-shadow-md' : 'text-gray-900 dark:text-white'}`}>
-                    {step === 4 ? 'Review & Confirm' : 'Add New Farm'}
+                <h1 className={`text-base font-bold tracking-tight ${step === 2 ? 'text-slate-950 dark:text-white drop-shadow-md' : 'text-slate-900 dark:text-white'}`}>
+                    {step === 4 ? 'Review & Confirm' : 'Add Connected Farm'}
                 </h1>
                 <div className="w-10"></div>
             </header>
@@ -142,22 +148,22 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                         className="w-full h-full object-cover saturate-110 contrast-110"
                         src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWmm-zamQdZ3NiMoxZ0_oJTwhTSgvEnMpeQkpVaKl8pM13n9GZ4XeoQAVXEpIrFFccsMVbSOPfr6jGil0XBAtZZVhOOMbbcfaEqPaXN-ceD9QRksZgqgvwty25jRNE0PZ4LT2KxHeDIBF5grDX4spmyEQtfaRmpXxlD_L_uRNMd0fbWoZy8zb4ctfSijC7hBh8TRA8QKlWKcqbEz5WRqjmfXtRO09yCHgYHjJwpYxHWnD0o4g457wHpxU2li4WaOMlPkjEspBFB6La"
                     />
-                    <div className="absolute inset-0 bg-black/10"></div>
+                    <div className="absolute inset-0 bg-black/10 dark:bg-[#03140A]/20"></div>
                 </div>
             )}
 
             {/* Main Content Area */}
-            <main className={`flex-1 z-10 flex flex-col overflow-y-auto no-scrollbar ${step === 2 ? 'relative' : 'px-6'}`}>
+            <main className={`flex-1 z-10 flex flex-col overflow-y-auto no-scrollbar pb-36 ${step === 2 ? 'relative' : 'px-6'}`}>
                 {/* Progress Indicator */}
                 {step !== 2 && step !== 4 && (
-                    <div className="mb-8 mt-2">
+                    <div className="mb-6 mt-6">
                         <div className="flex justify-between items-end mb-2">
-                            <span className="text-sm font-medium text-primary">Step {step} of 4</span>
-                            <span className="text-xs text-gray-400 dark:text-gray-500">{Math.round((step / 4) * 100)}% Completed</span>
+                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Step {step} of 4</span>
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">{Math.round((step / 4) * 100)}% Complete</span>
                         </div>
-                        <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
+                                className="h-full bg-gradient-to-r from-emerald-500 to-[#13ec13] rounded-full transition-all duration-500 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
                                 style={{ width: `${(step / 4) * 100}%` }}
                             ></div>
                         </div>
@@ -166,40 +172,41 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
 
                 {/* Step 1: Basic Info */}
                 {step === 1 && (
-                    <div className="animate-fade-in space-y-8">
+                    <div className="animate-fade-in space-y-6 mt-4">
                         <div>
-                            <h2 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Create Your Farm</h2>
-                            <p className="text-gray-500 dark:text-gray-400">Let's start with the basics to set up your digital workspace.</p>
+                            <h2 className="text-xl font-bold text-slate-950 dark:text-white tracking-tight">Create Farm Sheet</h2>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-normal mt-1">Configure your farm coordinates and dimensions to feed localized satellite insights.</p>
                         </div>
-                        <div className="bg-white/70 dark:bg-[#102218]/60 backdrop-blur-xl border border-white/40 dark:border-primary/10 rounded-2xl p-6 shadow-sm">
-                            <div className="space-y-6">
+                        <div className="krishi-glass rounded-2xl p-5 shadow-lg border border-white/50 dark:border-emerald-500/10">
+                            <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Farm Name</label>
+                                    <label className={labelClasses}>Farm Name</label>
                                     <input
                                         type="text"
                                         placeholder="e.g. Green Valley Field"
-                                        className="w-full px-4 py-4 rounded-xl bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white"
+                                        className={inputClasses}
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Size</label>
+                                    <label className={labelClasses}>Total Size</label>
                                     <div className="flex">
                                         <input
                                             type="number"
                                             placeholder="0.0"
-                                            className="flex-1 px-4 py-4 rounded-l-xl bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-gray-700 border-r-0 focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white"
+                                            className={`${inputClasses} flex-1 rounded-r-none border-r-0`}
                                             value={formData.area}
                                             onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                                         />
                                         <select
-                                            className="px-4 py-4 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 border rounded-r-xl text-gray-500 outline-none"
+                                            className="px-4 py-3.5 bg-slate-50 dark:bg-[#081d11] border border-white/60 dark:border-emerald-500/10 rounded-r-xl text-xs font-bold text-slate-700 dark:text-emerald-400 outline-none cursor-pointer"
                                             value={formData.unit}
                                             onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                                            style={{ colorScheme: 'dark' }}
                                         >
-                                            <option>Acres</option>
-                                            <option>Hectares</option>
+                                            <option className="bg-white dark:bg-[#081d11] text-slate-900 dark:text-white">Acres</option>
+                                            <option className="bg-white dark:bg-[#081d11] text-slate-900 dark:text-white">Hectares</option>
                                         </select>
                                     </div>
                                 </div>
@@ -212,77 +219,77 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                 {step === 2 && (
                     <div className="relative h-full pointer-events-none">
                         {/* Map Overlay Info */}
-                        <div className="absolute top-24 left-6 right-6 pointer-events-auto">
-                            <div className="bg-white/85 dark:bg-[#102210]/85 backdrop-blur-xl p-5 rounded-2xl shadow-lg border border-white/30">
-                                <div className="flex items-center justify-between mb-3 text-xs font-bold uppercase tracking-wider text-gray-500">
+                        <div className="absolute top-28 left-6 right-6 pointer-events-auto">
+                            <div className="krishi-glass p-5 rounded-2xl shadow-xl border border-white/60 dark:border-emerald-500/10 max-h-[70vh] overflow-y-auto no-scrollbar">
+                                <div className="flex items-center justify-between mb-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                                     <span>Step 2 of 4</span>
-                                    <span className="text-primary">50% Completed</span>
+                                    <span className="text-emerald-600 dark:text-emerald-400">50% Complete</span>
                                 </div>
-                                <div className="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full mb-3">
-                                    <div className="bg-primary h-full rounded-full w-1/2"></div>
+                                <div className="w-full bg-slate-200 dark:bg-white/10 h-1 rounded-full mb-3.5">
+                                    <div className="bg-emerald-500 h-full rounded-full w-1/2"></div>
                                 </div>
-                                <h1 className="text-lg font-bold text-gray-900 dark:text-white">Pin farm location</h1>
-                                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                                    {locationStatus === 'fetching' ? 'Detecting your location...' :
-                                        locationStatus === 'success' ? 'Location detected! Tap to refresh.' :
-                                            locationStatus === 'error' ? 'Could not detect location. Enter manually below.' :
-                                                'Tap the button below to detect your farm location.'}
+                                <h1 className="text-base font-bold text-slate-950 dark:text-white">Pin coordinates</h1>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal mb-3">
+                                    {locationStatus === 'fetching' ? 'Pinpointing GPS location via satellite...' :
+                                        locationStatus === 'success' ? 'Coordinates found! Tap to refresh GPS sensor.' :
+                                            locationStatus === 'error' ? 'GPS failed. Please enter coordinates manually below.' :
+                                                'Enable GPS or input coordinate grids.'}
                                 </p>
 
                                 {/* Coordinates Display */}
                                 {formData.latitude && (
-                                    <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 mb-3">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="material-icons text-primary text-sm">my_location</span>
-                                            <span className="text-xs font-bold text-primary uppercase">GPS Coordinates</span>
+                                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 mb-3">
+                                        <div className="flex items-center gap-1.5 mb-1 text-emerald-700 dark:text-emerald-400">
+                                            <span className="material-icons text-sm">my_location</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wide">Pin Details</span>
                                         </div>
-                                        <p className="text-sm font-mono font-semibold text-gray-800 dark:text-white">{coordsDisplay}</p>
+                                        <p className="text-xs font-mono font-bold text-slate-900 dark:text-white">{coordsDisplay}</p>
                                         {formData.address && (
-                                            <p className="text-xs text-gray-500 mt-1 truncate">{formData.address}</p>
+                                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">{formData.address}</p>
                                         )}
                                     </div>
                                 )}
 
                                 {/* Manual coordinate entry */}
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-2.5">
                                     <div>
-                                        <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Latitude</label>
+                                        <label className="text-[9px] uppercase font-bold text-slate-400 mb-1 block ml-0.5">Latitude</label>
                                         <input
                                             type="number"
                                             step="0.0001"
                                             placeholder="e.g. 18.5204"
-                                            className="w-full px-3 py-2.5 rounded-lg bg-white/60 dark:bg-white/10 border border-gray-200 dark:border-gray-700 focus:ring-1 focus:ring-primary outline-none text-sm text-gray-900 dark:text-white"
+                                            className={`${inputClasses} px-3 py-2 text-xs`}
                                             value={formData.latitude}
                                             onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Longitude</label>
+                                        <label className="text-[9px] uppercase font-bold text-slate-400 mb-1 block ml-0.5">Longitude</label>
                                         <input
                                             type="number"
                                             step="0.0001"
                                             placeholder="e.g. 73.8567"
-                                            className="w-full px-3 py-2.5 rounded-lg bg-white/60 dark:bg-white/10 border border-gray-200 dark:border-gray-700 focus:ring-1 focus:ring-primary outline-none text-sm text-gray-900 dark:text-white"
+                                            className={`${inputClasses} px-3 py-2 text-xs`}
                                             value={formData.longitude}
                                             onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">State</label>
+                                        <label className="text-[9px] uppercase font-bold text-slate-400 mb-1 block ml-0.5">State</label>
                                         <input
                                             type="text"
-                                            placeholder="e.g. Maharashtra"
-                                            className="w-full px-3 py-2.5 rounded-lg bg-white/60 dark:bg-white/10 border border-gray-200 dark:border-gray-700 focus:ring-1 focus:ring-primary outline-none text-sm text-gray-900 dark:text-white"
+                                            placeholder="e.g. Punjab"
+                                            className={`${inputClasses} px-3 py-2 text-xs`}
                                             value={formData.state}
                                             onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">District</label>
+                                        <label className="text-[9px] uppercase font-bold text-slate-400 mb-1 block ml-0.5">District</label>
                                         <input
                                             type="text"
-                                            placeholder="e.g. Pune"
-                                            className="w-full px-3 py-2.5 rounded-lg bg-white/60 dark:bg-white/10 border border-gray-200 dark:border-gray-700 focus:ring-1 focus:ring-primary outline-none text-sm text-gray-900 dark:text-white"
+                                            placeholder="e.g. Ludhiana"
+                                            className={`${inputClasses} px-3 py-2 text-xs`}
                                             value={formData.district}
                                             onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                                         />
@@ -292,18 +299,18 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                         </div>
 
                         {/* Central Pin */}
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-12">
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-16">
                             <div className="flex flex-col items-center">
-                                <div className="mb-2 px-3 py-1 bg-black/80 text-white text-[10px] rounded-lg">
-                                    {locationStatus === 'success' ? '📍 Location Pinned' : 'Target Location'}
+                                <div className="mb-1.5 px-2.5 py-0.5 bg-black/80 dark:bg-[#03140A]/90 text-white text-[9px] font-bold rounded-md shadow-md border border-white/10 uppercase tracking-wider">
+                                    {locationStatus === 'success' ? '📍 Pin Active' : 'Target'}
                                 </div>
-                                <div className={`relative w-8 h-8 ${locationStatus === 'success' ? 'bg-primary' : 'bg-gray-400'} rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-colors`}>
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                                <div className={`relative w-8 h-8 ${locationStatus === 'success' ? 'bg-emerald-500' : 'bg-slate-400'} rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-all duration-300`}>
+                                    <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
                                     {locationStatus === 'success' && (
-                                        <div className="absolute inset-0 rounded-full border-2 border-primary animate-ping opacity-75"></div>
+                                        <div className="absolute inset-0 rounded-full border-2 border-emerald-500 animate-ping opacity-75"></div>
                                     )}
                                 </div>
-                                <div className={`w-0.5 h-6 ${locationStatus === 'success' ? 'bg-primary' : 'bg-gray-400'} transition-colors`}></div>
+                                <div className={`w-0.5 h-6 ${locationStatus === 'success' ? 'bg-emerald-500' : 'bg-slate-400'} transition-all`}></div>
                             </div>
                         </div>
 
@@ -311,9 +318,9 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                         <div className="absolute bottom-40 right-6 pointer-events-auto">
                             <button
                                 onClick={fetchCurrentLocation}
-                                className={`${locationStatus === 'fetching' ? 'animate-pulse' : ''} bg-white dark:bg-gray-800 p-3 rounded-xl shadow-lg text-primary active:scale-90 transition-transform`}
+                                className={`${locationStatus === 'fetching' ? 'animate-pulse scale-95' : ''} bg-white dark:bg-[#03140A] border border-white/60 dark:border-emerald-500/20 p-3.5 rounded-xl shadow-lg text-emerald-500 active:scale-90 transition-transform cursor-pointer flex items-center justify-center`}
                             >
-                                <span className="material-icons">{locationStatus === 'fetching' ? 'sync' : 'my_location'}</span>
+                                <span className="material-icons-round text-xl">{locationStatus === 'fetching' ? 'sync' : 'my_location'}</span>
                             </button>
                         </div>
                     </div>
@@ -321,35 +328,35 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
 
                 {/* Step 3: Terrain & Water */}
                 {step === 3 && (
-                    <div className="animate-fade-in space-y-10">
+                    <div className="animate-fade-in space-y-6 mt-4 tilt-card-container">
                         <div>
-                            <h2 className="text-xl font-bold mb-2">Terrain Type</h2>
-                            <p className="text-sm text-gray-500 mb-6">Select landscape of your farm.</p>
-                            <div className="space-y-4 text-left">
+                            <h2 className="text-xl font-bold tracking-tight text-slate-950 dark:text-white">Terrain Landscape</h2>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">Select agricultural topography of your field.</p>
+                            <div className="space-y-3.5 text-left">
                                 {['Plain', 'Sloping', 'Hilly'].map((t) => (
                                     <button
                                         key={t}
                                         onClick={() => setFormData({ ...formData, terrain: t })}
-                                        className={`w-full p-5 rounded-2xl border flex items-center gap-5 transition-all ${formData.terrain === t ? 'border-primary bg-primary/5 text-primary' : 'border-gray-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
+                                        className={`w-full p-4 rounded-2xl border flex items-center gap-4 transition-all tilt-card cursor-pointer ${formData.terrain === t ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-md' : 'border-white/60 dark:border-white/5 bg-white/40 dark:bg-white/5'}`}
                                     >
-                                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${formData.terrain === t ? 'bg-primary text-white' : 'bg-gray-50 dark:bg-white/5 text-gray-400'}`}>
-                                            <span className="material-icons text-3xl">{t === 'Plain' ? 'landscape' : t === 'Sloping' ? 'terrain' : 'filter_hdr'}</span>
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${formData.terrain === t ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-400'}`}>
+                                            <span className="material-icons text-2xl">{t === 'Plain' ? 'landscape' : t === 'Sloping' ? 'terrain' : 'filter_hdr'}</span>
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className={`font-semibold text-lg ${formData.terrain === t ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}>{t}</h3>
-                                            <p className="text-xs opacity-60">Suitable for various crop types.</p>
+                                            <h3 className={`font-bold text-sm ${formData.terrain === t ? 'text-slate-955 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>{t} Fields</h3>
+                                            <p className="text-[10px] opacity-60 leading-none mt-1">Excellent soil stability for robust tillage.</p>
                                         </div>
-                                        {formData.terrain === t && <span className="material-icons text-primary">check_circle</span>}
+                                        {formData.terrain === t && <span className="material-icons text-emerald-500">check_circle</span>}
                                     </button>
                                 ))}
                             </div>
                         </div>
                         <div>
-                            <div className="flex justify-between items-baseline mb-4">
-                                <h2 className="text-xl font-bold">Water Source</h2>
-                                <span className="text-xs text-primary font-medium">Multi-select</span>
+                            <div className="flex justify-between items-baseline mb-3">
+                                <h2 className="text-xl font-bold tracking-tight text-slate-955 dark:text-white">Primary Water Source</h2>
+                                <span className="text-[9px] uppercase font-bold text-emerald-500 tracking-wider">Multi-select</span>
                             </div>
-                            <div className="flex flex-wrap gap-3">
+                            <div className="flex flex-wrap gap-2.5">
                                 {['Rainfed', 'Canal', 'Borewell', 'Drip', 'Sprinkler'].map((w) => (
                                     <button
                                         key={w}
@@ -359,10 +366,14 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                                                 : [...formData.waterSources, w];
                                             setFormData({ ...formData, waterSources: newSources });
                                         }}
-                                        className={`px-5 py-2.5 rounded-full border text-sm font-medium transition-all flex items-center gap-2 ${formData.waterSources.includes(w) ? 'border-primary bg-primary/10 text-primary' : 'border-gray-100 dark:border-white/5 bg-white dark:bg-white/5 text-gray-500'}`}
+                                        className={`px-4 py-2.5 rounded-full border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer tactile-btn ${
+                                            formData.waterSources.includes(w) 
+                                                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm' 
+                                                : 'border-white/60 dark:border-white/5 bg-white/40 dark:bg-white/5 text-slate-500'
+                                        }`}
                                     >
-                                        <span className="material-icons text-lg">{w === 'Rainfed' ? 'cloud' : w === 'Canal' ? 'water' : 'opacity'}</span>
-                                        {w}
+                                        <span className="material-icons-round text-base">{w === 'Rainfed' ? 'cloud' : w === 'Canal' ? 'water' : 'opacity'}</span>
+                                        <span>{w}</span>
                                     </button>
                                 ))}
                             </div>
@@ -372,95 +383,95 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
 
                 {/* Step 4: Review */}
                 {step === 4 && (
-                    <div className="animate-fade-in space-y-6 px-6">
-                        <div className="mb-8">
-                            <h2 className="text-3xl font-bold mb-2">Review & Confirm</h2>
-                            <p className="text-sm text-gray-500">Verify your farm details before saving.</p>
+                    <div className="animate-fade-in space-y-4 px-1 mt-4">
+                        <div className="mb-4">
+                            <h2 className="text-xl font-bold text-slate-950 dark:text-white tracking-tight">Review & Confirm</h2>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Verify that your agricultural layout is configured correctly.</p>
                         </div>
 
-                        <div className="space-y-6 text-left">
+                        <div className="space-y-4 text-left">
                             {/* General Info */}
-                            <div className="bg-white/70 dark:bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-white/60 shadow-sm">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-primary-dark">
-                                        <span className="material-icons">assignment</span>
+                            <div className="krishi-glass rounded-2xl p-5 shadow-sm">
+                                <div className="flex items-center gap-2.5 mb-3 border-b border-white/20 dark:border-emerald-500/5 pb-2.5">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                        <span className="material-icons-outlined text-base">assignment</span>
                                     </div>
-                                    <h3 className="text-lg font-bold">General Info</h3>
+                                    <h3 className="text-sm font-bold">General Dimensions</h3>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div><p className="text-[10px] uppercase text-gray-400 font-bold mb-1">Farm Name</p><p className="font-semibold">{formData.name || 'Not set'}</p></div>
-                                    <div><p className="text-[10px] uppercase text-gray-400 font-bold mb-1">Total Area</p><p className="font-semibold">{formData.area || '0'} {formData.unit}</p></div>
+                                    <div><p className="text-[9px] uppercase text-slate-400 font-bold tracking-wider mb-0.5">Farm Title</p><p className="font-bold text-xs">{formData.name || 'Not set'}</p></div>
+                                    <div><p className="text-[9px] uppercase text-slate-400 font-bold tracking-wider mb-0.5">Calculated Area</p><p className="font-bold text-xs">{formData.area || '0'} {formData.unit}</p></div>
                                 </div>
                             </div>
 
                             {/* Location */}
-                            <div className="bg-white/70 dark:bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-white/60 shadow-sm relative overflow-hidden">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
-                                        <span className="material-icons">place</span>
+                            <div className="krishi-glass rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                                <div className="flex items-center gap-2.5 mb-3 border-b border-white/20 dark:border-emerald-500/5 pb-2.5">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                        <span className="material-icons-outlined text-base">place</span>
                                     </div>
-                                    <h3 className="text-lg font-bold">Location</h3>
+                                    <h3 className="text-sm font-bold">Location Pin</h3>
                                 </div>
                                 <div className="flex gap-4">
-                                    <div className="flex-1 space-y-3">
-                                        <div><p className="text-[10px] uppercase text-gray-400 font-bold mb-1">State</p><p className="font-semibold text-sm">{formData.state || 'Not set'}</p></div>
-                                        <div><p className="text-[10px] uppercase text-gray-400 font-bold mb-1">District</p><p className="font-semibold text-sm">{formData.district || 'Not set'}</p></div>
-                                        <div><p className="text-[10px] uppercase text-gray-400 font-bold mb-1">Coordinates</p><p className="font-semibold text-xs font-mono">{coordsDisplay}</p></div>
+                                    <div className="flex-1 space-y-2.5">
+                                        <div><p className="text-[9px] uppercase text-slate-400 font-bold tracking-wider mb-0.5">Regional Territory</p><p className="font-bold text-xs">{formData.district || 'Not set'}, {formData.state || 'Not set'}</p></div>
+                                        <div><p className="text-[9px] uppercase text-slate-400 font-bold tracking-wider mb-0.5">GPS Coordinate</p><p className="font-bold text-[10px] font-mono text-emerald-700 dark:text-emerald-400">{coordsDisplay}</p></div>
                                     </div>
-                                    <div className="w-24 h-24 rounded-xl overflow-hidden bg-primary/10 border border-primary/20 flex items-center justify-center">
+                                    <div className="w-20 h-20 rounded-xl overflow-hidden bg-emerald-500/10 dark:bg-[#081d11] border border-emerald-500/20 flex items-center justify-center shrink-0">
                                         {formData.latitude ? (
                                             <div className="text-center">
-                                                <span className="material-icons text-primary text-2xl">pin_drop</span>
-                                                <p className="text-[8px] text-primary font-bold mt-1">PINNED</p>
+                                                <span className="material-icons text-emerald-500 text-2xl animate-pulse">pin_drop</span>
+                                                <p className="text-[8px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider mt-0.5">GPS PIN</p>
                                             </div>
                                         ) : (
-                                            <span className="material-icons text-gray-300 text-3xl">location_off</span>
+                                            <span className="material-icons text-slate-300 text-3xl">location_off</span>
                                         )}
                                     </div>
                                 </div>
                             </div>
 
                             {/* Crop Details */}
-                            <div className="bg-white/70 dark:bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-white/60 shadow-sm">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary-dark">
-                                        <span className="material-icons">grass</span>
+                            <div className="krishi-glass rounded-2xl p-5 shadow-sm">
+                                <div className="flex items-center gap-2.5 mb-3 border-b border-white/20 dark:border-emerald-500/5 pb-2.5">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                        <span className="material-icons-outlined text-base">grass</span>
                                     </div>
-                                    <h3 className="text-lg font-bold">Crop Details</h3>
+                                    <h3 className="text-sm font-bold">Active Crop Sheet</h3>
                                 </div>
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center pb-3 border-b border-dashed border-gray-100 dark:border-white/10">
-                                        <p className="text-sm text-gray-500">Crop Selected</p>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center pb-2.5 border-b border-dashed border-white/20 dark:border-emerald-500/5">
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Crop Sown</p>
                                         <input
                                             type="text"
-                                            className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-3 py-1.5 rounded-xl text-xs font-bold text-right border border-green-200/50 dark:border-green-800/50 focus:ring-1 focus:ring-primary outline-none min-w-[120px]"
+                                            className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-xl text-xs font-bold text-right border border-emerald-500/20 focus:ring-1 focus:ring-emerald-500 outline-none min-w-[120px]"
                                             value={formData.crop}
                                             onChange={(e) => setFormData({ ...formData, crop: e.target.value })}
                                         />
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <p className="text-sm text-gray-500">Sowing Date</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Sowing Timestamp</p>
                                         <input
                                             type="date"
-                                            className="text-sm font-semibold bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl px-3 py-1.5 text-right focus:ring-1 focus:ring-primary outline-none min-w-[140px]"
+                                            className="text-xs font-bold bg-white/40 dark:bg-black/25 border border-white/60 dark:border-emerald-500/10 rounded-xl px-3 py-1.5 text-right focus:ring-1 focus:ring-emerald-500 outline-none min-w-[140px]"
                                             value={formData.sowingDate}
                                             onChange={(e) => setFormData({ ...formData, sowingDate: e.target.value })}
+                                            style={{ colorScheme: 'dark' }}
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Terrain & Water Summary */}
-                            <div className="bg-white/70 dark:bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-white/60 shadow-sm">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600">
-                                        <span className="material-icons">terrain</span>
+                            {/* Terrain Summary */}
+                            <div className="krishi-glass rounded-2xl p-5 shadow-sm">
+                                <div className="flex items-center gap-2.5 mb-3 border-b border-white/20 dark:border-emerald-500/5 pb-2.5">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                        <span className="material-icons-outlined text-base">terrain</span>
                                     </div>
-                                    <h3 className="text-lg font-bold">Terrain & Water</h3>
+                                    <h3 className="text-sm font-bold">Terrain & Hydration</h3>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div><p className="text-[10px] uppercase text-gray-400 font-bold mb-1">Terrain</p><p className="font-semibold text-sm">{formData.terrain}</p></div>
-                                    <div><p className="text-[10px] uppercase text-gray-400 font-bold mb-1">Water Sources</p><p className="font-semibold text-sm">{formData.waterSources.join(', ')}</p></div>
+                                    <div><p className="text-[9px] uppercase text-slate-400 font-bold tracking-wider mb-0.5">Topography</p><p className="font-bold text-xs">{formData.terrain} Fields</p></div>
+                                    <div><p className="text-[9px] uppercase text-slate-400 font-bold tracking-wider mb-0.5">Water Systems</p><p className="font-bold text-xs truncate">{formData.waterSources.join(', ')}</p></div>
                                 </div>
                             </div>
                         </div>
@@ -469,27 +480,27 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
             </main>
 
             {/* Bottom Action Bar */}
-            <div className={`p-6 bg-gradient-to-t from-background-light via-background-light to-transparent dark:from-background-dark dark:via-background-dark pt-12 z-30 shrink-0 ${step === 2 ? 'absolute bottom-0 left-0 w-full' : ''}`}>
-                <div className="flex flex-col gap-3">
+            <div className={`p-6 bg-gradient-to-t from-[#e3eae4] via-[#e3eae4] to-transparent dark:from-[#081d11] dark:via-[#081d11] pt-12 z-30 shrink-0 absolute bottom-0 left-0 w-full`}>
+                <div className="flex flex-col gap-2.5">
                     <button
                         onClick={handleNext}
                         disabled={isLoading}
-                        className="w-full bg-primary hover:bg-primary-dark text-black font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full btn-glass-glow text-white font-bold py-4 px-6 rounded-xl shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 tactile-btn cursor-pointer"
                     >
                         {isLoading ? (
                             <>
                                 <span className="material-icons animate-spin text-lg">sync</span>
-                                <span>Saving...</span>
+                                <span className="text-sm">Configuring Farm Sheet...</span>
                             </>
                         ) : (
                             <>
-                                <span>{step === 4 ? 'Confirm & Save Farm' : 'Next Step'}</span>
+                                <span className="text-sm">{step === 4 ? 'Confirm & Create Farm' : 'Continue'}</span>
                                 <span className="material-icons text-lg">{step === 4 ? 'check_circle' : 'arrow_forward'}</span>
                             </>
                         )}
                     </button>
                     {step === 4 && (
-                        <button onClick={() => setStep(1)} className="w-full py-3 text-gray-500 font-semibold text-sm">Review Again</button>
+                        <button onClick={() => setStep(1)} className="w-full py-2 text-slate-400 hover:text-emerald-500 font-bold text-xs uppercase tracking-wider cursor-pointer transition-colors">Review Configurations</button>
                     )}
                 </div>
             </div>

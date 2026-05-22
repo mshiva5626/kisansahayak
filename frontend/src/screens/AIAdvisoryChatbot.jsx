@@ -365,14 +365,14 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
     };
 
     return (
-        <div className="bg-background-light dark:bg-background-dark text-neutral-text-light dark:text-neutral-text-dark font-display antialiased h-screen flex flex-col overflow-hidden selection:bg-primary/30">
+        <div className="bg-gradient-to-b from-[#fafcfb] to-[#f4f7f5] dark:from-[#03140A] dark:to-[#081d11] text-neutral-text-light dark:text-neutral-text-dark font-display antialiased h-screen flex flex-col overflow-hidden selection:bg-primary/30">
             {/* Header */}
-            <header className="bg-white/80 dark:bg-neutral-surface-dark/80 backdrop-blur-md border-b border-neutral-surface-light dark:border-white/5 sticky top-0 z-20 px-4 pt-12 pb-3 shadow-sm">
+            <header className="krishi-glass sticky top-0 z-20 px-4 pt-12 pb-3 shadow-md border-b border-white/20 dark:border-white/5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={onBack}
-                            className="p-2 -ml-2 rounded-full hover:bg-neutral-surface-light dark:hover:bg-white/5 transition-colors text-neutral-muted-light dark:text-neutral-muted-dark"
+                            className="p-2 -ml-2 rounded-full hover:bg-neutral-surface-light/50 dark:hover:bg-white/5 transition-colors text-neutral-muted-light dark:text-neutral-muted-dark"
                         >
                             <span className="material-icons-round">arrow_back_ios_new</span>
                         </button>
@@ -380,13 +380,13 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/20">
                                 <span className="material-icons-round text-primary text-xl">smart_toy</span>
                             </div>
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-primary border-2 border-white dark:border-neutral-surface-dark rounded-full"></div>
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-primary border-2 border-white dark:border-[#101e16] rounded-full"></div>
                         </div>
                         <div>
-                            <h1 className="font-semibold text-lg leading-tight">Kisan Assistant</h1>
+                            <h1 className="font-bold text-lg leading-tight text-slate-800 dark:text-white">Kisan Assistant</h1>
                             <div className="flex items-center gap-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                                <p className="text-xs text-primary font-medium">
+                                <p className="text-xs text-primary font-bold">
                                     {isTyping ? 'Analyzing...' : farmData ? `${farmData.crop_type || 'Farm'} context loaded` : 'Online'}
                                 </p>
                             </div>
@@ -396,38 +396,38 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
             </header>
 
             {/* Chat Area */}
-            <main ref={scrollRef} className="flex-1 overflow-y-auto p-4 pb-32 space-y-6 scroll-smooth">
+            <main ref={scrollRef} className="flex-1 overflow-y-auto p-4 pb-32 space-y-6 scroll-smooth no-scrollbar">
                 {messages.map((msg) => (
                     <div key={msg.id} className={`flex gap-3 animate-fade-in items-end ${msg.isAI ? '' : 'flex-row-reverse'}`}>
                         {msg.isAI && (
-                            <div className="w-8 h-8 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center self-end mb-1">
+                            <div className="w-8 h-8 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center self-end mb-1 border border-primary/10">
                                 <span className="material-icons-round text-primary text-sm">smart_toy</span>
                             </div>
                         )}
                         <div className={`flex flex-col gap-1 max-w-[85%] ${msg.isAI ? '' : 'items-end'}`}>
-                            <div className={`${msg.isAI ? 'bg-white dark:bg-neutral-surface-dark rounded-bl-none text-neutral-text-light dark:text-neutral-text-dark border border-neutral-surface-light dark:border-white/5' : 'bg-primary rounded-br-none text-white dark:text-neutral-surface-dark font-medium'} p-4 rounded-2xl shadow-card text-[15px] leading-relaxed relative group`}>
+                            <div className={`${msg.isAI ? 'krishi-glass rounded-bl-none text-neutral-text-light dark:text-neutral-text-dark border border-white/50 dark:border-white/10' : 'bg-gradient-to-r from-[#0ED054] to-[#0A9E3E] text-white rounded-br-none shadow-[0_4px_12px_rgba(14,208,84,0.25)] font-semibold'} p-4 rounded-2xl text-[15px] leading-relaxed relative group`}>
                                 {msg.isAI ? (
                                     <>
                                         <div className="text-sm leading-relaxed">{renderAIText(msg.text)}</div>
                                         <button 
                                             onClick={() => togglePlayback(msg)}
-                                            className={`absolute -right-3 -bottom-3 p-1.5 rounded-full shadow-sm border transition-all ${playingMessageId === msg.id ? 'bg-primary text-white border-primary animate-pulse shadow-primary/30 z-10' : 'bg-white dark:bg-neutral-surface-dark text-neutral-muted-light dark:text-neutral-muted-dark border-neutral-surface-light dark:border-white/10 hover:bg-neutral-surface-light dark:hover:bg-white/5 opacity-0 group-hover:opacity-100 focus:opacity-100'}`}
+                                            className={`absolute -right-3 -bottom-3 p-1.5 rounded-full shadow-md border transition-all ${playingMessageId === msg.id ? 'bg-primary text-white border-primary animate-pulse shadow-primary/30 z-10' : 'bg-white dark:bg-slate-800 text-neutral-muted-light dark:text-neutral-muted-dark border-neutral-surface-light dark:border-white/10 hover:bg-neutral-surface-light dark:hover:bg-white/5 opacity-0 group-hover:opacity-100 focus:opacity-100'}`}
                                             title={playingMessageId === msg.id ? "Stop Speaking" : "Listen to response"}
                                         >
                                             <span className="material-icons-round text-sm">{playingMessageId === msg.id ? 'stop' : 'volume_up'}</span>
                                         </button>
                                     </>
                                 ) : (
-                                    <p>{msg.text}</p>
+                                    <p className="drop-shadow-sm">{msg.text}</p>
                                 )}
                             </div>
-                            <span className="text-[11px] text-neutral-muted-light dark:text-neutral-muted-dark mx-1">{msg.time}</span>
+                            <span className="text-[10px] opacity-70 font-semibold tracking-wider uppercase text-neutral-muted-light dark:text-neutral-muted-dark mx-1">{msg.time}</span>
                         </div>
                     </div>
                 ))}
                 {isTyping && (
                     <div className="flex gap-3 animate-pulse items-center ml-11">
-                        <div className="flex gap-1">
+                        <div className="flex gap-1.5 bg-slate-200 dark:bg-white/5 py-2 px-3 rounded-full border border-slate-300 dark:border-white/5">
                             <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></div>
                             <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce delay-75"></div>
                             <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce delay-150"></div>
@@ -437,11 +437,11 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
             </main>
 
             {/* Bottom Input Section */}
-            <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-background-dark border-t border-neutral-surface-light dark:border-white/5 pb-10 pt-2 z-30">
+            <div className="fixed bottom-0 left-0 w-full krishi-glass border-t border-white/20 dark:border-white/5 pb-10 pt-2 z-30 shadow-[0_-8px_32px_rgba(0,0,0,0.05)] dark:shadow-[0_-8px_32px_rgba(0,0,0,0.3)]">
                 <div className="px-4 flex items-end gap-2">
-                    <div className={`flex-1 rounded-2xl px-4 py-3 flex items-center gap-2 border transition-all duration-300 ${isListening ? 'border-red-500/50 ring-2 ring-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.15)] bg-red-50/50 dark:bg-red-900/10' : 'bg-neutral-surface-light dark:bg-neutral-surface-dark border-transparent focus-within:border-primary/50'}`}>
+                    <div className={`flex-1 rounded-2xl px-4 py-3 flex items-center gap-2 border transition-all duration-300 ${isListening ? 'border-red-500/50 ring-2 ring-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.15)] bg-red-50/50 dark:bg-red-900/10' : 'bg-white/60 dark:bg-black/30 border-slate-200 dark:border-white/5 focus-within:border-primary/50'}`}>
                         <textarea
-                            className="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-neutral-text-light dark:text-neutral-text-dark placeholder-neutral-muted-light dark:placeholder-neutral-muted-dark resize-none max-h-24"
+                            className="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-neutral-text-light dark:text-neutral-text-dark placeholder-neutral-muted-light dark:placeholder-neutral-muted-dark resize-none max-h-24 focus:outline-none"
                             placeholder={isListening ? 'Listening...' : (farmData ? `Ask about your ${farmData.crop_type || 'crop'}...` : 'Ask about crops, weather...')}
                             rows="1"
                             value={inputText}
@@ -451,7 +451,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
 
                         <button
                             onClick={toggleListening}
-                            className={`flex-shrink-0 p-2 rounded-full transition-colors ${isListening ? 'text-red-500 bg-red-500/10' : 'text-neutral-muted-light dark:text-neutral-muted-dark hover:bg-black/5 dark:hover:bg-white/5'}`}
+                            className={`flex-shrink-0 p-2 rounded-full transition-colors ${isListening ? 'text-red-500 bg-red-500/10 animate-pulse' : 'text-neutral-muted-light dark:text-neutral-muted-dark hover:bg-black/5 dark:hover:bg-white/5'}`}
                         >
                             <span className="material-icons-round text-[22px]">
                                 {isListening ? 'mic' : 'mic_none'}
@@ -462,7 +462,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                         id="send-btn"
                         onClick={handleSend}
                         disabled={(!inputText.trim() && !latestInputRef.current.trim()) || isTyping}
-                        className="flex-shrink-0 w-12 h-12 mb-0 rounded-full bg-primary text-white dark:text-neutral-surface-dark shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 disabled:scale-100"
+                        className="flex-shrink-0 w-12 h-12 mb-0 rounded-full bg-gradient-to-r from-[#0ED054] to-[#0A9E3E] text-white shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 disabled:scale-100 cursor-pointer"
                     >
                         <span className="material-icons-round text-xl translate-x-0.5">send</span>
                     </button>

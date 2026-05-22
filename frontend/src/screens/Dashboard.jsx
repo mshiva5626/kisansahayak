@@ -51,276 +51,311 @@ const Dashboard = ({ onProfileClick, onNotificationClick, onAICopilotClick, onSc
         if (!farm) return 'Select a farm to get personalized AI recommendations for your crops.';
         if (!farm.crop_type || !farm.latitude || !farm.longitude) return 'Insufficient farm setup. Please complete farm configuration.';
         if (weather && weather.humidity > 80) {
-            return `High humidity detected (${weather.humidity}%). Monitor ${farm.crop_type} closely for fungal infections. Consider preventive spraying.`;
+            return `High humidity detected (${weather.humidity}%). Monitor ${farm.crop_type} closely for fungal infections.`;
         }
         if (weather && weather.temp > 38) {
-            return `High temperature alert (${weather.temp}°C). Ensure adequate irrigation for your ${farm.crop_type} crop. Avoid fertilizer application during peak heat.`;
+            return `High temp alert (${weather.temp}°C). Irrigate your ${farm.crop_type} crop. Avoid daytime fertilizers.`;
         }
         if (weather) {
-            return `Conditions are ${weather.condition.toLowerCase()} at ${weather.temp}°C. Your ${farm.crop_type} crop is in active growth — tap to get detailed advisory.`;
+            return `Conditions are ${weather.condition.toLowerCase()} at ${weather.temp}°C. Ask AI for ${farm.crop_type} field tips.`;
         }
-        return `Your ${farm.crop_type} farm is set up. Tap to ask the AI assistant for field-ready advice.`;
-    };
-
-    // Get forecast summary for weather preview card
-    const getForecastSummary = () => {
-        if (!weather?.forecast?.length) return null;
-        const next3 = weather.forecast.slice(0, 3);
-        const hasRain = next3.some(d => d.precipitation > 0 || (d.condition && d.condition.toLowerCase().includes('rain')));
-        if (hasRain) return 'Rain expected in next 3 days';
-        return 'Clear skies expected';
+        return `Your ${farm.crop_type} farm is ready. Tap the Copilot orb to ask for field-ready advice.`;
     };
 
     return (
-        <div className="relative flex min-h-full w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark max-w-md mx-auto">
+        <div className="relative flex min-h-full w-full flex-col overflow-x-hidden bg-gradient-to-b from-[#fcfdfc] to-[#e3eae4] dark:from-[#03140A] dark:to-[#081d11] max-w-md mx-auto font-sans pb-20">
             {isLoading ? (
                 <DashboardSkeleton />
             ) : (
                 <>
-                    <header className="relative bg-gradient-to-b from-[#0a3f0a] to-[#145314] text-white pt-4 pb-8 safe-top rounded-b-[2rem] shadow-lg z-10 shrink-0">
+                    {/* Glowing Top Ambient light in dark mode */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[350px] h-[150px] bg-[#0ED054]/5 rounded-full blur-[60px] pointer-events-none z-0"></div>
+
+                    {/* Premium Header */}
+                    <header className="relative bg-gradient-to-b from-[#052212] via-[#093a1e] to-[#0c4726] text-white pt-4 pb-10 safe-top rounded-b-[2.5rem] shadow-2xl border-b border-[#0ED054]/10 z-10 shrink-0">
+                        {/* Interactive App Bar */}
                         <div className="px-6 flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
                                 <div
                                     onClick={() => setIsDrawerOpen(true)}
-                                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm border border-white/20 cursor-pointer hover:bg-white/20 transition-all"
+                                    className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 cursor-pointer hover:bg-white/20 active:scale-95 transition-all shadow-md"
                                 >
-                                    <span className="material-symbols-outlined text-primary text-[24px] transition-all duration-300">menu</span>
+                                    <span className="material-symbols-outlined text-[#0ED054] text-[24px]">menu</span>
                                 </div>
                                 <div>
-                                    <h1 className="text-xl font-bold tracking-tight">Kisan Sahayak</h1>
-                                    <p className="text-xs text-white/70 font-medium tracking-wide">Professional Farming</p>
+                                    <h1 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">Kisan Sahayak</h1>
+                                    <p className="text-[10px] text-[#0ED054] font-bold tracking-widest uppercase">Smart Farming</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
-                                <button onClick={onNotificationClick} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors relative">
-                                    <span className="material-symbols-outlined text-white text-[24px] transition-all duration-300">notifications</span>
-                                    <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-red-500 border border-[#145314]"></span>
+                                <button onClick={onNotificationClick} className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/20 active:scale-95 transition-all relative shadow-md">
+                                    <span className="material-symbols-outlined text-white text-[24px]">notifications</span>
+                                    <span className="absolute top-3.5 right-3.5 h-2 w-2 rounded-full bg-red-500 border-2 border-[#0c4726] animate-ping"></span>
+                                    <span className="absolute top-3.5 right-3.5 h-2 w-2 rounded-full bg-red-500 border-2 border-[#0c4726]"></span>
                                 </button>
-                                <div onClick={onProfileClick} className="h-10 w-10 rounded-full border-2 border-primary overflow-hidden bg-white/20 cursor-pointer" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuD97JG_xEY2anBSsxKxdXwZYQSTYqM7GzyusAzNhDhew_BZvF6DKbvn6Sw10i6zzyH_eXif6lG1Wuk3XjqhLqX6hDgNFVRAjk9jYg3Cko4ZcLUaAIfL18HoGhDzQoXoIeVri-jFT3Zwa-XiFi0Yfb3BQljIro6U0iGSZAD-jJvcTzXCzUByA-XyTPQXHAs7UArQZqDmGTuSn4zRmxDKat4rSf3FMFHdtbnFLmWQKuu1_4tqGPpBFzAGG_B7SMVCH1xk6DrXjBBM6X5f')", backgroundSize: "cover", backgroundPosition: "center" }}>
+                                <div onClick={onProfileClick} className="h-11 w-11 rounded-2xl border-2 border-[#0ED054] overflow-hidden bg-white/20 cursor-pointer shadow-lg active:scale-95 transition-all" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuD97JG_xEY2anBSsxKxdXwZYQSTYqM7GzyusAzNhDhew_BZvF6DKbvn6Sw10i6zzyH_eXif6lG1Wuk3XjqhLqX6hDgNFVRAjk9jYg3Cko4ZcLUaAIfL18HoGhDzQoXoIeVri-jFT3Zwa-XiFi0Yfb3BQljIro6U0iGSZAD-jJvcTzXCzUByA-XyTPQXHAs7UArQZqDmGTuSn4zRmxDKat4rSf3FMFHdtbnFLmWQKuu1_4tqGPpBFzAGG_B7SMVCH1xk6DrXjBBM6X5f')", backgroundSize: "cover", backgroundPosition: "center" }}>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="px-6 flex justify-between text-center pb-4">
-                            <div className="flex flex-col items-center cursor-pointer" onClick={onWeatherClick}>
-                                <span className="text-2xl font-bold text-white">{weather ? `${weather.temp}°C` : '—'}</span>
-                                <span className="text-xs text-white/70 flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[14px] transition-all duration-300">
+                        {/* Interactive 3D Stats Deck */}
+                        <div className="px-5 grid grid-cols-3 gap-3 pt-2 tilt-card-container">
+                            {/* Weather Stats Card */}
+                            <div 
+                                onClick={onWeatherClick}
+                                className="krishi-glass dark:bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card"
+                            >
+                                <span className="text-xl font-black text-white">{weather ? `${weather.temp}°C` : '—'}</span>
+                                <span className="text-[10px] text-gray-300 font-bold flex items-center gap-1 mt-1">
+                                    <span className="material-symbols-outlined text-[13px] text-[#0ED054]">
                                         {weather?.condition?.toLowerCase().includes('rain') ? 'grain' : 'wb_sunny'}
                                     </span>
                                     {weather ? weather.condition : 'Weather'}
                                 </span>
                             </div>
-                            <div className="h-10 w-[1px] bg-white/20"></div>
-                            <div className="flex flex-col items-center cursor-pointer" onClick={onMandiPricesClick}>
-                                <span className="text-2xl font-bold text-white tracking-tight">₹2,450</span>
-                                <span className="text-xs text-white/70">{farm?.crop_type || 'Crop'} / Qtl</span>
+
+                            {/* Mandi Wealth Card */}
+                            <div 
+                                onClick={onMandiPricesClick}
+                                className="krishi-glass dark:bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card"
+                            >
+                                <span className="text-xl font-black text-[#EAB308]">₹2,450</span>
+                                <span className="text-[10px] text-gray-300 font-bold flex items-center gap-0.5 mt-1 truncate w-full justify-center">
+                                    <span className="material-symbols-outlined text-[13px] text-[#EAB308]">storefront</span>
+                                    {farm?.crop_type || 'Wheat'}
+                                </span>
                             </div>
-                            <div className="h-10 w-[1px] bg-white/20"></div>
-                            <div className="flex flex-col items-center cursor-pointer" onClick={onFarmSwitcherClick}>
-                                <span className="text-2xl font-bold text-primary max-w-[80px] truncate">{farm?.farm_name || 'Active'}</span>
-                                <span className="text-xs text-white/70">Tap to Switch</span>
+
+                            {/* Farm Switcher Card */}
+                            <div 
+                                onClick={onFarmSwitcherClick}
+                                className="krishi-glass dark:bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card"
+                            >
+                                <span className="text-xl font-black text-[#0ED054] max-w-[80px] truncate">{farm?.farm_name || 'My Farm'}</span>
+                                <span className="text-[10px] text-gray-300 font-bold flex items-center gap-0.5 mt-1 justify-center">
+                                    <span className="material-symbols-outlined text-[13px] text-[#0ED054]">swap_horiz</span>
+                                    Switch
+                                </span>
                             </div>
                         </div>
                     </header>
 
-                    <main className="flex-1 px-4 -mt-6 pb-24 z-20 relative">
-                        <>
-                            {/* Horizontal Scroll Hero Banners */}
-                            <div className="mb-6 overflow-x-auto hide-scrollbar flex gap-4 snap-x snap-mandatory">
-                                <div onClick={onSchemesClick} className="cursor-pointer snap-center shrink-0 w-[85%] h-40 rounded-xl overflow-hidden relative shadow-md group hover:shadow-2xl transition-shadow duration-300">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-10 flex flex-col justify-center p-5">
-                                        <span className="bg-primary text-black text-[10px] font-bold px-2 py-0.5 rounded-full w-fit mb-2">Subsidy Scheme</span>
-                                        <h3 className="text-white font-bold text-xl leading-tight w-3/4 mb-1">PM-Kisan Benefits</h3>
-                                        <p className="text-white/80 text-xs mb-3">Next installment releasing soon</p>
-                                        <button className="text-white bg-white/20 hover:bg-primary hover:text-black hover:scale-105 active:scale-95 backdrop-blur-sm text-xs font-semibold px-4 py-2 rounded-lg w-fit transition-all duration-300">Check Status</button>
-                                    </div>
-                                    <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuD6rTykEoLw0FAsqaXZjNpLhE_Et9y0ZLltrar7tGnvNsbTo5Il98Spalex59RUpC1ovjnhbX87dhGKBehVB9pQ190wlN2LjY8MxRhlqrFTyrdCmW_BCM-gc7gG-utp2ejSEIwJ8uEV11BI0SpEaOazeqffOorRHa7r1MFQ1VHXQhhusrmAOYUGv4qeslP9MnKFy6yH1S25E0YA6Tm_bDHj6qZsWQhYFz89kQuZEVpDKfhmA3xIX5cRO2DgXRG-c8msJw13qX5hZaLg')" }}></div>
+                    {/* Main Content Area */}
+                    <main className="flex-1 px-4 -mt-5 pb-16 z-20 relative">
+                        {/* Horizontal snap-scroll campaigns */}
+                        <div className="mb-6 overflow-x-auto hide-scrollbar flex gap-4 snap-x snap-mandatory py-2">
+                            {/* Scheme Promotion */}
+                            <div onClick={onSchemesClick} className="cursor-pointer snap-center shrink-0 w-[88%] h-44 rounded-3xl overflow-hidden relative shadow-xl border border-white/10 hover:shadow-2xl active:scale-[0.98] transition-all duration-300 group">
+                                <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-transparent z-10 flex flex-col justify-center p-5">
+                                    <span className="bg-[#EAB308] text-black text-[9px] font-extrabold px-2.5 py-0.5 rounded-full w-fit mb-2 uppercase tracking-wider">Govt Scheme</span>
+                                    <h3 className="text-white font-extrabold text-lg leading-snug w-3/4 mb-1">PM-Kisan Benefits</h3>
+                                    <p className="text-gray-300 text-xs mb-3 font-medium">Next installment details inside</p>
+                                    <button className="text-white bg-white/15 border border-white/15 hover:bg-[#0ED054] hover:text-black hover:border-transparent tactile-btn text-[11px] font-bold px-4 py-2 rounded-xl w-fit">Check Status</button>
                                 </div>
-                                <div onClick={onNavigate} className="cursor-pointer snap-center shrink-0 w-[85%] h-40 rounded-xl overflow-hidden relative shadow-md group hover:shadow-2xl transition-shadow duration-300">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-900/40 to-transparent z-10 flex flex-col justify-center p-5">
-                                        <span className="bg-blue-400 text-black text-[10px] font-bold px-2 py-0.5 rounded-full w-fit mb-2">AI Copilot</span>
-                                        <h3 className="text-white font-bold text-xl leading-tight w-3/4 mb-1">Smart Analytics</h3>
-                                        <p className="text-white/80 text-xs mb-3 line-clamp-1">{getAdvisoryText()}</p>
-                                        <button onClick={onAICopilotClick} className="text-white bg-white/20 hover:bg-primary hover:text-black hover:scale-105 active:scale-95 backdrop-blur-sm text-xs font-semibold px-4 py-2 rounded-lg w-fit transition-all duration-300">Ask Copilot</button>
-                                    </div>
-                                    <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBfroD5SxbYM2BsmbodcmetFS2IeMErpKQIwOChdXb9LAT2Z-PSc9Gt8kRPr8fLnIRCWmsYZifSIybOFmGq8mnHx_4Ny3-K91P90F8Xe5COZQlXccSskNNB75KX5T1QTGfUhUtV9cXKasuB-042doT_CWxWPsSbo0z2X_1MA9619rcpKbxMkgD_G8-pW8TAgx9CBRQtVTv-1sxy-Blkq6WMQEkK37MF2ASUNdFBa4bJ57ThUyDPaFr2sco1Xs3bWBqLeiEfp7bTKekr')" }}></div>
-                                </div>
+                                <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuD6rTykEoLw0FAsqaXZjNpLhE_Et9y0ZLltrar7tGnvNsbTo5Il98Spalex59RUpC1ovjnhbX87dhGKBehVB9pQ190wlN2LjY8MxRhlqrFTyrdCmW_BCM-gc7gG-utp2ejSEIwJ8uEV11BI0SpEaOazeqffOorRHa7r1MFQ1VHXQhhusrmAOYUGv4qeslP9MnKFy6yH1S25E0YA6Tm_bDHj6qZsWQhYFz89kQuZEVpDKfhmA3xIX5cRO2DgXRG-c8msJw13qX5hZaLg')" }}></div>
                             </div>
-
-                            {/* Services Grid */}
-                            <div className="bg-white dark:bg-[#1a2e1a] rounded-xl p-5 mb-6 border border-slate-100 dark:border-slate-800 shadow-premium">
-                                <h2 className="font-semibold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-wider text-xs">Services</h2>
-                                <div className="grid grid-cols-4 gap-y-4 gap-x-2">
-                                    <button onClick={onWeatherClick} className="flex flex-col items-center gap-2 group">
-                                        <div className="h-12 w-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
-                                            <span className="material-symbols-outlined text-purple-600 text-[24px] transition-all duration-300">cloud</span>
-                                        </div>
-                                        <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">Weather</span>
-                                    </button>
-                                    <button onClick={onAICopilotClick} className="flex flex-col items-center gap-2 group">
-                                        <div className="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center transition-transform group-hover:scale-105 relative">
-                                            {/* Pulse indicator for AI active */}
-                                            <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-                                            </span>
-                                            <span className="material-symbols-outlined text-blue-600 text-[24px] transition-all duration-300">smart_toy</span>
-                                        </div>
-                                        <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">Copilot</span>
-                                    </button>
-                                    <button onClick={onSchemesClick} className="flex flex-col items-center gap-2 group">
-                                        <div className="h-12 w-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
-                                            <span className="material-symbols-outlined text-orange-600 text-[24px] transition-all duration-300">description</span>
-                                        </div>
-                                        <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">Schemes</span>
-                                    </button>
-                                    <button onClick={onScanClick} className="flex flex-col items-center gap-2 group">
-                                        <div className="h-12 w-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
-                                            <span className="material-symbols-outlined text-green-600 text-[24px] transition-all duration-300">qr_code_scanner</span>
-                                        </div>
-                                        <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">Scan</span>
-                                    </button>
-                                    <button onClick={onMandiPricesClick} className="flex flex-col items-center gap-2 group">
-                                        <div className="h-12 w-12 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
-                                            <span className="material-symbols-outlined text-pink-600 text-[24px] transition-all duration-300">storefront</span>
-                                        </div>
-                                        <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">Mandi</span>
-                                    </button>
-                                    <button onClick={() => onNavigate('farm-list')} className="flex flex-col items-center gap-2 group">
-                                        <div className="h-12 w-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center transition-transform group-hover:scale-105">
-                                            <span className="material-symbols-outlined text-indigo-600 text-[24px] transition-all duration-300">inventory_2</span>
-                                        </div>
-                                        <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">My Farms</span>
-                                    </button>
-                                    <button onClick={() => onNavigate('fertilizer-marketplace')} className="flex flex-col items-center gap-2 group">
-                                        <div className="h-12 w-12 rounded-xl bg-[#e0f2fe] dark:bg-[#0c4a6e] flex items-center justify-center transition-transform group-hover:scale-105">
-                                            <span className="material-symbols-outlined text-[#0284c7] text-[24px] transition-all duration-300">shopping_bag</span>
-                                        </div>
-                                        <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">Fertilizers</span>
-                                    </button>
-                                    <button onClick={onSoilTestClick} className="flex flex-col items-center gap-2 group">
-                                        <div className="h-12 w-12 rounded-xl bg-[#dcfce7] dark:bg-[#114011] flex items-center justify-center transition-transform group-hover:scale-105">
-                                            <span className="material-symbols-outlined text-[#16a34a] text-[24px] transition-all duration-300">science</span>
-                                        </div>
-                                        <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">Soil Test</span>
-                                    </button>
+                            
+                            {/* Copilot Analytics promotion */}
+                            <div onClick={onAICopilotClick} className="cursor-pointer snap-center shrink-0 w-[88%] h-44 rounded-3xl overflow-hidden relative shadow-xl border border-white/10 hover:shadow-2xl active:scale-[0.98] transition-all duration-300 group">
+                                <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-transparent z-10 flex flex-col justify-center p-5">
+                                    <span className="bg-[#0ED054] text-black text-[9px] font-extrabold px-2.5 py-0.5 rounded-full w-fit mb-2 uppercase tracking-wider">AI Advisory</span>
+                                    <h3 className="text-white font-extrabold text-lg leading-snug w-3/4 mb-1">Intelligent Advisory</h3>
+                                    <p className="text-gray-300 text-xs mb-3 font-medium line-clamp-1">{getAdvisoryText()}</p>
+                                    <button className="text-white bg-white/15 border border-white/15 hover:bg-[#0ED054] hover:text-black hover:border-transparent tactile-btn text-[11px] font-bold px-4 py-2 rounded-xl w-fit">Ask Copilot</button>
                                 </div>
+                                <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBfroD5SxbYM2BsmbodcmetFS2IeMErpKQIwOChdXb9LAT2Z-PSc9Gt8kRPr8fLnIRCWmsYZifSIybOFmGq8mnHx_4Ny3-K91P90F8Xe5COZQlXccSskNNB75KX5T1QTGfUhUtV9cXKasuB-042doT_CWxWPsSbo0z2X_1MA9619rcpKbxMkgD_G8-pW8TAgx9CBRQtVTv-1sxy-Blkq6WMQEkK37MF2ASUNdFBa4bJ57ThUyDPaFr2sco1Xs3bWBqLeiEfp7bTKekr')" }}></div>
                             </div>
+                        </div>
 
-                            {/* News & Advisory List */}
-                            <div className="mb-6">
-                                <div className="flex items-center justify-between mb-3 px-1">
-                                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">News &amp; Advisory</h2>
-                                    <a className="text-sm font-semibold text-primary-dark hover:text-primary dark:text-primary transition-colors flex items-center" href="#">View All <span className="material-symbols-outlined text-sm ml-0.5 transition-all duration-300">chevron_right</span></a>
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                    {weather && weather.forecast && weather.forecast.length > 0 && weather.forecast[0].precipitation > 0 ? (
-                                        <div className="bg-white dark:bg-[#1a2e1a] p-4 rounded-xl shadow-card border border-l-4 border-l-red-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800 dark:border-r-slate-800 flex gap-4 items-start hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
-                                            <div className="h-12 w-12 rounded-lg bg-red-50 dark:bg-red-900/20 flex-shrink-0 flex items-center justify-center text-red-600">
-                                                <span className="material-symbols-outlined transition-all duration-300">thunderstorm</span>
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="flex justify-between items-start">
-                                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Heavy Rain Alert</h3>
-                                                    <span className="text-[10px] text-slate-400">Now</span>
-                                                </div>
-                                                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Rainfall expected in your district. Ensure appropriate measures for your {farm.crop_type} crop.</p>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="bg-white dark:bg-[#1a2e1a] p-4 rounded-xl shadow-card border border-l-4 border-l-blue-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800 dark:border-r-slate-800 flex gap-4 items-start hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
-                                            <div className="h-12 w-12 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex-shrink-0 flex items-center justify-center text-blue-600">
-                                                <span className="material-symbols-outlined transition-all duration-300">wb_sunny</span>
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="flex justify-between items-start">
-                                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Clear Weather</h3>
-                                                    <span className="text-[10px] text-slate-400">Now</span>
-                                                </div>
-                                                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Optimal conditions for typical farming activities. Maintain regular irrigation schedule.</p>
-                                            </div>
-                                        </div>
-                                    )}
+                        {/* Highly Tactile Services Panel */}
+                        <div className="krishi-glass border border-white/20 dark:border-white/5 rounded-3xl p-5 mb-6 shadow-2xl relative">
+                            <h2 className="font-extrabold text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wider text-[10px]">Farm Services</h2>
+                            
+                            <div className="grid grid-cols-4 gap-y-5 gap-x-2">
+                                <button onClick={onWeatherClick} className="flex flex-col items-center gap-2 group tactile-btn">
+                                    <div className="h-13 w-13 rounded-2xl bg-purple-100 dark:bg-purple-950/40 border border-purple-200/20 flex items-center justify-center transition-all group-active:scale-95 shadow-md">
+                                        <span className="material-symbols-outlined text-purple-600 dark:text-purple-400 text-[26px]">cloud</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Weather</span>
+                                </button>
+                                
+                                <button onClick={onAICopilotClick} className="flex flex-col items-center gap-2 group tactile-btn">
+                                    <div className="h-13 w-13 rounded-2xl bg-blue-100 dark:bg-blue-950/40 border border-blue-200/20 flex items-center justify-center transition-all group-active:scale-95 relative shadow-md">
+                                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0ED054] opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-[#0ED054]"></span>
+                                        </span>
+                                        <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[26px]">smart_toy</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Copilot</span>
+                                </button>
+                                
+                                <button onClick={onSchemesClick} className="flex flex-col items-center gap-2 group tactile-btn">
+                                    <div className="h-13 w-13 rounded-2xl bg-orange-100 dark:bg-orange-950/40 border border-orange-200/20 flex items-center justify-center transition-all group-active:scale-95 shadow-md">
+                                        <span className="material-symbols-outlined text-orange-600 dark:text-orange-400 text-[26px]">description</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Schemes</span>
+                                </button>
+                                
+                                <button onClick={onScanClick} className="flex flex-col items-center gap-2 group tactile-btn">
+                                    <div className="h-13 w-13 rounded-2xl bg-emerald-100 dark:bg-emerald-950/40 border border-emerald-200/20 flex items-center justify-center transition-all group-active:scale-95 shadow-md">
+                                        <span className="material-symbols-outlined text-emerald-600 dark:text-[#0ED054] text-[26px]">qr_code_scanner</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Scan Crop</span>
+                                </button>
+                                
+                                <button onClick={onMandiPricesClick} className="flex flex-col items-center gap-2 group tactile-btn">
+                                    <div className="h-13 w-13 rounded-2xl bg-pink-100 dark:bg-pink-950/40 border border-pink-200/20 flex items-center justify-center transition-all group-active:scale-95 shadow-md">
+                                        <span className="material-symbols-outlined text-pink-600 dark:text-pink-400 text-[26px]">storefront</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Mandi</span>
+                                </button>
+                                
+                                <button onClick={() => onNavigate('farm-list')} className="flex flex-col items-center gap-2 group tactile-btn">
+                                    <div className="h-13 w-13 rounded-2xl bg-indigo-100 dark:bg-indigo-950/40 border border-indigo-200/20 flex items-center justify-center transition-all group-active:scale-95 shadow-md">
+                                        <span className="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-[26px]">inventory_2</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">My Farms</span>
+                                </button>
+                                
+                                <button onClick={() => onNavigate('fertilizer-marketplace')} className="flex flex-col items-center gap-2 group tactile-btn">
+                                    <div className="h-13 w-13 rounded-2xl bg-sky-100 dark:bg-sky-950/40 border border-sky-200/20 flex items-center justify-center transition-all group-active:scale-95 shadow-md">
+                                        <span className="material-symbols-outlined text-sky-600 dark:text-sky-400 text-[26px]">shopping_bag</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Market</span>
+                                </button>
+                                
+                                <button onClick={onSoilTestClick} className="flex flex-col items-center gap-2 group tactile-btn">
+                                    <div className="h-13 w-13 rounded-2xl bg-green-100 dark:bg-green-950/40 border border-green-200/20 flex items-center justify-center transition-all group-active:scale-95 shadow-md">
+                                        <span className="material-symbols-outlined text-green-600 dark:text-green-400 text-[26px]">science</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Soil Test</span>
+                                </button>
+                            </div>
+                        </div>
 
-                                    <div className="bg-white dark:bg-[#1a2e1a] p-4 rounded-xl shadow-card border border-slate-100 dark:border-slate-800 flex gap-4 items-start hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
-                                        <div className="h-12 w-12 rounded-lg bg-green-50 dark:bg-green-900/20 flex-shrink-0 flex items-center justify-center text-green-600">
-                                            <span className="material-symbols-outlined transition-all duration-300">psychiatry</span>
+                        {/* Warning-tinted Glass Advisory Alert */}
+                        <div className="mb-6">
+                            <h2 className="text-lg font-extrabold text-gray-900 dark:text-white mb-3 px-1">Alerts & Advisory</h2>
+                            
+                            <div className="flex flex-col gap-3">
+                                {weather && weather.forecast && weather.forecast.length > 0 && weather.forecast[0].precipitation > 0 ? (
+                                    <div className="krishi-glass dark:bg-red-950/15 border border-l-4 border-l-red-500 border-white/20 dark:border-white/5 p-4 rounded-2xl shadow-lg flex gap-4 items-start active:scale-[0.99] transition-transform duration-200 cursor-pointer">
+                                        <div className="h-12 w-12 rounded-xl bg-red-100 dark:bg-red-900/35 flex-shrink-0 flex items-center justify-center text-red-600 dark:text-red-400 shadow-sm">
+                                            <span className="material-symbols-outlined">thunderstorm</span>
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex justify-between items-start">
-                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Crop Action Priority</h3>
-                                                <span className="text-[10px] text-slate-400">System</span>
+                                                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Heavy Rain Alert</h3>
+                                                <span className="text-[10px] text-red-500 dark:text-red-400 font-extrabold uppercase">Now</span>
                                             </div>
-                                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{getAdvisoryText()}</p>
+                                            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-medium">Precipitation expected in your region. Secure open seeds and postpone irrigation plans.</p>
                                         </div>
+                                    </div>
+                                ) : (
+                                    <div className="krishi-glass dark:bg-blue-950/10 border border-l-4 border-l-[#0ED054] border-white/20 dark:border-white/5 p-4 rounded-2xl shadow-lg flex gap-4 items-start active:scale-[0.99] transition-transform duration-200 cursor-pointer">
+                                        <div className="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex-shrink-0 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm">
+                                            <span className="material-symbols-outlined">wb_sunny</span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-start">
+                                                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Optimal Weather</h3>
+                                                <span className="text-[10px] text-[#0ED054] font-extrabold uppercase">Active</span>
+                                            </div>
+                                            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-medium">Optimal clear skies. Ideal conditions for normal crop field operations and spraying.</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div onClick={onAICopilotClick} className="krishi-glass dark:bg-emerald-950/10 border border-l-4 border-l-[#0ED054] border-white/20 dark:border-white/5 p-4 rounded-2xl shadow-lg flex gap-4 items-start active:scale-[0.99] transition-transform duration-200 cursor-pointer">
+                                    <div className="h-12 w-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex-shrink-0 flex items-center justify-center text-emerald-600 dark:text-[#0ED054] shadow-sm">
+                                        <span className="material-symbols-outlined">psychiatry</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex justify-between items-start">
+                                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">AI Recommendation</h3>
+                                            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-extrabold uppercase">Copilot</span>
+                                        </div>
+                                        <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-medium">{getAdvisoryText()}</p>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Market Trends Scroll */}
-                            <div className="mb-6">
-                                <div className="flex items-center justify-between mb-3 px-1">
-                                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Market Trends</h2>
-                                    <span className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider">Live</span>
+                        {/* Live Mandi Trends */}
+                        <div className="mb-8">
+                            <div className="flex items-center justify-between mb-3 px-1">
+                                <h2 className="text-lg font-extrabold text-gray-900 dark:text-white">Live Market Trends</h2>
+                                <span className="text-[9px] font-extrabold text-[#0ED054] bg-[#0ED054]/10 border border-[#0ED054]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">Live</span>
+                            </div>
+                            
+                            <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-3">
+                                <div onClick={onMandiPricesClick} className="min-w-[145px] krishi-glass dark:bg-white/5 border border-white/10 p-4 rounded-2xl shadow-md flex flex-col gap-2 hover:shadow-lg active:scale-95 transition-all cursor-pointer">
+                                    <div className="flex items-center justify-between">
+                                        <div className="h-8 w-8 rounded-xl bg-yellow-100 dark:bg-yellow-950/40 flex items-center justify-center">
+                                            <span className="material-symbols-outlined text-yellow-700 dark:text-yellow-400 text-lg">spa</span>
+                                        </div>
+                                        <span className="text-[10px] font-bold text-green-600 dark:text-[#0ED054] bg-green-500/10 px-1.5 py-0.5 rounded flex items-center">
+                                            <span className="material-symbols-outlined text-[10px] mr-0.5">trending_up</span> 2%
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] font-bold text-gray-400 dark:text-gray-500">Wheat</p>
+                                        <p className="text-base font-extrabold text-gray-900 dark:text-white">₹2,450</p>
+                                    </div>
                                 </div>
-                                <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
-                                    <div onClick={onMandiPricesClick} className="min-w-[140px] bg-white dark:bg-[#1a2e1a] p-4 rounded-xl shadow-card border border-slate-100 dark:border-slate-800 flex flex-col gap-2 hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
-                                        <div className="flex items-center justify-between">
-                                            <div className="h-8 w-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-yellow-700 dark:text-yellow-400 text-lg transition-all duration-300">spa</span>
-                                            </div>
-                                            <span className="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded flex items-center">
-                                                <span className="material-symbols-outlined text-[10px] mr-0.5 transition-all duration-300">trending_up</span> 2%
-                                            </span>
+                                
+                                <div onClick={onMandiPricesClick} className="min-w-[145px] krishi-glass dark:bg-white/5 border border-white/10 p-4 rounded-2xl shadow-md flex flex-col gap-2 hover:shadow-lg active:scale-95 transition-all cursor-pointer">
+                                    <div className="flex items-center justify-between">
+                                        <div className="h-8 w-8 rounded-xl bg-red-100 dark:bg-red-950/40 flex items-center justify-center">
+                                            <span className="material-symbols-outlined text-red-700 dark:text-red-400 text-lg">nutrition</span>
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">Wheat</p>
-                                            <p className="text-lg font-bold text-slate-900 dark:text-white">₹2,450</p>
-                                        </div>
+                                        <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded flex items-center">
+                                            <span className="material-symbols-outlined text-[10px] mr-0.5">trending_down</span> 0.5%
+                                        </span>
                                     </div>
-                                    <div onClick={onMandiPricesClick} className="min-w-[140px] bg-white dark:bg-[#1a2e1a] p-4 rounded-xl shadow-card border border-slate-100 dark:border-slate-800 flex flex-col gap-2 hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
-                                        <div className="flex items-center justify-between">
-                                            <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-red-700 dark:text-red-400 text-lg transition-all duration-300">nutrition</span>
-                                            </div>
-                                            <span className="text-xs font-bold text-red-600 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded flex items-center">
-                                                <span className="material-symbols-outlined text-[10px] mr-0.5 transition-all duration-300">trending_down</span> 0.5%
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">Tomato</p>
-                                            <p className="text-lg font-bold text-slate-900 dark:text-white">₹1,200</p>
-                                        </div>
+                                    <div>
+                                        <p className="text-[11px] font-bold text-gray-400 dark:text-gray-500">Tomato</p>
+                                        <p className="text-base font-extrabold text-gray-900 dark:text-white">₹1,200</p>
                                     </div>
-                                    <div onClick={onMandiPricesClick} className="min-w-[140px] bg-white dark:bg-[#1a2e1a] p-4 rounded-xl shadow-card border border-slate-100 dark:border-slate-800 flex flex-col gap-2 hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
-                                        <div className="flex items-center justify-between">
-                                            <div className="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-orange-700 dark:text-orange-400 text-lg transition-all duration-300">grain</span>
-                                            </div>
-                                            <span className="text-xs font-bold text-slate-600 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded flex items-center">
-                                                <span className="material-symbols-outlined text-[10px] mr-0.5 transition-all duration-300">remove</span> 0%
-                                            </span>
+                                </div>
+                                
+                                <div onClick={onMandiPricesClick} className="min-w-[145px] krishi-glass dark:bg-white/5 border border-white/10 p-4 rounded-2xl shadow-md flex flex-col gap-2 hover:shadow-lg active:scale-95 transition-all cursor-pointer">
+                                    <div className="flex items-center justify-between">
+                                        <div className="h-8 w-8 rounded-xl bg-orange-100 dark:bg-orange-950/40 flex items-center justify-center">
+                                            <span className="material-symbols-outlined text-orange-700 dark:text-orange-400 text-lg">grain</span>
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">Corn</p>
-                                            <p className="text-lg font-bold text-slate-900 dark:text-white">₹1,890</p>
-                                        </div>
+                                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 bg-gray-500/10 px-1.5 py-0.5 rounded flex items-center">
+                                            <span className="material-symbols-outlined text-[10px] mr-0.5">remove</span> 0%
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] font-bold text-gray-400 dark:text-gray-500">Corn</p>
+                                        <p className="text-base font-extrabold text-gray-900 dark:text-white">₹1,890</p>
                                     </div>
                                 </div>
                             </div>
-                        </>
-
+                        </div>
                     </main>
 
+                    {/* Bottom Sticky Interactive Navbar */}
                     <BottomNavbar activeTab="dashboard" onNavigate={onNavigate} />
 
+                    {/* Side Navigation Menu Drawer */}
                     <SideDrawerMenu
                         isOpen={isDrawerOpen}
                         onClose={() => setIsDrawerOpen(false)}
                         userProfile={userProfile}
                         onNavigate={onNavigate}
                     />
+
+                    {/* Floating Pulse 3D AI Copilot Orb - Easy Thumb Reach */}
+                    <div 
+                        onClick={onAICopilotClick}
+                        className="fixed bottom-[88px] right-5 z-40 w-14 h-14 rounded-full copilot-3d-orb flex items-center justify-center cursor-pointer shadow-2xl border border-white/20 active:scale-90 transition-transform"
+                    >
+                        <span className="material-symbols-outlined text-white text-[28px] animate-pulse">smart_toy</span>
+                    </div>
                 </>
             )}
         </div>
@@ -328,3 +363,4 @@ const Dashboard = ({ onProfileClick, onNotificationClick, onAICopilotClick, onSc
 };
 
 export default Dashboard;
+
