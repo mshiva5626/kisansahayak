@@ -7,6 +7,7 @@ const LoginRegistration = ({ onLogin, onRegister, onBack }) => {
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     // Password Reset State
     const [showResetModal, setShowResetModal] = useState(false);
@@ -151,7 +152,7 @@ const LoginRegistration = ({ onLogin, onRegister, onBack }) => {
                                     <input
                                         className={isLogin ? "w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg py-3.5 pl-12 pr-4 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all duration-200" : "block w-full pl-11 pr-4 py-3.5 bg-background-light dark:bg-slate-900 border-none ring-1 ring-slate-200 dark:ring-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-900 transition-all shadow-sm focus:outline-none"}
                                         placeholder={isLogin ? "e.g. 9876543210" : "ex. rajesh@kisan.com"}
-                                        type="email"
+                                        type={isLogin ? "text" : "email"}
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                     />
@@ -175,12 +176,18 @@ const LoginRegistration = ({ onLogin, onRegister, onBack }) => {
                                     <input
                                         className={isLogin ? "w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg py-3.5 pl-12 pr-12 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all duration-200" : "block w-full pl-11 pr-12 py-3.5 bg-background-light dark:bg-slate-900 border-none ring-1 ring-slate-200 dark:ring-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-900 transition-all shadow-sm focus:outline-none"}
                                         placeholder={isLogin ? "Enter your password" : "••••••••"}
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                     />
-                                    <button className={isLogin ? "absolute right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center" : "absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"} type="button">
-                                        <span className={isLogin ? "material-symbols-outlined text-[20px]" : "material-symbols-outlined text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}>{isLogin ? 'visibility_off' : 'visibility'}</span>
+                                    <button 
+                                        className={isLogin ? "absolute right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center" : "absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"} 
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        <span className={isLogin ? "material-symbols-outlined text-[20px]" : "material-symbols-outlined text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}>
+                                            {showPassword ? 'visibility' : 'visibility_off'}
+                                        </span>
                                     </button>
                                 </div>
                                 {isLogin && (

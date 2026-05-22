@@ -1,4 +1,4 @@
-const { createClient } = require('@supabase/supabase-js');
+const MockSupabaseClient = require('./mockSupabase');
 
 let supabase = null;
 let isConnected = false;
@@ -12,6 +12,7 @@ const connectDB = async () => {
             throw new Error('Missing Supabase environment variables');
         }
 
+        const { createClient } = require('@supabase/supabase-js');
         supabase = createClient(supabaseUrl, supabaseKey);
 
         // Simple test query to verify connection
@@ -21,10 +22,13 @@ const connectDB = async () => {
         console.log(`✅ Supabase Connected Successfully`);
         isConnected = true;
     } catch (error) {
-        console.error(`\n❌ Supabase Connection Error: ${error.message}`);
-        console.error('This application REQUIRES a real Database connection to function properly.');
-        console.error('Exiting process to prevent mock fallback behavior.\n');
-        process.exit(1);
+        console.warn(`\n⚠️ Supabase Unreachable: ${error.message}`);
+        console.warn(`✨ Falling back to local offline Database (DEMO MODE)!`);
+        console.warn(`💾 Using persistent store at backend/data/localDb.json\n`);
+        
+        supabase = new MockSupabaseClient();
+        isConnected = false;
+        process.env.DEMO_MODE = 'true';
     }
 };
 
@@ -35,3 +39,4 @@ module.exports = connectDB;
 module.exports.getIsConnected = getIsConnected;
 module.exports.supabase = supabase; // Note: won't be initialized until connectDB is called, so best to use getSupabase
 module.exports.getSupabase = getSupabase;
+

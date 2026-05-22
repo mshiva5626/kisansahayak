@@ -73,13 +73,17 @@ exports.login = async (req, res) => {
 
     try {
         const supabase = getSupabase();
-        const normalizedEmail = email.toLowerCase().trim();
+        const inputStr = email.trim();
+        const isEmail = inputStr.includes('@');
+        
+        let query = supabase.from('users').select('*');
+        if (isEmail) {
+            query = query.eq('email', inputStr.toLowerCase());
+        } else {
+            query = query.eq('mobile_number', inputStr);
+        }
 
-        const { data: user, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', normalizedEmail)
-            .maybeSingle();
+        const { data: user, error } = await query.maybeSingle();
 
         if (error || !user) {
             return res.status(401).json({ message: 'Invalid email or password' });
