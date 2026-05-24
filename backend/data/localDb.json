@@ -3,7 +3,7 @@
     {
       "_id": "mem_1_mlvsczhh",
       "email": "m.shivaryoyo@gmail.com",
-      "password": "$2b$10$hnE8R6lT0ViNe1N9vAEvuulnFZTIWn02laoFFXgqas9f/.YHkKase",
+      "password": "$2b$10$2t49SIAOkbUIsiEp8k7pPuic7cnYlK5ZE9H5j/9Ezpg2ANAoVxLuO",
       "name": "Farmer",
       "mobile_number": "9876543210",
       "preferred_language": "en",
@@ -16,7 +16,7 @@
     {
       "_id": "mem_11_mlvxgc17",
       "email": "testbot@example.com",
-      "password": "$2b$10$k0yXIryYAwj7BB9R66wx1.IhI.WhEIri8KIg34N.x13CVHvHkqLRq",
+      "password": "$2b$10$2t49SIAOkbUIsiEp8k7pPuic7cnYlK5ZE9H5j/9Ezpg2ANAoVxLuO",
       "name": "Test Bot",
       "mobile_number": "",
       "preferred_language": "en",
