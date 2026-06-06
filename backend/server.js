@@ -22,6 +22,7 @@ const cropRoutes = require('./routes/cropRoutes');
 const mandiRoutes = require('./routes/mandiRoutes');
 const soilRoutes = require('./routes/soilRoutes');
 const fertilizerRoutes = require('./routes/fertilizerRoutes');
+const amiRoutes = require('./routes/amiRoutes');
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -55,6 +56,7 @@ app.use('/api/crop', cropRoutes);
 app.use('/api/mandi-prices', mandiRoutes);
 app.use('/api/soil', soilRoutes);
 app.use('/api/fertilizer', fertilizerRoutes);
+app.use('/api/ami', amiRoutes);
 
 // Basic health check
 app.get('/', (req, res) => {

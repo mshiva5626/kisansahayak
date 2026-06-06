@@ -1,16 +1,35 @@
 const fs = require('fs');
 const path = require('path');
 
+// Load NPSS Pest index
+let npssIndex = null;
+try {
+    npssIndex = require('../data/npssPestIndex.json');
+} catch (err) {
+    console.error('Failed to load npssPestIndex.json:', err.message);
+}
+
 // Model fallback chain — best-to-worst for vision/disease tasks
 const VISION_MODELS = [
-    'google/gemma-3-27b-it:free',
-    'qwen/qwen2.5-vl-32b-instruct:free',
-    'moonshotai/kimi-vl-a3b-thinking:free',
+    'google/gemini-2.5-flash-lite',
+    'google/gemini-2.5-flash',
+    'google/gemini-3.1-flash-lite',
     'nvidia/nemotron-nano-12b-v2-vl:free'
 ];
 
 const buildDiseasePrompt = (imageType, farm) => {
     const cropName = farm?.crop_type || 'Unknown crop';
+    
+    // Inject official NPSS crop-specific pests/diseases context
+    let npssContext = '';
+    if (npssIndex && npssIndex.cropPests && npssIndex.cropPests[cropName]) {
+        const pests = npssIndex.cropPests[cropName];
+        npssContext = `\nOFFICIAL NPSS CROP DATASET REFERENCE:
+The following are known pests and diseases officially registered for the ${cropName} crop by the Department of Agriculture:
+${pests.map(p => `- ${p}`).join('\n')}
+Please prioritize matching the observed symptoms against these officially registered pest/disease categories if they align with visual evidence.`;
+    }
+
     return `System Role: You are a Senior Plant Pathologist and Agronomist with 25+ years of field experience specializing in Indian agriculture and tropical crop diseases.
 
 Task: Perform a rigorous, multi-step diagnostic on the attached ${imageType} image of the ${cropName} plant.
@@ -18,8 +37,8 @@ Task: Perform a rigorous, multi-step diagnostic on the attached ${imageType} ima
 FARM CONTEXT:
 - Crop: ${cropName}
 - Terrain: ${farm?.terrain_type || 'Flat'}
-- Region: ${farm?.location?.state || 'India'}
-- District: ${farm?.location?.district || 'Unknown'}
+- Region: ${farm?.location?.state || farm?.state || 'India'}
+- District: ${farm?.location?.district || 'Unknown'}${npssContext}
 
 DIAGNOSTIC PROTOCOL — Execute each step with scientific precision:
 
@@ -162,7 +181,7 @@ const API_KEY = process.env.CROP_ANALYSIS_API_KEY;
 const GEMINI_API_KEY = process.env.CROP_ANALYSIS_API_KEY;
 
 // Determine if we should use official Google SDK or OpenRouter fallback based on key prefix
-const useOfficialGemini = GEMINI_API_KEY.startsWith('AIza');
+const useOfficialGemini = GEMINI_API_KEY && GEMINI_API_KEY.startsWith('AIza');
 
 const callGeminiDirect = async (prompt, base64Image, mimeType) => {
     // Initialize the new Google GenAI SDK (requires version ^0.1.2)
@@ -218,7 +237,8 @@ const callOpenRouter = async (model, prompt, base64Image, mimeType) => {
                 }
             ],
             stream: false,
-            temperature: 0.2
+            temperature: 0.2,
+            max_tokens: 3000
         })
     });
 
@@ -257,7 +277,7 @@ const parseResponse = (responseText) => {
     return parsed;
 };
 
-const analyzeImageWithAI = async (imagePath, imageType, farm = {}) => {
+const analyzeImageWithAI = async (imagePath, imageType, farm = {}, user = {}) => {
     try {
         // Read image file and convert to base64
         let base64Image = '';
@@ -309,10 +329,10 @@ const analyzeImageWithAI = async (imagePath, imageType, farm = {}) => {
         } else {
             // Path B: OpenRouter Fallback sequence
             const VISION_MODELS = [
-                'nvidia/nemotron-nano-12b-v2-vl:free',
-                'google/gemma-3-27b-it:free',
-                'qwen/qwen2.5-vl-32b-instruct:free',
-                'moonshotai/kimi-vl-a3b-thinking:free'
+                'google/gemini-2.5-flash-lite',
+                'google/gemini-2.5-flash',
+                'google/gemini-3.1-flash-lite',
+                'nvidia/nemotron-nano-12b-v2-vl:free'
             ];
 
             for (let i = 0; i < VISION_MODELS.length; i++) {
@@ -337,6 +357,40 @@ const analyzeImageWithAI = async (imagePath, imageType, farm = {}) => {
         }
 
         const parsed = parseResponse(responseText);
+
+        // Fetch NPSS reference images and regional stats
+        let npss_reference_images = [];
+        let npss_regional_reports = null;
+        
+        if (npssIndex) {
+            const cropName = farm.crop_type || 'Unknown';
+            const pestName = parsed.disease_name || 'Unknown';
+            
+            // 1. Get reference images
+            const refKey = `${cropName}_${pestName}`.toLowerCase();
+            npss_reference_images = npssIndex.referenceImages[refKey] || [];
+            
+            // 2. Get regional reports count
+            const state = farm.state || farm.location?.state || user.state || '';
+            const district = farm.location?.district || user.district || '';
+            const cleanState = state.trim().toLowerCase();
+            const cleanDistrict = district.trim().toLowerCase();
+            
+            let count = 0;
+            if (cleanState && cleanDistrict) {
+                const regionalKey = `${cleanState}_${cleanDistrict}_${cropName}`.toLowerCase();
+                const stats = npssIndex.regionalStats[regionalKey];
+                if (stats && stats[pestName]) {
+                    count = stats[pestName];
+                }
+            }
+            
+            npss_regional_reports = {
+                count,
+                state: state || 'Unknown State',
+                district: district || 'Unknown District'
+            };
+        }
 
         // Map to the response structure expected by the controller & frontend
         const isHealthy = (parsed.severity === 'Healthy' || parsed.causal_agent === 'Healthy');
@@ -366,7 +420,10 @@ const analyzeImageWithAI = async (imagePath, imageType, farm = {}) => {
                 yield_impact: parsed.yield_impact || '',
                 similar_diseases: parsed.similar_diseases || [],
                 spread_risk: parsed.spread_risk || 'Unknown',
-                affected_parts: parsed.affected_parts || []
+                affected_parts: parsed.affected_parts || [],
+                // NPSS dataset integration fields
+                npss_reference_images,
+                npss_regional_reports
             },
             confidence_score: parsed.confidence || 0.80,
             indicators: parsed.symptoms_observed || [],
@@ -402,7 +459,9 @@ const analyzeImageWithAI = async (imagePath, imageType, farm = {}) => {
                 yield_impact: '',
                 similar_diseases: [],
                 spread_risk: 'Unknown',
-                affected_parts: []
+                affected_parts: [],
+                npss_reference_images: [],
+                npss_regional_reports: null
             },
             confidence_score: 0,
             indicators: [],

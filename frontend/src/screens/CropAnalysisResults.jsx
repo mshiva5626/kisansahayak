@@ -142,6 +142,52 @@ const CropAnalysisResults = ({ onBack, onViewTreatment, scanResult }) => {
                             </div>
                         )}
 
+                        {/* NPSS Government Reference Insights */}
+                        {!isError && (analysis.npss_reference_images?.length > 0 || analysis.npss_regional_reports) && (
+                            <div className="mb-5 pl-1 border-t border-gray-100 dark:border-gray-800/80 pt-4">
+                                <h3 className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-[15px] text-[#0ED054]">verified_user</span>
+                                    NPSS Registry Insights
+                                </h3>
+
+                                {/* Regional Outbreak Stats */}
+                                {analysis.npss_regional_reports && (
+                                    <div className="bg-[#0ED054]/5 border border-[#0ED054]/10 rounded-2xl p-3 flex items-center gap-3 mb-3">
+                                        <div className="h-10 w-10 rounded-xl bg-[#0ED054]/10 flex items-center justify-center text-[#0ED054] shrink-0 shadow-sm">
+                                            <span className="material-symbols-outlined text-[20px]">map</span>
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-xs font-extrabold text-gray-900 dark:text-white leading-tight">
+                                                {analysis.npss_regional_reports.count || 0} Reports in {analysis.npss_regional_reports.district}
+                                            </p>
+                                            <p className="text-[10px] text-gray-500 font-medium mt-0.5">
+                                                Official pest/disease occurrence cases registered in {analysis.npss_regional_reports.state}.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Reference Images Carousel */}
+                                {analysis.npss_reference_images?.length > 0 && (
+                                    <div>
+                                        <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-2 font-medium text-left">
+                                            Official reference photos from the National Pest Surveillance System database:
+                                        </p>
+                                        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar snap-x snap-mandatory">
+                                            {analysis.npss_reference_images.map((url, idx) => (
+                                                <div key={idx} className="relative w-28 h-20 rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-slate-800 snap-center shadow-sm hover:border-[#0ED054] transition-all">
+                                                    <img src={url} alt={`NPSS Reference ${idx + 1}`} className="w-full h-full object-cover" />
+                                                    <div className="absolute bottom-1 right-1 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[8px] text-white font-bold">
+                                                        Ref {idx + 1}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* Environment Context */}
                         {!isError && !isHealthy && analysis.environmental_context && (
                             <div className="mb-5 pl-1">

@@ -24,6 +24,7 @@ import SatelliteImagery from './screens/SatelliteImagery';
 import LiveMarketPrices from './screens/LiveMarketPrices';
 import SoilHealthReport from './screens/SoilHealthReport';
 import FertilizerMarketplace from './screens/FertilizerMarketplace';
+import AMIInsightCenter from './screens/AMIInsightCenter';
 
 import { authAPI } from './api';
 
@@ -318,6 +319,13 @@ function App() {
               onNavigate={navigateTo}
               userProfile={userProfile}
               selectedFarmId={selectedFarmId}
+            />
+          )}
+          {currentScreen === 'ami-insights' && (
+            <AMIInsightCenter
+              onBack={() => navigateTo('dashboard')}
+              onNavigate={navigateTo}
+              userProfile={userProfile}
             />
           )}
         </div>

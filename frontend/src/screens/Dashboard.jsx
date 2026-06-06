@@ -154,8 +154,7 @@ const Dashboard = ({ onProfileClick, onNotificationClick, onAICopilotClick, onSc
                                 </div>
                                 <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuD6rTykEoLw0FAsqaXZjNpLhE_Et9y0ZLltrar7tGnvNsbTo5Il98Spalex59RUpC1ovjnhbX87dhGKBehVB9pQ190wlN2LjY8MxRhlqrFTyrdCmW_BCM-gc7gG-utp2ejSEIwJ8uEV11BI0SpEaOazeqffOorRHa7r1MFQ1VHXQhhusrmAOYUGv4qeslP9MnKFy6yH1S25E0YA6Tm_bDHj6qZsWQhYFz89kQuZEVpDKfhmA3xIX5cRO2DgXRG-c8msJw13qX5hZaLg')" }}></div>
                             </div>
-                            
-                            {/* Copilot Analytics promotion */}
+                                                   {/* Copilot Analytics promotion */}
                             <div onClick={onAICopilotClick} className="cursor-pointer snap-center shrink-0 w-[88%] h-44 rounded-3xl overflow-hidden relative shadow-xl border border-white/10 hover:shadow-2xl active:scale-[0.98] transition-all duration-300 group">
                                 <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-transparent z-10 flex flex-col justify-center p-5">
                                     <span className="bg-[#0ED054] text-black text-[9px] font-extrabold px-2.5 py-0.5 rounded-full w-fit mb-2 uppercase tracking-wider">AI Advisory</span>
@@ -163,7 +162,18 @@ const Dashboard = ({ onProfileClick, onNotificationClick, onAICopilotClick, onSc
                                     <p className="text-gray-300 text-xs mb-3 font-medium line-clamp-1">{getAdvisoryText()}</p>
                                     <button className="text-white bg-white/15 border border-white/15 hover:bg-[#0ED054] hover:text-black hover:border-transparent tactile-btn text-[11px] font-bold px-4 py-2 rounded-xl w-fit">Ask Copilot</button>
                                 </div>
-                                <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBfroD5SxbYM2BsmbodcmetFS2IeMErpKQIwOChdXb9LAT2Z-PSc9Gt8kRPr8fLnIRCWmsYZifSIybOFmGq8mnHx_4Ny3-K91P90F8Xe5COZQlXccSskNNB75KX5T1QTGfUhUtV9cXKasuB-042doT_CWxWPsSbo0z2X_1MA9619rcpKbxMkgD_G8-pW8TAgx9CBRQtVTv-1sxy-Blkq6WMQEkK37MF2ASUNdFBa4bJ57ThUyDPaFr2sco1Xs3bWBqLeiEfp7bTKekr')" }}></div>
+                                <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDfroD5SxbYM2BsmbodcmetFS2IeMErpKQIwOChdXb9LAT2Z-PSc9Gt8kRPr8fLnIRCWmsYZifSIybOFmGq8mnHx_4Ny3-K91P90F8Xe5COZQlXccSskNNB75KX5T1QTGfUhUtV9cXKasuB-042doT_CWxWPsSbo0z2X_1MA9619rcpKbxMkgD_G8-pW8TAgx9CBRQtVTv-1sxy-Blkq6WMQEkK37MF2ASUNdFBa4bJ57ThUyDPaFr2sco1Xs3bWBqLeiEfp7bTKekr')" }}></div>
+                            </div>
+
+                            {/* AIF Insights Promotion */}
+                            <div onClick={() => onNavigate('ami-insights')} className="cursor-pointer snap-center shrink-0 w-[88%] h-44 rounded-3xl overflow-hidden relative shadow-xl border border-white/10 hover:shadow-2xl active:scale-[0.98] transition-all duration-300 group">
+                                <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-transparent z-10 flex flex-col justify-center p-5">
+                                    <span className="bg-emerald-500 text-black text-[9px] font-extrabold px-2.5 py-0.5 rounded-full w-fit mb-2 uppercase tracking-wider">AIF Funding</span>
+                                    <h3 className="text-white font-extrabold text-lg leading-snug w-3/4 mb-1">Agri Infra Fund</h3>
+                                    <p className="text-gray-300 text-xs mb-3 font-medium">Explore warehouses & startups funded near you</p>
+                                    <button className="text-white bg-white/15 border border-white/15 hover:bg-[#0ED054] hover:text-black hover:border-transparent tactile-btn text-[11px] font-bold px-4 py-2 rounded-xl w-fit">View Database</button>
+                                </div>
+                                <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=600&auto=format&fit=crop')" }}></div>
                             </div>
                         </div>
 
@@ -230,6 +240,13 @@ const Dashboard = ({ onProfileClick, onNotificationClick, onAICopilotClick, onSc
                                         <span className="material-symbols-outlined text-green-600 dark:text-green-400 text-[26px]">science</span>
                                     </div>
                                     <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Soil Test</span>
+                                </button>
+
+                                <button onClick={() => onNavigate('ami-insights')} className="flex flex-col items-center gap-2 group tactile-btn">
+                                    <div className="h-13 w-13 rounded-2xl bg-[#0ED054]/10 dark:bg-[#0ED054]/20 border border-[#0ED054]/20 flex items-center justify-center transition-all group-active:scale-95 shadow-md">
+                                        <span className="material-symbols-outlined text-emerald-600 dark:text-[#0ED054] text-[26px]">account_balance</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">AIF Funds</span>
                                 </button>
                             </div>
                         </div>

@@ -119,4 +119,11 @@ export const soilAPI = {
     analyzeSoil: (farmId, imageBase64) => API.post('/soil/analyze', { farmId, image: imageBase64 })
 };
 
+// AMI AIF API
+export const amiAPI = {
+    getSummary: () => API.get('/ami/summary'),
+    getStatesAndDistricts: () => API.get('/ami/states-districts'),
+    getProjects: (params) => API.get('/ami/projects', { params })
+};
+
 export default API;
