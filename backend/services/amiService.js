@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const csvFilePath = path.join(__dirname, '..', '..', 'New folder', 'AMI.CSV');
+const csvFilePath = path.join(__dirname, '..', 'data', 'AMI.CSV');
 
 let projectsCache = [];
 let summaryCache = null;
