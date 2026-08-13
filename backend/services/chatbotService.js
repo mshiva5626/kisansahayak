@@ -26,7 +26,7 @@ async function getChatbotResponse(userMessage) {
 
         // Stream the response to get reasoning tokens in usage
         const stream = await openrouter.chat.send({
-            chatRequest: {
+            chatGenerationParams: {
                 model: "nvidia/nemotron-3.5-lightning:free",
                 messages: messagesArray,
                 stream: true
