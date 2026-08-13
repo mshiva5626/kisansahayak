@@ -1,0 +1,535 @@
+--- CSV DATASET REPORT ---
+Total rows: 101087
+
+Crop Counts:
+{
+  "Chilli": 16249,
+  "Brinjal": 10787,
+  "Pigeonpea (Red gram)": 2064,
+  "Banana": 3954,
+  "Tomato": 2494,
+  "Rice": 27555,
+  "Wheat": 1463,
+  "Sugarcane": 4584,
+  "Mango": 464,
+  "Maize": 20013,
+  "Cotton": 10165,
+  "Grapes": 46,
+  "Pomegranate": 82,
+  "Soybean": 566,
+  "Urad bean (Black gram)": 173,
+  "Apple": 428
+}
+
+Pest Counts (Top 30):
+[
+  [
+    "Fall Armyworm",
+    16336
+  ],
+  [
+    "Leaf curl",
+    9491
+  ],
+  [
+    "Leaf folder",
+    7539
+  ],
+  [
+    "Yellow stem borer",
+    5874
+  ],
+  [
+    "Shoot and fruit borer",
+    4409
+  ],
+  [
+    "Whitefly",
+    3296
+  ],
+  [
+    "Leaf hopper/Jassids",
+    3295
+  ],
+  [
+    "Gundhi bug",
+    3222
+  ],
+  [
+    "Aphid",
+    2916
+  ],
+  [
+    "Whiteflies",
+    2720
+  ],
+  [
+    "False smut",
+    2573
+  ],
+  [
+    "Thrips",
+    2526
+  ],
+  [
+    "Yellow sigatoka & Black sigatoka",
+    1928
+  ],
+  [
+    "Red rot",
+    1922
+  ],
+  [
+    "Rice blast",
+    1711
+  ],
+  [
+    "Brown spot",
+    1542
+  ],
+  [
+    "Ear borer/corn borer",
+    1536
+  ],
+  [
+    "Jassid",
+    1388
+  ],
+  [
+    "Bacterial leaf blight",
+    1379
+  ],
+  [
+    "Stem borer",
+    1278
+  ],
+  [
+    "Pyrilla",
+    1250
+  ],
+  [
+    "Black thrips",
+    1123
+  ],
+  [
+    "Hadda Beetle",
+    1118
+  ],
+  [
+    "Fruit scarring beetle",
+    1092
+  ],
+  [
+    "Hispa",
+    1078
+  ],
+  [
+    "Cercospora Leaf Spot",
+    1009
+  ],
+  [
+    "Die Back and Fruit Rot (Anthracnose)",
+    929
+  ],
+  [
+    "Gram Caterpillar/Fruit borer",
+    876
+  ],
+  [
+    "Pod bug",
+    873
+  ],
+  [
+    "Cercospora leaf spot",
+    801
+  ]
+]
+
+Crop-Pest Relationships (Top 30):
+[
+  [
+    "Maize -> Fall Armyworm",
+    16336
+  ],
+  [
+    "Chilli -> Leaf curl",
+    8586
+  ],
+  [
+    "Rice -> Leaf folder",
+    7539
+  ],
+  [
+    "Rice -> Yellow stem borer",
+    5874
+  ],
+  [
+    "Brinjal -> Shoot and fruit borer",
+    4409
+  ],
+  [
+    "Cotton -> Leaf hopper/Jassids",
+    3295
+  ],
+  [
+    "Rice -> Gundhi bug",
+    3222
+  ],
+  [
+    "Cotton -> Whitefly",
+    3158
+  ],
+  [
+    "Brinjal -> Whiteflies",
+    2720
+  ],
+  [
+    "Rice -> False smut",
+    2573
+  ],
+  [
+    "Chilli -> Thrips",
+    2354
+  ],
+  [
+    "Banana -> Yellow sigatoka & Black sigatoka",
+    1928
+  ],
+  [
+    "Sugarcane -> Red rot",
+    1922
+  ],
+  [
+    "Rice -> Rice blast",
+    1711
+  ],
+  [
+    "Maize -> Ear borer/corn borer",
+    1536
+  ],
+  [
+    "Rice -> Brown spot",
+    1535
+  ],
+  [
+    "Rice -> Bacterial leaf blight",
+    1379
+  ],
+  [
+    "Maize -> Stem borer",
+    1278
+  ],
+  [
+    "Sugarcane -> Pyrilla",
+    1250
+  ],
+  [
+    "Wheat -> Aphid",
+    1202
+  ],
+  [
+    "Chilli -> Black thrips",
+    1123
+  ],
+  [
+    "Brinjal -> Hadda Beetle",
+    1118
+  ],
+  [
+    "Banana -> Fruit scarring beetle",
+    1092
+  ],
+  [
+    "Rice -> Hispa",
+    1078
+  ],
+  [
+    "Brinjal -> Jassid",
+    1048
+  ],
+  [
+    "Cotton -> Cercospora Leaf Spot",
+    949
+  ],
+  [
+    "Chilli -> Die Back and Fruit Rot (Anthracnose)",
+    929
+  ],
+  [
+    "Tomato -> Leaf curl",
+    905
+  ],
+  [
+    "Chilli -> Gram Caterpillar/Fruit borer",
+    876
+  ],
+  [
+    "Pigeonpea (Red gram) -> Pod bug",
+    873
+  ]
+]
+
+Sample Images:
+{
+  "Chilli -> Thrips": "https://npss.dac.gov.in/API3.0/images/f5c8568f-f66d-4ffe-8409-0bc967fcfebd.jpg",
+  "Chilli -> Leaf curl": "https://npss.dac.gov.in/API3.0/images/290f49b4-b1d8-43b7-ad54-1105b326b9c1.jpg",
+  "Brinjal -> Shoot and fruit borer": "https://npss.dac.gov.in/API3.0/images/86c7dc63f99347f4baa973f53335160f.jpeg",
+  "Brinjal -> Whiteflies": "https://npss.dac.gov.in/API3.0/images/a07c0120-a29d-41f2-ab59-9013898fb3e6.jpg",
+  "Pigeonpea (Red gram) -> Pod bug": "https://npss.dac.gov.in/API3.0/images/8aca0fd5-2a58-41d8-a29d-72581ded9c13.jpg",
+  "Pigeonpea (Red gram) -> Spotted pod borer": "https://npss.dac.gov.in/API3.0/images/02a6a8e9-398c-4a6c-aa1c-001fdade16f7.jpg",
+  "Pigeonpea (Red gram) -> Pod Fly": "https://npss.dac.gov.in/API3.0/images/8329bdb1-f7e0-414d-81a0-8eece54ecec5.jpg",
+  "Pigeonpea (Red gram) -> Coccinellids": "https://npss.dac.gov.in/API3.0/images/c9e7aa2419e14129af3d1d42a21802d1.jpeg",
+  "Banana -> Yellow sigatoka & Black sigatoka": "https://npss.dac.gov.in/API3.0/images/5251c6a4df934e22ab5406424f87af25.jpeg",
+  "Pigeonpea (Red gram) -> Gram pod borer": "https://npss.dac.gov.in/API3.0/images/815c00d76a874d918cb5fda37b853a87.jpeg",
+  "Chilli -> Cercospora leaf spot": "https://npss.dac.gov.in/API3.0/images/e9f523b5178544e1baf42d84ccd1b29b.jpeg",
+  "Brinjal -> Jassid": "https://npss.dac.gov.in/API3.0/images/8b59b6bc7e7a4bedb3db2ccae7096939.jpeg",
+  "Brinjal -> Little leaf": "https://npss.dac.gov.in/API3.0/images/2b53475a67294a259c9ae404f4bdabe8.jpeg",
+  "Tomato -> Early blight": "https://npss.dac.gov.in/API3.0/images/068aa803ccf1433e83c7681012ac01c5.jpeg",
+  "Rice -> Ladybird beetle": "https://npss.dac.gov.in/API3.0/images/e4b416f1cc1c45a0bbabb3be1dfe65ea.jpeg",
+  "Rice -> Coccinellid beetle": "https://npss.dac.gov.in/API3.0/images/e0a2181d06fc4be68bc59edf57dfee47.jpeg",
+  "Rice -> Dragon fly": "https://npss.dac.gov.in/API3.0/images/618c7ccae8ea4851809f45c365ce5e6e.jpeg",
+  "Rice -> Gundhi bug": "https://npss.dac.gov.in/API3.0/images/70cb4cdbcbf54b7c982593ebbcfe7565.jpeg",
+  "Rice -> Leaf folder": "https://npss.dac.gov.in/API3.0/images/cdc5f15d-9ed4-4fc6-ae11-a6bf3ca7da01.jpg",
+  "Rice -> Brown spot": "https://npss.dac.gov.in/API3.0/images/b9db36b5-f9b1-44b5-9b53-c14a33f77f99.jpg",
+  "Rice -> Yellow stem borer": "https://npss.dac.gov.in/API3.0/images/666342af-ac26-4fad-a6f6-e8545a7f7791.jpg",
+  "Rice -> Green leaf hopper": "https://npss.dac.gov.in/API3.0/images/90c90e51-8da8-4c5c-867b-0f7d1127e076.jpg",
+  "Rice -> Gall midge": "https://npss.dac.gov.in/API3.0/images/5f5ef000-8a4a-41fa-8862-4b0345af8191.jpg",
+  "Rice -> Rice blast": "https://npss.dac.gov.in/API3.0/images/28405c22-4586-4f03-bc91-ca5b9db9b9a5.jpg",
+  "Wheat -> Aphid": "https://npss.dac.gov.in/API3.0/images/e5b6b908b1434a609d74ad471c92a186.jpeg",
+  "Tomato -> Leaf Miner": "https://npss.dac.gov.in/API3.0/images/758adf1dfa3a4b5c85f801b0ecc9bb1e.jpeg",
+  "Pigeonpea (Red gram) -> Powdery mildew": "https://npss.dac.gov.in/API3.0/images/b4d947b0-c153-4ee2-b5f7-9cb88d89ceb4.jpg",
+  "Pigeonpea (Red gram) -> Yellow Mosaic": "https://npss.dac.gov.in/API3.0/images/ea449768-6a25-4d39-9b40-169d4049913b.jpg",
+  "Tomato -> Leaf curl": "https://npss.dac.gov.in/API3.0/images/ddb3dfa5-0b55-48f6-bc30-76b8bcb14a4e.jpg",
+  "Sugarcane -> Red striped disease": "https://npss.dac.gov.in/API3.0/images/a13bed0b-34bb-4acf-a5a8-0ee7cc95901c.jpg",
+  "Pigeonpea (Red gram) -> Cercospora Leaf Spot": "https://npss.dac.gov.in/API3.0/images/f6e8a832-de3e-455a-9090-939a7544f559.jpg",
+  "Sugarcane -> Red rot": "https://npss.dac.gov.in/API3.0/images/bd8c6425-ca3d-40da-975c-c0b2b5254580.jpg",
+  "Sugarcane -> Pyrilla": "https://npss.dac.gov.in/API3.0/images/bcd5ad73-c756-4bd5-a90c-c03810be53a7.jpg",
+  "Mango -> Anthracnose": "https://npss.dac.gov.in/API3.0/images/53b1f26a-3e45-4d18-8ed9-a085d9198abe.jpg",
+  "Rice -> False smut": "https://npss.dac.gov.in/API3.0/images/15c3a3d2-48c3-4287-8643-23f88be5ea3c.jpg",
+  "Maize -> Fall Armyworm": "https://npss.dac.gov.in/API3.0/images/31a17df7d80448c38fa421081da1016a.jpeg",
+  "Chilli -> Die Back and Fruit Rot (Anthracnose)": "https://npss.dac.gov.in/API3.0/images/f5bc7f7dcb4544829808584b25532c61.jpeg",
+  "Maize -> Maydis leaf blight": "https://npss.dac.gov.in/API3.0/images/4c65ba565be443e9b715d5a6739ba794.jpeg",
+  "Maize -> Turcicum leaf  blight": "https://npss.dac.gov.in/API3.0/images/faf67cfa0eef45689068913176db58f2.jpeg",
+  "Maize -> Downy mildews": "https://npss.dac.gov.in/API3.0/images/7567cb025600420abf162fd39b27c8da.jpeg",
+  "Brinjal -> Aphid": "https://npss.dac.gov.in/API3.0/images/b45c4f9510824f95a901be6ce587abc8.jpeg",
+  "Brinjal -> Bacterial wilt": "https://npss.dac.gov.in/API3.0/images/8ae4fe3c0913466bb8843242c777e9bc.jpeg",
+  "Brinjal -> Fungal wilt": "https://npss.dac.gov.in/API3.0/images/d9a473b3-20e3-4e49-bab5-975a37fe2129.jpg",
+  "Brinjal -> Thrips": "https://npss.dac.gov.in/API3.0/images/b7c98ac9-5bc2-4630-a9ce-55b3aa862535.jpg",
+  "Sugarcane -> Mealybug": "https://npss.dac.gov.in/API3.0/images/ab68d534a7a741eb8425f6f04fcb3847.jpeg",
+  "Banana -> Fruit scarring beetle": "https://npss.dac.gov.in/API3.0/images/93718c3c821e4fb48f6468c8a92947fd.jpeg",
+  "Rice -> Case worm": "https://npss.dac.gov.in/API3.0/images/7000af7d-df98-4e4b-a1c3-6e41bc84ab6b.jpg",
+  "Rice -> Brown plant hopper": "https://npss.dac.gov.in/API3.0/images/7ce88fff-1fb8-4ee4-825d-0a8fd66cc2e8.jpg",
+  "Chilli -> Black thrips": "https://npss.dac.gov.in/API3.0/images/756250dfeb11476ba13113d3034ad5c3.jpeg",
+  "Cotton -> Green lacewing": "https://npss.dac.gov.in/API3.0/images/0920c2356bf945188b121c6ea8947834.jpeg",
+  "Cotton -> Aphid": "https://npss.dac.gov.in/API3.0/images/afd1768074e642b6beca3ae378f08b3c.jpeg",
+  "Cotton -> Whitefly": "https://npss.dac.gov.in/API3.0/images/d811a7537590487f878dbe754b89b1f2.jpeg",
+  "Wheat -> Pink stem borer": "https://npss.dac.gov.in/API3.0/images/32bc2100-ab52-46fb-8ec8-6afa775f1496.jpg",
+  "Banana -> Banana skippers": "https://npss.dac.gov.in/API3.0/images/f681ee3b-d4d6-4c3b-9874-4e714ebe5b99.jpg",
+  "Banana -> Lacewing bug": "https://npss.dac.gov.in/API3.0/images/6549792b-ffe7-44ed-8cdd-ec3f737d4d5d.jpg",
+  "Rice -> Bacterial leaf blight": "https://npss.dac.gov.in/API3.0/images/7cabdd84-5b35-464d-a685-b1c08146f5b8.jpg",
+  "Sugarcane -> Early shoot borer": "https://npss.dac.gov.in/API3.0/images/a0f7bdcb-ae0e-45bb-bad1-5bcbb11c089c.jpg",
+  "Banana -> Leaf eating caterpillar (Cut worm)": "https://npss.dac.gov.in/API3.0/images/25239cf5-5c8e-4942-8fcb-0165da6c3cfb.jpg",
+  "Mango -> Mango hopper": "https://npss.dac.gov.in/API3.0/images/e91fa2d2-8eb7-4d83-9361-4e1185ecdabb.jpg",
+  "Pigeonpea (Red gram) -> Fusarium wilt": "https://npss.dac.gov.in/API3.0/images/e69a368b462349babdbb5d2eb1924bec.jpeg",
+  "Wheat -> Earwig": "https://npss.dac.gov.in/API3.0/images/7034dae96c774740b3cd74d656542ba1.jpeg",
+  "Wheat -> Yellow rust or Stripe rust": "https://npss.dac.gov.in/API3.0/images/1aa692ba027a40a798cc724a8cad33f3.jpeg",
+  "Chilli -> Choanephora blight (Twig blight)": "https://npss.dac.gov.in/API3.0/images/399e8850762741cb913454235371941f.jpeg",
+  "Chilli -> Gram Caterpillar/Fruit borer": "https://npss.dac.gov.in/API3.0/images/3bafe79a174046fab58b4ce1bf4da4eb.jpeg",
+  "Mango -> Powdery mildew": "https://npss.dac.gov.in/API3.0/images/d88efb6fdf5548289b17c4f5bdfc2816.jpeg",
+  "Rice -> Sheath rot": "https://npss.dac.gov.in/API3.0/images/844358a3e2194c1e8d6165153fda9808.jpeg",
+  "Grapes -> Thrips": "https://npss.dac.gov.in/API3.0/images/b7286c78fbab48b9ac204519ef2f16d5.jpeg",
+  "Maize -> Coccinellids": "https://npss.dac.gov.in/API3.0/images/ea19417f1e5e440f84da1f2522b14825.jpeg",
+  "Chilli -> Aphid": "https://npss.dac.gov.in/API3.0/images/223cf08892f24eceb475224907019add.jpeg",
+  "Pomegranate -> Thrips": "https://npss.dac.gov.in/API3.0/images/648c9a06f22c4120a757d33bda7931ca.jpeg",
+  "Tomato -> Late blight": "https://npss.dac.gov.in/API3.0/images/c2d807cdcce146f9b823442f7e56712a.jpeg",
+  "Sugarcane -> Rust": "https://npss.dac.gov.in/API3.0/images/35b57bc1-c763-41c2-bffd-4a1d36989460.jpg",
+  "Tomato -> Helicoverpa Catterpillar": "https://npss.dac.gov.in/API3.0/images/09585ee4-8f84-44c6-a6c4-722692e6584e.jpg",
+  "Sugarcane -> Top shoot borer": "https://npss.dac.gov.in/API3.0/images/4ecab0f5-515b-4548-b5a7-feb13f0a72f6.jpg",
+  "Sugarcane -> Internode borer": "https://npss.dac.gov.in/API3.0/images/28953642c5014b04aa3dfb04d584ceab.jpeg",
+  "Maize -> Cut worm": "https://npss.dac.gov.in/API3.0/images/ae3c0283cd36494c95d2ca8777f15911.jpeg",
+  "Tomato -> Bacterial Spot and Speck": "https://npss.dac.gov.in/API3.0/images/a5cc3c99f9d8457b929f57916a8823c3.jpeg",
+  "Maize -> Stem borer": "https://npss.dac.gov.in/API3.0/images/ecf25066a18840aa8c528ffb79d8899c.jpeg",
+  "Cotton -> Leaf hopper/Jassids": "https://npss.dac.gov.in/API3.0/images/86867e11f57f4afe8ea5800038b00d90.jpeg",
+  "Chilli -> Green lacewing": "https://npss.dac.gov.in/API3.0/images/973d99359e3d45239c96eba3fe2e2208.jpeg",
+  "Brinjal -> Phomopsis blight and fruit rot": "https://npss.dac.gov.in/API3.0/images/a49beb86a99c4da294bc2e14cfcfa11f.jpeg",
+  "Mango -> Stone weevil/ Mango nut weevil": "https://npss.dac.gov.in/API3.0/images/237c936ec6584aa0a6ea159e2ca70b4e.jpeg",
+  "Mango -> Fruit fly": "https://npss.dac.gov.in/API3.0/images/b5e9dfae278047329140631f84422bef.jpeg",
+  "Mango -> Mango Mealybug": "https://npss.dac.gov.in/API3.0/images/57c02d4a0fac4401a34ae3af70283e14.jpeg",
+  "Cotton -> Angular leaf spot/ Black Arm/ Bacterial Blight": "https://npss.dac.gov.in/API3.0/images/1d67b653105d4bfaa7422ba0a6647310.jpeg",
+  "Cotton -> Pink bollworm": "https://npss.dac.gov.in/API3.0/images/e88658ac79584403bc6a7d62d84e8978.jpeg",
+  "Cotton -> Alternaria Leaf Spot": "https://npss.dac.gov.in/API3.0/images/9a631d2fbd4646bfbde98d6935be2654.jpeg",
+  "Banana -> Panama wilt": "https://npss.dac.gov.in/API3.0/images/73a64bae-1a23-47e7-b35b-9d6317169ee2.jpg",
+  "Sugarcane -> Whitefly": "https://npss.dac.gov.in/API3.0/images/ea3a17c4-2b61-4250-ad97-9e0e71ffd224.jpg",
+  "Mango -> Leaf webber": "https://npss.dac.gov.in/API3.0/images/fcab127c-92ad-4df9-9637-ec7cd9689603.jpg",
+  "Banana -> Banana streak": "https://npss.dac.gov.in/API3.0/images/f1abfed8-03ee-46fe-b2db-397cfaefb93d.jpg",
+  "Chilli -> Jassid": "https://npss.dac.gov.in/API3.0/images/5ac018888e27454fa7d6ec6fd20f0a0d.jpeg",
+  "Cotton -> Red cotton bug": "https://npss.dac.gov.in/API3.0/images/6e6818f3-6834-4f79-919c-7ab7e1ecc098.jpg",
+  "Wheat -> Ground beetle": "https://npss.dac.gov.in/API3.0/images/9c8aa85abcf542edbb6c3d4467ee7171.jpeg",
+  "Sugarcane -> Stalk borer": "https://npss.dac.gov.in/API3.0/images/5f85bfd4ae144f7d9148aafe2e8d2ade.jpeg",
+  "Sugarcane -> Smut": "https://npss.dac.gov.in/API3.0/images/3fcff7228cbe4bb992685ca6c9877a8f.jpeg",
+  "Brinjal -> Hadda Beetle": "https://npss.dac.gov.in/API3.0/images/b79c76ea-ed4f-43b9-a918-7c241d301710.jpg",
+  "Banana -> Pseudostem borer": "https://npss.dac.gov.in/API3.0/images/07593cc2-4a38-488b-b711-766a54b112af.jpg",
+  "Tomato -> Bacterial Wilt": "https://npss.dac.gov.in/API3.0/images/4ce56468aedf4ec0a893940fefa12e2e.jpeg",
+  "Pigeonpea (Red gram) -> Spiders": "https://npss.dac.gov.in/API3.0/images/615c9a7d6cff4bdb8c720104a393aa6a.jpeg",
+  "Cotton -> Cercospora Leaf Spot": "https://npss.dac.gov.in/API3.0/images/48d26359-d280-45f6-930f-14e2144f55eb.jpg",
+  "Rice -> Sheath blight": "https://npss.dac.gov.in/API3.0/images/6478f7d9-c4c8-4297-8874-b0dcc22c73f1.jpg",
+  "Soybean -> Bacterial blight": "https://npss.dac.gov.in/API3.0/images/ed00c76d-acc2-434d-b88e-2030ae662802.jpg",
+  "Sugarcane -> Mosaic": "https://npss.dac.gov.in/API3.0/images/c3436cb2-61a9-4a7e-a1b9-fb4e26adbd80.jpg",
+  "Pigeonpea (Red gram) -> wasp": "https://npss.dac.gov.in/API3.0/images/204d2fdfd8f64a3190b477953163a218.jpeg",
+  "Wheat -> Loose smut": "https://npss.dac.gov.in/API3.0/images/9f24765e-b673-4659-a884-f12c02a35ae8.jpg",
+  "Rice -> Stem rot": "https://npss.dac.gov.in/API3.0/images/6cf62d90-f975-48df-887e-35d8be0bd8e7.jpg",
+  "Tomato -> Powdery Mildew": "https://npss.dac.gov.in/API3.0/images/53ea0332c2644d4b94a74142fd45e3b5.jpeg",
+  "Cotton -> Thrips": "https://npss.dac.gov.in/API3.0/images/a441aa19a0f745c999a392d3b53d3e35.jpeg",
+  "Rice -> Climbing cutworm/Army worm": "https://npss.dac.gov.in/API3.0/images/bc353ec71a0345f888c6e682835accf7.jpeg",
+  "Tomato -> Spider": "https://npss.dac.gov.in/API3.0/images/a44feb0fdf554321bfed85e00749e09e.jpeg",
+  "Brinjal -> Lady bird beetle": "https://npss.dac.gov.in/API3.0/images/40ca43ae099c4640a29e66ff1c635de6.jpeg",
+  "Brinjal -> Spider": "https://npss.dac.gov.in/API3.0/images/c6c60880b6244008936542a00270ea73.jpeg",
+  "Banana -> Banana bunchy top disease": "https://npss.dac.gov.in/API3.0/images/e017ccae1b5c41208111918e0f739a93.jpeg",
+  "Tomato -> Serpentine leaf miner": "https://npss.dac.gov.in/API3.0/images/e07c0dc3ca734057a139c8ded3cfe361.jpeg",
+  "Tomato -> Lady bird beetle": "https://npss.dac.gov.in/API3.0/images/33004759724c4f2dbe40a1892fac657e.jpeg",
+  "Tomato -> Fusarium wilt": "https://npss.dac.gov.in/API3.0/images/aee38c31a5ad4950aad3c5360f1f16fc.jpeg",
+  "Maize -> Rust": "https://npss.dac.gov.in/API3.0/images/c60e62f9-489a-473d-931d-050b68cc8315.jpg",
+  "Banana -> Infectious chlorosis": "https://npss.dac.gov.in/API3.0/images/ee8c1d32e2c6436c9b195f04da24a23f.jpeg",
+  "Urad bean (Black gram) -> White fly": "https://npss.dac.gov.in/API3.0/images/76d4a2a3798e46c9b1bd34bf435828e4.jpeg",
+  "Rice -> Panicle mite": "https://npss.dac.gov.in/API3.0/images/b2b0c4edfbcf4d8ab18b0c3a6e3f5113.jpeg",
+  "Rice -> Swarming caterpillar": "https://npss.dac.gov.in/API3.0/images/2c9cec80f08d4c2c8ae1bd114b5c5c98.jpeg",
+  "Rice -> Wolf Spider": "https://npss.dac.gov.in/API3.0/images/5696b648d3194cd98847201896e32a52.jpeg",
+  "Cotton -> Spiny bollworm": "https://npss.dac.gov.in/API3.0/images/cf3ad5f1-a881-4a87-abc7-d53d5be14608.jpg",
+  "Banana -> Anthracnose": "https://npss.dac.gov.in/API3.0/images/32c42f1be258488d93747befa52b04b6.jpeg",
+  "Sugarcane -> Termites": "https://npss.dac.gov.in/API3.0/images/f615b6702e874db0bef78d2d82fede1b.jpeg",
+  "Sugarcane -> Spider": "https://npss.dac.gov.in/API3.0/images/203306b0a6444f44b81310ef7c096dbb.jpeg",
+  "Chilli -> Lady bird beetle": "https://npss.dac.gov.in/API3.0/images/786bb16cff214c93b51fbf590d531561.jpeg",
+  "Pigeonpea (Red gram) -> Bacterial Leaf Spot and Stem canker": "https://npss.dac.gov.in/API3.0/images/3bcd0ec6-0529-486d-8d08-6773eaf46f50.jpg",
+  "Pomegranate -> Anar butterfly": "https://npss.dac.gov.in/API3.0/images/33664142cc314fecb67d1dff63a6f965.jpeg",
+  "Sugarcane -> Black bug": "https://npss.dac.gov.in/API3.0/images/d78cd92037a14600b44b6b11a2bb2319.jpeg",
+  "Tomato -> Tobacco Catterpillar": "https://npss.dac.gov.in/API3.0/images/910ed579-ac9e-45b2-bfbf-944c4b4644db.jpg",
+  "Pigeonpea (Red gram) -> Sterility Mosaic Disease": "https://npss.dac.gov.in/API3.0/images/94b66f4f-e0c7-4ff4-a9e8-60da89c6c638.jpg",
+  "Banana -> Banana bract mosaic virus": "https://npss.dac.gov.in/API3.0/images/3d0037a1-7d5f-4403-a7ba-25f8f47b1738.jpg",
+  "Pigeonpea (Red gram) -> Praying mantidis": "https://npss.dac.gov.in/API3.0/images/d25cc0622bb041bbb32646280e65e785.jpeg",
+  "Cotton -> Lady bird beetle": "https://npss.dac.gov.in/API3.0/images/c425e1d35fa94674b8fb1ba746593631.jpeg",
+  "Rice -> Hispa": "https://npss.dac.gov.in/API3.0/images/e4fc764d-39d8-4b4e-9735-14af7b7fdb7f.jpg",
+  "Pigeonpea (Red gram) -> Alternaria Leaf Spot": "https://npss.dac.gov.in/API3.0/images/01b795525efd420782e1954deeb5709b.jpeg",
+  "Pomegranate -> Bacterial leaf  spot": "https://npss.dac.gov.in/API3.0/images/e880c3a1eb784ebebc1446fce4a62260.jpeg",
+  "Banana -> Tip rot or bacterial soft rot": "https://npss.dac.gov.in/API3.0/images/7c25594ae9ba4e55a0a49e771e030c31.jpeg",
+  "Cotton -> Grey mildew": "https://npss.dac.gov.in/API3.0/images/f07762faa7984f12bb1114063b665c0c.jpeg",
+  "Sugarcane -> Yellow leaf disease": "https://npss.dac.gov.in/API3.0/images/2fcbcee4fc814a1eb31ae622a9c82f7e.jpeg",
+  "Rice -> Whorl maggot": "https://npss.dac.gov.in/API3.0/images/07a62d3e-9f12-4458-be79-e7750fb2feb6.jpg",
+  "Urad bean (Black gram) -> Bihar hairy caterpillar": "https://npss.dac.gov.in/API3.0/images/8c42f631c2114f2fac81f63475d6edd3.jpeg",
+  "Sugarcane -> Grassy shoot": "https://npss.dac.gov.in/API3.0/images/748554e6-4f3c-46c4-b302-b3dfb00bd72e.jpg",
+  "Maize -> Shoot fly": "https://npss.dac.gov.in/API3.0/images/522473e5-ca7b-42a6-aeca-4734bbba8992.jpg",
+  "Sugarcane -> Wilt": "https://npss.dac.gov.in/API3.0/images/3217434c-073f-4dd1-911f-2c1d30fc04b9.jpg",
+  "Pomegranate -> Fruit sucking moths": "https://npss.dac.gov.in/API3.0/images/58bfb2cff39246568680839b56919fba.jpeg",
+  "Grapes -> Downy Mildew": "https://npss.dac.gov.in/API3.0/images/f26c03e9-c01d-44ea-8bbb-b21321520090.jpg",
+  "Banana -> Rugose spiralling whitefly": "https://npss.dac.gov.in/API3.0/images/b86bced7-6562-41b2-9d38-ef45eda9e453.jpg",
+  "Maize -> Spider": "https://npss.dac.gov.in/API3.0/images/29ca94afc8e649448c476442126fca61.jpeg",
+  "Pomegranate -> Spider": "https://npss.dac.gov.in/API3.0/images/2f5edca6be0441e38981bd1cec8de362.jpeg",
+  "Apple -> Appre leaf blotch miner": "https://npss.dac.gov.in/API3.0/images/7d54cdb5-3bdb-4152-a819-efab4473b4f9.jpg",
+  "Apple -> Alternaria leaf spot/blight": "https://npss.dac.gov.in/API3.0/images/03569f14-7e71-4905-963e-7fc428a44118.jpg",
+  "Maize -> Ear borer/corn borer": "https://npss.dac.gov.in/API3.0/images/904ca77d-7471-484a-90f3-13fe6a671ae4.jpg",
+  "Banana -> Rhizome weevil": "https://npss.dac.gov.in/API3.0/images/6cf6e85759cf4e239fce2973fcaadf96.jpeg",
+  "Urad bean (Black gram) -> Gram Pod Borer": "https://npss.dac.gov.in/API3.0/images/7c042ebf290844049dff90a800de79bb.jpeg",
+  "Urad bean (Black gram) -> Spotted pod borer": "https://npss.dac.gov.in/API3.0/images/ed591b52c2214d0497993eebb3189504.jpeg",
+  "Rice -> Rove beetle": "https://npss.dac.gov.in/API3.0/images/e48b620e8972420aa92f6e55110fc111.jpeg",
+  "Rice -> White backed plant hopper (WBPH)": "https://npss.dac.gov.in/API3.0/images/505efcd9aa5c411cbca078f71b2a71fc.jpeg",
+  "Banana -> Dragonfly": "https://npss.dac.gov.in/API3.0/images/5c0a268df9714a5fbf72467f2d7ef2c4.jpeg",
+  "Tomato -> Sooty mold": "https://npss.dac.gov.in/API3.0/images/1d4da2af-ecf0-4166-b72d-b0d0f29044eb.jpg",
+  "Tomato -> Cucumber Mosaic Virus disease": "https://npss.dac.gov.in/API3.0/images/6c9aa00afe854288be4394b65172b000.jpeg",
+  "Cotton -> Tobacco catterpiller": "https://npss.dac.gov.in/API3.0/images/dc304ac3e59a4475bff9e039058bbc21.jpeg",
+  "Chilli -> Powdery mildew": "https://npss.dac.gov.in/API3.0/images/be1125f9-4410-452f-a67c-2f49e07b3ef4.jpg",
+  "Banana -> Banana aphid": "https://npss.dac.gov.in/API3.0/images/81c419dcb3e644e1bc8f99e2edd7512c.jpeg",
+  "Brinjal -> Red spider Mites": "https://npss.dac.gov.in/API3.0/images/055de668e0284cf2a7c09db5a556fbfc.jpeg",
+  "Maize -> Pentatomid bug": "https://npss.dac.gov.in/API3.0/images/018e111e608644019d3c953a63fd90d4.jpeg",
+  "Soybean -> Girdle beetle": "https://npss.dac.gov.in/API3.0/images/62a34d10-8034-47e0-956f-2df1773dfd20.jpg",
+  "Chilli -> Red Spider Mite": "https://npss.dac.gov.in/API3.0/images/03b1b520-3576-4fe1-b13e-06ce46109404.jpg",
+  "Cotton -> American bollworm": "https://npss.dac.gov.in/API3.0/images/5e0e44f3e4a94960861f3c62207618f1.jpeg",
+  "Tomato -> Botrytis Blight": "https://npss.dac.gov.in/API3.0/images/d6040e7e-345c-43c3-91ea-5e20e9fc30c8.jpg",
+  "Pomegranate -> Alternaria fruit spot": "https://npss.dac.gov.in/API3.0/images/f45a56b1-7e11-4ca4-9f51-4e52e7a28066.jpg",
+  "Pomegranate -> Whitefly": "https://npss.dac.gov.in/API3.0/images/76838aa4-dab7-4265-9a1d-c372a54126d8.jpg",
+  "Soybean -> Wilt": "https://npss.dac.gov.in/API3.0/images/442b64e5-8264-4535-b88b-ca2725c80e7e.jpg",
+  "Soybean -> Blue beetle": "https://npss.dac.gov.in/API3.0/images/bbfba324-2fe5-460c-9af1-ec30162a8753.jpg",
+  "Wheat -> Flag smut": "https://npss.dac.gov.in/API3.0/images/ce2d9fb4-2180-4101-8b6b-3d1151d66bb6.jpg",
+  "Apple -> Woolly Aphid": "https://npss.dac.gov.in/API3.0/images/4f74a94dd42f43adad41fb98a52d7123.jpeg",
+  "Sugarcane -> Scale insect": "https://npss.dac.gov.in/API3.0/images/1cda6867-c781-48cf-af3f-962cd16ebc51.jpg",
+  "Chilli -> Yellow mite": "https://npss.dac.gov.in/API3.0/images/b279d730-31ef-498b-b1f3-ea9f6689e88a.jpg",
+  "Apple -> Codling moth": "https://npss.dac.gov.in/API3.0/images/af1419c0-a092-4af0-8f59-f3bdf396ca9e.jpg",
+  "Apple -> San-Jose-scale": "https://npss.dac.gov.in/API3.0/images/15243193-d9d3-4241-b010-f17f98c384bb.jpg",
+  "Apple -> Apple root borer": "https://npss.dac.gov.in/API3.0/images/e1e97ac1-113a-4314-9f44-6397d5c67f5e.jpg",
+  "Cotton -> Boll rot": "https://npss.dac.gov.in/API3.0/images/71399d1abb44436f9b766a7441b7fbd6.jpeg",
+  "Pigeonpea (Red gram) -> Reduviid bug": "https://npss.dac.gov.in/API3.0/images/5f048f4009c145cca3ee00f5edbb7f24.jpeg",
+  "Brinjal -> Dragon fly": "https://npss.dac.gov.in/API3.0/images/f51d07e56da14beca7bab727b40aaa44.jpeg",
+  "Apple -> Powdery mildew": "https://npss.dac.gov.in/API3.0/images/b5759db0-a388-4c44-8d0c-728a52bc4b4f.jpg",
+  "Chilli -> Syrphid fly": "https://npss.dac.gov.in/API3.0/images/ff38c84aa452461e91d43fcc059d6b7a.jpeg",
+  "Apple -> Marssonina leaf blotch": "https://npss.dac.gov.in/API3.0/images/98c06b0d-8d63-4e1f-86a8-d7328465a1e3.jpg",
+  "Banana -> Flower thrips": "https://npss.dac.gov.in/API3.0/images/44458291-1ad3-4e4a-963c-2d5063d2ef3a.jpg",
+  "Urad bean (Black gram) -> Spiny pod borer": "https://npss.dac.gov.in/API3.0/images/b6f70dfaf5594bd4bbaeb50837e9c47f.jpeg",
+  "Apple -> Scab": "https://npss.dac.gov.in/API3.0/images/40972381-e07c-410e-9494-9ae4c7d074c5.jpg",
+  "Banana -> Fruit rust thrips": "https://npss.dac.gov.in/API3.0/images/20591679-8f15-4b58-9aff-79377a660b99.jpg",
+  "Brinjal -> Lacewing": "https://npss.dac.gov.in/API3.0/images/fe6369f136834db787fadc06f93dafa6.jpeg",
+  "Cotton -> Lady beetle": "https://npss.dac.gov.in/API3.0/images/e3ba061520c640b5bc8cded163eabb41.jpeg",
+  "Tomato -> Bacterial canker": "https://npss.dac.gov.in/API3.0/images/99977507-45fc-4d0e-b35e-743970c4013f.jpg",
+  "Rice -> Wasp": "https://npss.dac.gov.in/API3.0/images/fd8a38657b574e6db82caa0eccaedc32.jpeg",
+  "Urad bean (Black gram) -> Lady bird beetle": "https://npss.dac.gov.in/API3.0/images/068fded312a74ed986cee89ac590fb38.jpeg",
+  "Banana -> Castor hairy caterpillar": "https://npss.dac.gov.in/API3.0/images/65a5a799-609c-4d9b-a5f1-3073964fe715.jpg",
+  "Banana -> Wolf Spider": "https://npss.dac.gov.in/API3.0/images/38a9602e621d4b9cae92d5e770cefaad.jpeg",
+  "Banana -> Lady bird beetle": "https://npss.dac.gov.in/API3.0/images/5b2db7ad364a4a208668e96cae75ee5f.jpeg",
+  "Sugarcane -> White grub": "https://npss.dac.gov.in/API3.0/images/80280900945d49758b7394668c1e9d85.jpeg",
+  "Soybean -> Gram pod borer": "https://npss.dac.gov.in/API3.0/images/53104b320df24a889625a663f3151b82.jpeg",
+  "Soybean -> Dragonfly": "https://npss.dac.gov.in/API3.0/images/cd16436435f64d3da5c2ee1634d0eec3.jpeg",
+  "Pomegranate -> Robber fly": "https://npss.dac.gov.in/API3.0/images/0dd85df970d2494e8d420e7fd66d11c3.jpeg",
+  "Pomegranate -> Fire ant": "https://npss.dac.gov.in/API3.0/images/babbee46dbe94305913c877868e6971e.jpeg",
+  "Rice -> Ground beetle": "https://npss.dac.gov.in/API3.0/images/fe2c4fdc67ec4ac999e5338c0abcc375.jpeg",
+  "Urad bean (Black gram) -> Spider": "https://npss.dac.gov.in/API3.0/images/6489066eb7314d228619b2b293083f38.jpeg",
+  "Urad bean (Black gram) -> Chelonus": "https://npss.dac.gov.in/API3.0/images/63b6250093cd44d89c0df5b7b15bb4e5.jpeg",
+  "Sugarcane -> Pokkah boeng": "https://npss.dac.gov.in/API3.0/images/cd269347-82e3-4e2a-bef2-2a35dae7bff2.jpg",
+  "Grapes -> Mealy bug": "https://npss.dac.gov.in/API3.0/images/fafa6ea107a14ff0832dbdc22843ca9d.jpeg",
+  "Soybean -> Brown spot": "https://npss.dac.gov.in/API3.0/images/21c3e0fb570c4415b3d5c6329017cad3.jpeg",
+  "Sugarcane -> Dragonfly": "https://npss.dac.gov.in/API3.0/images/ec6c3d3e539a482ead62386a32467d1d.jpeg",
+  "Cotton -> Root rot": "https://npss.dac.gov.in/API3.0/images/a9de42f8-5d97-4c52-8190-1e876b8c541d.jpg",
+  "Pigeonpea (Red gram) -> Stem blight": "https://npss.dac.gov.in/API3.0/images/7c940668f6e6436abb97db6258c5ebe7.jpeg",
+  "Urad bean (Black gram) -> Pod Bug": "https://npss.dac.gov.in/API3.0/images/6f81653f960344d18ffc787eba6dd9b0.jpeg",
+  "Soybean -> Tobacco caterpillar": "https://npss.dac.gov.in/API3.0/images/b0c0716b8de741d8aecaf372b82db155.jpeg",
+  "Sugarcane -> Mite": "https://npss.dac.gov.in/API3.0/images/9a1687fefada44b7beb2ab49323e159c.jpeg",
+  "Maize -> Green Lacewing": "https://npss.dac.gov.in/API3.0/images/c8e91e357e754aeeb847991475869a0a.jpeg",
+  "Maize -> Big eyed bug": "https://npss.dac.gov.in/API3.0/images/6379a3ffcf32486f87a45873abe2c58e.jpeg",
+  "Chilli -> Dragonfly": "https://npss.dac.gov.in/API3.0/images/5cf06c50e7b74d1da11d934b375d5e75.jpeg",
+  "Sugarcane -> White woolly aphid": "https://npss.dac.gov.in/API3.0/images/899b455c26e8437e87e437d20eb204b3.jpeg",
+  "Soybean -> Yellow Mosaic": "https://npss.dac.gov.in/API3.0/images/f09cea3a-6803-4dba-bba0-ef653cf31380.jpg",
+  "Soybean -> Frogeye leaf spot": "https://npss.dac.gov.in/API3.0/images/10710cb3-a356-400a-a856-8d10b9d203ab.jpg",
+  "Soybean -> Rhizoctonia root rot and seedling blight": "https://npss.dac.gov.in/API3.0/images/31c33abfeac84686ba439c4551c4df4a.jpeg",
+  "Soybean -> Anthracnose and pod blight": "https://npss.dac.gov.in/API3.0/images/2b9c292e-7b66-4e3d-85a6-f6a7f848e70a.jpg",
+  "Soybean -> Lady bird beetle": "https://npss.dac.gov.in/API3.0/images/2550d90bdac04c649159a5ff553a3614.jpeg",
+  "Cotton -> Tobacco Streak Virus disease": "https://npss.dac.gov.in/API3.0/images/e38655d2388d45f984cc434f17fe0e79.jpeg",
+  "Cotton -> Egg Parasitoid": "https://npss.dac.gov.in/API3.0/images/27e52ff6889c49878681df144fb18d9c.jpeg",
+  "Soybean -> Green semilooper": "https://npss.dac.gov.in/API3.0/images/c2745919-367f-401b-a312-293c20fdcbb4.jpg",
+  "Soybean -> Alternaria leaf spot": "https://npss.dac.gov.in/API3.0/images/7efd7a059fee428a8aa64135cb65f6b3.jpeg",
+  "Soybean -> Target leaf spot": "https://npss.dac.gov.in/API3.0/images/d11fe907191c4472a59cf3c02254f7c4.jpeg",
+  "Rice -> Egg Parasitoid": "https://npss.dac.gov.in/API3.0/images/a98e608a7c0c48ea97f92fddb525a998.jpeg",
+  "Soybean -> Cercospora leaf blight, leaf spot and Purple seed stain": "https://npss.dac.gov.in/API3.0/images/bc5823cd-1c73-4de9-967d-a10c0dc93f16.jpg",
+  "Soybean -> Stem Fly": "https://npss.dac.gov.in/API3.0/images/55263210e55a4bc7a5447d83e71defdc.jpeg",
+  "Sugarcane -> Ladybird beetle": "https://npss.dac.gov.in/API3.0/images/2df5dcea62964cb1828c3673531e1af1.jpeg",
+  "Soybean -> Myrothecium  leaf spot": "https://npss.dac.gov.in/API3.0/images/4acd421223bb4adaae754a2be91448c1.jpeg",
+  "Tomato -> Tobacco Mosic disease": "https://npss.dac.gov.in/API3.0/images/5561ed72-dfd7-4733-ba7f-89b9414063d4.jpg",
+  "Sugarcane -> Root borer": "https://npss.dac.gov.in/API3.0/images/985efba1ebbb4162ac98024294c258a9.jpeg",
+  "Pomegranate -> Anthracnose/Calyx rot": "https://npss.dac.gov.in/API3.0/images/fca6f073-ad43-453c-ab57-0ebd8aaa5b81.jpg",
+  "Urad bean (Black gram) -> Lacewing": "https://npss.dac.gov.in/API3.0/images/1eb6cc30d7eb4110b89156f92b0a4a0f.jpeg",
+  "Urad bean (Black gram) -> Preying mantis": "https://npss.dac.gov.in/API3.0/images/2d50c8e912544329867463ecde0bb620.jpeg",
+  "Maize -> Dragonfly": "https://npss.dac.gov.in/API3.0/images/6f4cb5e52a0a4efcaf8ecb1a9af33bfc.jpeg",
+  "Sugarcane -> Leaf scald disease": "https://npss.dac.gov.in/API3.0/images/263690d3b3434e8d80d40d4bd8a443ed.jpeg",
+  "Urad bean (Black gram) -> Blister Beetle": "https://npss.dac.gov.in/API3.0/images/784f2af758b74f33864394f3d815b67c.jpeg",
+  "Soybean -> Leaf miner": "https://npss.dac.gov.in/API3.0/images/c148fa0dc480411f8f7da2a13d00a244.jpeg",
+  "Soybean -> Hover Fly": "https://npss.dac.gov.in/API3.0/images/5e6e18ed449c4904a47786e7d06f6adf.jpeg",
+  "Cotton -> Big eyed bug": "https://npss.dac.gov.in/API3.0/images/58d6476022244a4b9ae6c4332060f2ce.jpeg",
+  "Cotton -> Red spider mite": "https://npss.dac.gov.in/API3.0/images/fc281849696a46fc8da5861a05adc3fa.jpeg",
+  "Cotton -> Syrphid fly": "https://npss.dac.gov.in/API3.0/images/56261456a34840a3836cce453b13f249.heic",
+  "Tomato -> Spotted wilt": "https://npss.dac.gov.in/API3.0/images/38bb72ca97094e489ffdb34e1a7e8995.jpeg",
+  "Grapes -> Spider": "https://npss.dac.gov.in/API3.0/images/df855cac8b8c4769b176df91c2ec96e6.jpeg",
+  "Soybean -> Green lacewing": "https://npss.dac.gov.in/API3.0/images/b12b83c3df5e4e6f9d5211810639a025.jpeg",
+  "Grapes -> Mites": "https://npss.dac.gov.in/API3.0/images/841c92da2d4945a1b20cfb5f0ca589e4.jpeg",
+  "Soybean -> Spider": "https://npss.dac.gov.in/API3.0/images/fb73c06f1e15499b83f8af5578861bed.jpeg",
+  "Maize -> Egg Parasitoid": "https://npss.dac.gov.in/API3.0/images/e1149b542ec1402792a4121ec511c204.jpeg",
+  "Pomegranate -> Wilt": "https://npss.dac.gov.in/API3.0/images/b35f4b1c-2194-479d-ae3c-4a62cd6afe7f.jpg",
+  "Maize -> Rove beetle": "https://npss.dac.gov.in/API3.0/images/",
+  "Maize -> Ground Beetle": "https://npss.dac.gov.in/API3.0/images/564ce923248f4c59b188909bfeaf856c.jpeg",
+  "Chilli -> Preying Mantis": "https://npss.dac.gov.in/API3.0/images/82d30812de8548a8ae755544145fea2a.jpeg",
+  "Cotton -> Assassin bugs": "https://npss.dac.gov.in/API3.0/images/b869a9ef2b2f40a09fd7e4f32b40c380.jpeg"
+}

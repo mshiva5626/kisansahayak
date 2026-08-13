@@ -1,4 +1,4 @@
-const OPENROUTER_API_KEY = process.env.SCHEMES_API_KEY || "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";
+const OPENROUTER_API_KEY = process.env.SCHEMES_API_KEY || "";
 const MODEL_NAME = "stepfun/step-3.5-flash:free";
 
 /**

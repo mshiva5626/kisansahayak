@@ -1,5 +1,5 @@
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const API_KEY = process.env.OPENROUTER_API_KEY || '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';
+const API_KEY = process.env.OPENROUTER_API_KEY || '';
 
 // Model fallback chain — best-to-worst for vision tasks
 const VISION_MODELS = [

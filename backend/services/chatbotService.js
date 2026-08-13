@@ -2,8 +2,8 @@
 const { OpenRouter } = require("@openrouter/sdk");
 
 /**
- * Clean, non-streaming chatbot extraction service
- * Extracted specifically for /ai/chat routes per user requirements
+ * Chatbot extraction service
+ * Streams the response and logs reasoning tokens inside the terminal
  */
 async function getChatbotResponse(userMessage) {
     try {
@@ -14,7 +14,7 @@ async function getChatbotResponse(userMessage) {
         }
 
         const openrouter = new OpenRouter({ apiKey });
-        
+
         let messagesArray = [];
         if (Array.isArray(userMessage)) {
             messagesArray = userMessage;
@@ -22,26 +22,34 @@ async function getChatbotResponse(userMessage) {
             messagesArray = [{ role: "user", content: userMessage }];
         }
 
-        console.log(`🤖 Generating Chatbot response via OpenRouter (arcee-ai/trinity-large-preview)...`);
-        
-        // Exact non-streaming specification requested by user
-        const response = await openrouter.chat.send({
-            chatGenerationParams: {
-                model: "arcee-ai/trinity-large-preview:free",
+        console.log(`🤖 Generating Chatbot response via OpenRouter (nvidia/nemotron-3.5-lightning:free)...`);
+
+        // Stream the response to get reasoning tokens in usage
+        const stream = await openrouter.chat.send({
+            chatRequest: {
+                model: "nvidia/nemotron-3.5-lightning:free",
                 messages: messagesArray,
-                stream: false
+                stream: true
             }
         });
 
-        // Extract text safely from standard OpenRouter JSON payload
-        const outputText = response?.choices?.[0]?.message?.content;
-        
-        if (!outputText) {
-            console.error("❌ Chatbot Error: Malformed response from OpenRouter", response);
-            return "AI service unavailable, try again later";
+        let responseText = "";
+        for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content;
+            if (content) {
+                responseText += content;
+                process.stdout.write(content);
+            }
+
+            // Usage information comes in the final chunk
+            if (chunk.usage) {
+                console.log("\nReasoning tokens:", chunk.usage.completionTokensDetails?.reasoningTokens);
+            }
         }
 
-        return outputText;
+        console.log("\n✅ Chatbot streaming finished.");
+
+        return responseText;
 
     } catch (error) {
         console.error("❌ Chatbot Service Exception:", error.message);

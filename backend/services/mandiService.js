@@ -6,10 +6,10 @@ const CACHE_TTL = 60 * 60 * 1000; // 1 Hour
 
 // User-provided API Key for new Liquid Model (Falling back to proven env key to avoid 401s)
 const openrouter = new OpenRouter({
-    apiKey: process.env.SCHEMES_API_KEY || "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"
+    apiKey: process.env.SCHEMES_API_KEY || ""
 });
 
-const OPENROUTER_API_KEY = process.env.SCHEMES_API_KEY || "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";
+const OPENROUTER_API_KEY = process.env.SCHEMES_API_KEY || "";
 const MODEL_NAME = "liquid/lfm-2.5-1.2b-thinking:free";
 
 /**
