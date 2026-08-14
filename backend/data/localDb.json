@@ -1,8 +1,42 @@
 {
-  "users": [],
+  "users": [
+    {
+      "email": "testfarmer_controller@kisansahayak.com",
+      "password": "$2b$10$tr5R..gwfC.69aBZwLAkierpA3v9c8KvZESnQ0sLTq61tnghGFphq",
+      "name": "Ramesh Patel",
+      "role": "farmer",
+      "preferred_language": "en",
+      "_id": "af305dc1-0120-4661-9525-2e0b4114ed2a",
+      "createdAt": "2026-08-14T17:41:29.732Z",
+      "updatedAt": "2026-08-14T17:41:29.737Z"
+    },
+    {
+      "email": "kisan_tester_1786729420034@kisansahayak.com",
+      "password": "$2b$10$hgMvJIFSMy.LADbGryisA.eRWuxSwkHXBUwZnYIvhCidQuAqHLDR2",
+      "name": "Shiva Kumar",
+      "role": "farmer",
+      "preferred_language": "en",
+      "_id": "9d06c3f9-6b3a-4629-b714-422a0b5c8bc8",
+      "createdAt": "2026-08-14T17:43:40.680Z",
+      "updatedAt": "2026-08-14T17:43:41.400Z",
+      "state": "Maharashtra",
+      "district": "Pune",
+      "farming_type": "Organic Vegetables"
+    },
+    {
+      "email": "googlefarmer@gmail.com",
+      "name": "Google Farmer",
+      "avatar_url": "",
+      "role": "farmer",
+      "preferred_language": "en",
+      "_id": "google-oauth-uid-1786729421187",
+      "createdAt": "2026-08-14T17:43:41.189Z",
+      "updatedAt": "2026-08-14T17:43:41.189Z"
+    }
+  ],
   "farms": [],
   "images": [],
   "advisories": [],
   "notifications": [],
-  "_nextId": 1
+  "_nextId": 4
 }

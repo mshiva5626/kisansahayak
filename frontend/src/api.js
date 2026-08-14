@@ -44,6 +44,8 @@ export const authAPI = {
     login: (email, password) => API.post('/auth/login', { email, password }),
     getProfile: () => API.get('/auth/profile'),
     updateProfile: (profileData) => API.put('/auth/profile', profileData),
+    getGoogleAuthUrl: (redirectTo) => API.get('/auth/google-url', { params: { redirectTo } }),
+    syncGoogleUser: (accessToken, user) => API.post('/auth/google-sync', { accessToken, user }),
     requestPasswordReset: (email) => API.post('/auth/forgot-password', { email }),
     verifyPasswordReset: (email, otp, newPassword) => API.post('/auth/reset-password', { email, otp, newPassword }),
     // Legacy OTP methods (kept for backward compatibility)

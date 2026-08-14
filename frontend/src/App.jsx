@@ -27,6 +27,7 @@ import FertilizerMarketplace from './screens/FertilizerMarketplace';
 import AMIInsightCenter from './screens/AMIInsightCenter';
 
 import { authAPI } from './api';
+import { supabase, signInWithGoogle } from './supabaseClient';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('welcome');
@@ -38,13 +39,70 @@ function App() {
   const [selectedFarmId, setSelectedFarmId] = useState(null);
 
   useEffect(() => {
+    // 1. Check existing local storage session
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
     if (token && storedUser) {
-      setUserProfile(JSON.parse(storedUser));
-      setIsLoggedIn(true);
-      setCurrentScreen('dashboard');
+      try {
+        setUserProfile(JSON.parse(storedUser));
+        setIsLoggedIn(true);
+        setCurrentScreen('dashboard');
+      } catch (e) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
+
+    // 2. Check for incoming Supabase OAuth callback in URL
+    const checkOAuthSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user) {
+          console.log('Detected Supabase OAuth session:', session.user.email);
+          const syncRes = await authAPI.syncGoogleUser(session.access_token, session.user);
+          const loggedInUser = syncRes.data.user;
+          const authToken = syncRes.data.token || session.access_token;
+
+          localStorage.setItem('token', authToken);
+          localStorage.setItem('user', JSON.stringify(loggedInUser));
+          setUserProfile(loggedInUser);
+          setIsLoggedIn(true);
+
+          if (window.location.hash || window.location.search.includes('code=')) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+          setCurrentScreen('dashboard');
+        }
+      } catch (err) {
+        console.error('Error handling OAuth callback:', err);
+      }
+    };
+
+    checkOAuthSession();
+
+    // 3. Listen for real-time auth state changes from Supabase
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+        try {
+          const syncRes = await authAPI.syncGoogleUser(session.access_token, session.user);
+          const loggedInUser = syncRes.data.user;
+          const authToken = syncRes.data.token || session.access_token;
+          localStorage.setItem('token', authToken);
+          localStorage.setItem('user', JSON.stringify(loggedInUser));
+          setUserProfile(loggedInUser);
+          setIsLoggedIn(true);
+          if (window.location.hash) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        } catch (e) {
+          console.error('Auth state change sync failed:', e);
+        }
+      }
+    });
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
 
   const navigateTo = (screen) => {
@@ -95,6 +153,20 @@ function App() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithGoogle(window.location.origin);
+    } catch (err) {
+      console.error('Failed to trigger client Google sign-in:', err);
+      const { data } = await authAPI.getGoogleAuthUrl(window.location.origin);
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw err;
+      }
+    }
+  };
+
   const handleProfileComplete = async (profileData) => {
     try {
       const response = await authAPI.updateProfile(profileData);
@@ -107,7 +179,12 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      // Ignore
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUserProfile(null);
@@ -141,6 +218,7 @@ function App() {
             <LoginRegistration
               onLogin={handleLogin}
               onRegister={handleRegister}
+              onGoogleLogin={handleGoogleLogin}
               onBack={() => navigateTo('welcome')}
             />
           )}

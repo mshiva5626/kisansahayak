@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { getIsConnected } = require('../config/db');
+const { getSupabase, getRealSupabase } = require('../config/db');
 
 const protect = async (req, res, next) => {
     let token;
@@ -8,31 +8,67 @@ const protect = async (req, res, next) => {
         try {
             token = req.headers.authorization.split(' ')[1];
 
-            // Allow bypassing JWT verification if it's the specific hardcoded demo token (for legacy demo paths if any)
-            let decoded;
-            if (token === 'demo-token') {
-                decoded = { id: 'demo-user-123' };
-            } else {
-                decoded = jwt.verify(token, process.env.JWT_SECRET);
+            if (!token) {
+                return res.status(401).json({ message: 'Not authorized, no token provided' });
             }
 
-            const { getSupabase } = require('../config/db');
-            const supabase = getSupabase();
+            // 1. Allow demo token
+            if (token === 'demo-token') {
+                req.user = { id: 'demo-user-123', _id: 'demo-user-123', name: 'Demo Farmer', email: 'demo@kisansahayak.com' };
+                return next();
+            }
 
-            const { data: user, error } = await supabase
+            let userId = null;
+            let userEmail = null;
+            let userName = '';
+
+            // 2. Try verifying as Supabase access token first if real Supabase client is available
+            const realSupabase = getRealSupabase();
+            if (realSupabase && realSupabase.auth) {
+                try {
+                    const { data: supaAuthData, error: supaErr } = await realSupabase.auth.getUser(token);
+                    if (!supaErr && supaAuthData && supaAuthData.user) {
+                        userId = supaAuthData.user.id;
+                        userEmail = supaAuthData.user.email;
+                        userName = supaAuthData.user.user_metadata?.name || '';
+                    }
+                } catch (e) {
+                    // Ignore and fallback to custom JWT
+                }
+            }
+
+            // 3. If not resolved via Supabase token, verify custom app JWT
+            if (!userId) {
+                try {
+                    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'kisan_farm_copilot_jwt_secret_2026');
+                    userId = decoded.id;
+                } catch (jwtErr) {
+                    // Token verification failed
+                    console.error('JWT verify error:', jwtErr.message);
+                    return res.status(401).json({ message: 'Not authorized, invalid token' });
+                }
+            }
+
+            const supabase = getSupabase();
+            const { data: user } = await supabase
                 .from('users')
                 .select('*')
-                .eq('id', decoded.id)
+                .eq('id', userId)
                 .maybeSingle();
 
-            if (error || !user) {
-                return res.status(401).json({ message: 'User not found, invalid token' });
+            if (user) {
+                const { password, ...userWithoutPassword } = user;
+                userWithoutPassword._id = userWithoutPassword.id || userId;
+                req.user = userWithoutPassword;
+            } else {
+                // If user authenticated via Supabase but record not yet in table, build user object
+                req.user = {
+                    id: userId,
+                    _id: userId,
+                    email: userEmail || '',
+                    name: userName || ''
+                };
             }
-
-            // Return user without password
-            const { password, ...userWithoutPassword } = user;
-            userWithoutPassword._id = userWithoutPassword.id; // Map id to _id for older controllers
-            req.user = userWithoutPassword;
 
             next();
         } catch (error) {
@@ -45,3 +81,4 @@ const protect = async (req, res, next) => {
 };
 
 module.exports = { protect };
+

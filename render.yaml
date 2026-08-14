@@ -16,3 +16,14 @@ services:
         sync: false
       - key: OPENROUTER_API_KEY
         sync: false
+      - key: CROP_ANALYSIS_API_KEY
+        sync: false
+      - key: WEATHERBIT_API_KEY
+        sync: false
+      - key: FERTILIZER_API_KEY
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+
