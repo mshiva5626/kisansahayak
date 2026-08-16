@@ -118,7 +118,8 @@ export const cropAPI = {
 
 // Location API
 export const locationAPI = {
-    getSatelliteImage: (lat, lon) => API.get('/location/satellite', { params: { lat, lon } })
+    getSatelliteImage: (lat, lon) => API.get('/location/satellite', { params: { lat, lon } }),
+    reverseGeocode: (lat, lon) => API.get('/location/reverse-geocode', { params: { lat, lon } })
 };
 
 // Mandi Prices API (Grounded in Official Govt Agmarknet & e-NAM)

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { detectAndResolveCurrentLocation } from '../utils/geolocation';
 
 // Curated list of major agricultural states and their prominent APMC market districts
 const AGRI_LOCATIONS = [
@@ -67,77 +68,42 @@ const AGRI_LOCATIONS = [
 const LocationModal = ({ isOpen, currentLocation, onSelectLocation, onClose }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isLocating, setIsLocating] = useState(false);
+    const [locatingStatus, setLocatingStatus] = useState('');
     const [locateError, setLocateError] = useState('');
 
     if (!isOpen) return null;
 
-    // Handle 1-Click GPS Location Detection
-    const handleGPSDetect = () => {
+    // Handle High-Accuracy Multi-Tier GPS Location Detection
+    const handleGPSDetect = async () => {
         setIsLocating(true);
         setLocateError('');
+        setLocatingStatus('📡 Acquiring high-precision GPS satellites...');
 
-        if (!navigator.geolocation) {
-            setLocateError('Geolocation is not supported by your browser.');
+        try {
+            const location = await detectAndResolveCurrentLocation((progress) => {
+                setLocatingStatus(progress.message);
+            });
+
+            onSelectLocation({
+                state: location.state,
+                district: location.district,
+                subDistrict: location.subDistrict || '',
+                city: location.city || location.district,
+                locality: location.locality || '',
+                latitude: location.latitude,
+                longitude: location.longitude,
+                source: location.source || 'GPS Verified'
+            });
+
             setIsLocating(false);
-            return;
+            setLocatingStatus('');
+            onClose();
+        } catch (err) {
+            console.warn('GPS Detection Error:', err.message);
+            setLocateError(err.message || 'Could not access GPS. Please choose your district from the list below.');
+            setIsLocating(false);
+            setLocatingStatus('');
         }
-
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const { latitude, longitude } = position.coords;
-                try {
-                    // Reverse geocoding via OpenStreetMap Nominatim
-                    const res = await fetch(
-                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
-                        {
-                            headers: {
-                                'Accept-Language': 'en'
-                            }
-                        }
-                    );
-                    const data = await res.json();
-                    
-                    const state = data.address?.state || 'Madhya Pradesh';
-                    const district = data.address?.state_district || 
-                                     data.address?.county || 
-                                     data.address?.city || 
-                                     data.address?.town || 
-                                     'Indore';
-                    
-                    const cleanDistrict = district.replace(/district/gi, '').trim();
-
-                    onSelectLocation({
-                        state,
-                        district: cleanDistrict,
-                        city: data.address?.city || data.address?.town || cleanDistrict,
-                        latitude,
-                        longitude,
-                        source: 'GPS Verified'
-                    });
-                    setIsLocating(false);
-                    onClose();
-                } catch (e) {
-                    console.warn('Reverse geocode fallback:', e);
-                    // Fallback default if reverse geocode service fails
-                    onSelectLocation({
-                        state: 'Madhya Pradesh',
-                        district: 'Indore',
-                        city: 'Indore',
-                        latitude,
-                        longitude,
-                        source: 'GPS Coordinates'
-                    });
-                    setIsLocating(false);
-                    onClose();
-                }
-            },
-            (err) => {
-                console.warn('GPS Error:', err.message);
-                setLocateError('Could not access GPS. Please choose your district from the list below.');
-                setIsLocating(false);
-            },
-            { timeout: 10000, enableHighAccuracy: true }
-        );
     };
 
     // Filter districts and states
@@ -215,8 +181,15 @@ const LocationModal = ({ isOpen, currentLocation, onSelectLocation, onClose }) =
                     )}
                 </button>
 
+                {isLocating && locatingStatus && (
+                    <div className="bg-[#0ED054]/10 border border-[#0ED054]/30 rounded-2xl p-2.5 mb-2.5 text-center text-xs font-bold text-[#0ED054] animate-pulse flex items-center justify-center gap-2">
+                        <span className="material-icons animate-spin text-sm">sync</span>
+                        <span>{locatingStatus}</span>
+                    </div>
+                )}
+
                 {locateError && (
-                    <p className="text-[11px] text-amber-500 font-semibold mb-2 text-center">
+                    <p className="text-[11px] text-amber-500 font-semibold mb-2.5 text-center bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
                         {locateError}
                     </p>
                 )}

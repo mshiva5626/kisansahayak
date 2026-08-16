@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { farmAPI } from '../api';
+import { detectAndResolveCurrentLocation } from '../utils/geolocation';
 
 const FarmCreationWizard = ({ onBack, onComplete }) => {
     const [step, setStep] = useState(1);
@@ -20,40 +21,23 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
         sowingDate: ''
     });
 
-    const fetchCurrentLocation = () => {
+    const fetchCurrentLocation = async () => {
         setLocationStatus('fetching');
-        if (!navigator.geolocation) {
+        try {
+            const loc = await detectAndResolveCurrentLocation();
+            setFormData(prev => ({
+                ...prev,
+                latitude: loc.latitude ? Number(loc.latitude).toFixed(5) : prev.latitude,
+                longitude: loc.longitude ? Number(loc.longitude).toFixed(5) : prev.longitude,
+                state: loc.state && loc.state !== 'India' ? loc.state : prev.state,
+                district: loc.district || prev.district,
+                address: loc.formattedAddress || `${loc.locality || loc.district}, ${loc.state}`
+            }));
+            setLocationStatus('success');
+        } catch (error) {
+            console.error('High-accuracy GPS error:', error);
             setLocationStatus('error');
-            return;
         }
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                setFormData(prev => ({ ...prev, latitude: lat.toFixed(4), longitude: lon.toFixed(4) }));
-                setLocationStatus('success');
-                // Try to get address from coordinates via reverse geocoding
-                try {
-                    const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en`);
-                    const geo = await resp.json();
-                    if (geo && geo.address) {
-                        setFormData(prev => ({
-                            ...prev,
-                            state: geo.address.state || '',
-                            district: geo.address.state_district || geo.address.county || geo.address.city || '',
-                            address: geo.display_name || ''
-                        }));
-                    }
-                } catch {
-                    console.log('Reverse geocoding failed, using coords only');
-                }
-            },
-            (error) => {
-                console.error('Geolocation error:', error);
-                setLocationStatus('error');
-            },
-            { enableHighAccuracy: true, timeout: 10000 }
-        );
     };
 
     // Fetch GPS location when entering step 2
