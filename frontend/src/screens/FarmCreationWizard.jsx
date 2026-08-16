@@ -43,7 +43,6 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
     // Step 3: Crop, Soil, Variety & Irrigation Details
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
-    const [isCustomCrop, setIsCustomCrop] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -59,7 +58,6 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
         address: '',
         plotNotes: '',
         crop: 'Wheat',
-        customCropName: '',
         variety: '',
         sowingDate: new Date().toISOString().split('T')[0],
         soilType: 'Alluvial Loam',
@@ -142,12 +140,10 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
 
     // Final Save Farm Submission
     const handleSaveFarm = async () => {
-        const finalCrop = (isCustomCrop && formData.customCropName.trim()) 
-            ? formData.customCropName.trim() 
-            : (formData.crop || 'Wheat');
+        const finalCrop = formData.crop?.trim() || 'Wheat';
 
         if (!finalCrop) {
-            alert('Please select or type your cultivated crop.');
+            alert('Please type or select your cultivated crop.');
             return;
         }
 
@@ -414,72 +410,59 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
             {/* ========================================================================= */}
             {step === 3 && (
                 <main className="flex-1 max-w-2xl w-full mx-auto p-6 space-y-6 animate-fade-in pb-36">
-                    {/* Primary Crop Selection + Custom Typing */}
+                    {/* Cultivated Crop Input & Suggestions */}
                     <div className="p-5 rounded-3xl bg-[#0c2415]/85 border border-white/10 backdrop-blur-xl shadow-xl space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-lg text-primary">eco</span>
-                                <span>Cultivated Crop</span>
-                            </h3>
-                            <button
-                                type="button"
-                                onClick={() => setIsCustomCrop(!isCustomCrop)}
-                                className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center gap-1"
-                            >
-                                <span className="material-icons-round text-sm">{isCustomCrop ? 'grid_view' : 'edit'}</span>
-                                <span>{isCustomCrop ? 'Choose from list' : 'Type Custom Crop'}</span>
-                            </button>
+                        <div className="space-y-2">
+                            <label className="block text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                                🌿 Cultivated Crop Name <span className="text-red-400">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Type crop name (e.g. Wheat, Paddy, Dragon Fruit, Cotton...)"
+                                value={formData.crop}
+                                onChange={(e) => setFormData({ ...formData, crop: e.target.value })}
+                                className="w-full px-4 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-primary focus:bg-white/10 transition-all shadow-inner"
+                            />
                         </div>
 
-                        {/* Custom Crop Typing Box */}
-                        {isCustomCrop ? (
-                            <div className="space-y-2">
-                                <label className="block text-[11px] font-extrabold uppercase text-slate-300">
-                                    Enter Custom Crop Name
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. Dragon Fruit, Chia Seeds, Moringa, Cardamom..."
-                                    value={formData.customCropName}
-                                    onChange={(e) => setFormData({ ...formData, customCropName: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-primary/40 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-primary focus:bg-white/10 transition-all shadow-inner"
-                                    autoFocus
-                                />
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-52 overflow-y-auto no-scrollbar pr-1">
+                        {/* Quick One-Tap Crop Chips */}
+                        <div className="space-y-1.5">
+                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                Quick Crop Suggestions:
+                            </p>
+                            <div className="flex flex-wrap gap-2">
                                 {POPULAR_CROPS.map((c) => {
-                                    const isSelected = formData.crop.toLowerCase() === c.name.toLowerCase();
+                                    const isSelected = formData.crop.toLowerCase().trim() === c.name.toLowerCase().trim();
                                     return (
                                         <button
                                             key={c.name}
                                             type="button"
-                                            onClick={() => setFormData({ ...formData, crop: c.name, customCropName: '' })}
-                                            className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-2.5 cursor-pointer ${
+                                            onClick={() => setFormData({ ...formData, crop: c.name })}
+                                            className={`px-3 py-2 rounded-2xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                                                 isSelected
-                                                    ? 'bg-primary/20 border-primary text-white shadow-[0_0_15px_rgba(19,236,19,0.2)]'
+                                                    ? 'bg-primary/25 border-primary text-emerald-300 shadow-[0_0_12px_rgba(19,236,19,0.2)]'
                                                     : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'
                                             }`}
                                         >
-                                            <span className="text-2xl shrink-0">{c.icon}</span>
-                                            <p className="text-xs font-bold truncate">{c.name}</p>
+                                            <span className="text-sm">{c.icon}</span>
+                                            <span>{c.name}</span>
                                         </button>
                                     );
                                 })}
                             </div>
-                        )}
+                        </div>
 
                         {/* Optional Crop Variety Input */}
-                        <div className="pt-2 border-t border-white/10">
-                            <label className="block text-[11px] font-extrabold uppercase text-slate-300 mb-1">
-                                Seed Variety / Hybrid Name <span className="text-slate-500 font-normal">(Optional)</span>
+                        <div className="pt-3 border-t border-white/10 space-y-1.5">
+                            <label className="block text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                                Seed Variety / Hybrid Name <span className="text-slate-500 font-normal lowercase">(optional)</span>
                             </label>
                             <input
                                 type="text"
-                                placeholder="e.g. HD-2967, Sharbati, Sona Masoori, BT-2"
+                                placeholder="e.g. HD-2967, Sharbati, Sona Masoori, BT-2, Desi"
                                 value={formData.variety}
                                 onChange={(e) => setFormData({ ...formData, variety: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-primary"
+                                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-primary"
                             />
                         </div>
                     </div>
@@ -556,7 +539,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                                 {formData.name} • {formData.area} {formData.unit}
                             </p>
                             <p className="text-[11px] text-emerald-300 font-medium">
-                                {(isCustomCrop && formData.customCropName) ? formData.customCropName : formData.crop} • {formData.soilType} • {formData.district || 'India'}
+                                {formData.crop} • {formData.soilType} • {formData.district || 'India'}
                             </p>
                         </div>
 
