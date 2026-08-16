@@ -251,4 +251,57 @@ const NotificationStore = {
     }
 };
 
-module.exports = { UserStore, FarmStore, ImageStore, AdvisoryStore, SchemeStore, NotificationStore, store };
+// ---- Chat Session operations ----
+const ChatSessionStore = {
+    async createOrUpdate({ sessionId, userId, farmId, title, messages, sources }) {
+        if (!store.chatSessions) store.chatSessions = [];
+        const existingIdx = store.chatSessions.findIndex(s => s.sessionId === sessionId || s._id === sessionId);
+        const now = new Date();
+        if (existingIdx !== -1) {
+            store.chatSessions[existingIdx] = {
+                ...store.chatSessions[existingIdx],
+                messages,
+                title: title || store.chatSessions[existingIdx].title,
+                farmId: farmId || store.chatSessions[existingIdx].farmId,
+                updatedAt: now
+            };
+            syncToDisk();
+            return store.chatSessions[existingIdx];
+        } else {
+            const sid = sessionId || genId();
+            const newSession = {
+                _id: sid,
+                sessionId: sid,
+                userId,
+                farmId,
+                title: title || (messages[0]?.text || messages[0]?.content || 'Agricultural Advisory').substring(0, 45),
+                messages,
+                sources: sources || [],
+                createdAt: now,
+                updatedAt: now
+            };
+            store.chatSessions.unshift(newSession);
+            syncToDisk();
+            return newSession;
+        }
+    },
+    async findByUser(userId) {
+        if (!store.chatSessions) store.chatSessions = [];
+        return store.chatSessions
+            .filter(s => s.userId === userId)
+            .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+    },
+    async findById(sessionId, userId) {
+        if (!store.chatSessions) store.chatSessions = [];
+        return store.chatSessions.find(s => (s.sessionId === sessionId || s._id === sessionId) && (!userId || s.userId === userId)) || null;
+    },
+    async delete(sessionId, userId) {
+        if (!store.chatSessions) store.chatSessions = [];
+        const initialLen = store.chatSessions.length;
+        store.chatSessions = store.chatSessions.filter(s => !((s.sessionId === sessionId || s._id === sessionId) && (!userId || s.userId === userId)));
+        syncToDisk();
+        return store.chatSessions.length < initialLen;
+    }
+};
+
+module.exports = { UserStore, FarmStore, ImageStore, AdvisoryStore, SchemeStore, NotificationStore, ChatSessionStore, store };

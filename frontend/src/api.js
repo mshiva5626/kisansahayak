@@ -75,9 +75,14 @@ export const weatherAPI = {
 
 // AI Copilot API
 export const aiAPI = {
-    getAdvisory: (farm_id, query, image_analysis) => API.post('/ai/advisory', { farm_id, query, image_analysis }),
+    getAdvisory: (farm_id, query, image_analysis, attachments, language, personalization_mode) => 
+        API.post('/ai/advisory', { farm_id, query, image_analysis, attachments, language, personalization_mode }),
     getAdvisoryHistory: (farmId) => API.get(`/ai/advisory/farm/${farmId}`),
-    chat: (messages, farm_id) => API.post('/ai/chat', { messages, farm_id })
+    chat: (messages, farm_id, language, personalization_mode, attachments, session_id) => 
+        API.post('/ai/chat', { messages, farm_id, language, personalization_mode, attachments, session_id }),
+    getSessions: () => API.get('/ai/sessions'),
+    getSessionById: (sessionId) => API.get(`/ai/sessions/${sessionId}`),
+    deleteSession: (sessionId) => API.delete(`/ai/sessions/${sessionId}`)
 };
 
 // Image API
