@@ -210,6 +210,9 @@ Organize your advisory cleanly with distinct, high-clarity markdown sections:
    - Explicitly cite the consulted ICAR research institutes, CIBRC directory, Agmarknet DMI, and IMD Agromet advisories.
 
 (Note: For casual conversational greetings or simple 1-sentence questions, respond naturally, warmly, and concisely without forcing the full template.)
+
+STRICT DENSITY & SPEED DIRECTIVE:
+Deliver all diagnoses, dosages, and costs directly with maximum agronomic precision. Do NOT write conversational fluff, long introductory preambles, or repetitive concluding remarks.
 `;
 
     return prompt;

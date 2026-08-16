@@ -246,25 +246,10 @@ function cleanOutputText(content) {
     const hasThinkPreamble = thinkMarkers.some(m => cleaned.toLowerCase().startsWith(m.toLowerCase()));
     
     if (hasThinkPreamble) {
-        const splitRegex = /\n---\n|\n\*\*(?:Final Answer|Final Recommendation|Response|Advisory|Summary):\*\*\n|\n###\s+(?:1\.|Direct|🌾|Recommendation|Final)/i;
+        const splitRegex = /\n---\n|\n\*\*(?:Final Answer|Final Recommendation|Response|Advisory|Summary|🌱|Immediate):\*\*\n|\n###\s+|\n1\.\s+\*\*|\n\*\*🌱/i;
         const match = cleaned.match(splitRegex);
         if (match && match.index !== undefined) {
             cleaned = cleaned.substring(match.index).replace(/^\n---\n/, '').trim();
-        } else {
-            const paragraphs = cleaned.split(/\n\s*\n/);
-            const answerParagraphs = [];
-            let inAnswer = false;
-            for (const p of paragraphs) {
-                if (inAnswer) {
-                    answerParagraphs.push(p);
-                } else if (!p.startsWith("Here's a") && !p.startsWith("Thinking") && !p.match(/^\s*\d+\.\s+\*\*/)) {
-                    inAnswer = true;
-                    answerParagraphs.push(p);
-                }
-            }
-            if (answerParagraphs.length > 0) {
-                cleaned = answerParagraphs.join('\n\n').trim();
-            }
         }
     }
     return cleaned.trim();

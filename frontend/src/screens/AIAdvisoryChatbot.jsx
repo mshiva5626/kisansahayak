@@ -2,79 +2,167 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { aiAPI, farmAPI } from '../api';
 
 // ============================================================================
-// 1. REACTIVE 3D AMBIENT CANVAS BACKGROUND COMPONENT
+// PURE UTILITY FUNCTIONS (OUTSIDE COMPONENT TO AVOID RE-CREATION / MEMORY LAG)
 // ============================================================================
-const Interactive3DBackground = () => {
+function renderBoldText(str) {
+    if (!str || !str.includes('**')) return str;
+    const parts = str.split('**');
+    return parts.map((part, i) =>
+        i % 2 === 1 ? (
+            <strong key={i} className="font-bold text-white bg-primary/20 px-1 py-0.5 rounded">
+                {part}
+            </strong>
+        ) : part
+    );
+}
+
+function renderAgronomicMarkdown(text, isAI) {
+    if (!isAI) {
+        return <p className="drop-shadow-sm text-sm leading-relaxed whitespace-pre-wrap">{text}</p>;
+    }
+
+    const lines = (text || '').split('\n');
+    return lines.map((line, idx) => {
+        const trimmed = line.trim();
+
+        if (trimmed.startsWith('###') || (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.length < 60) || /^\d+\.\s+\*\*.*?\*\*/.test(trimmed)) {
+            const headerText = trimmed.replace(/^###\s*/, '').replace(/^\d+\.\s*/, '').replace(/\*\*/g, '');
+            return (
+                <div key={idx} className="mt-3.5 mb-1.5 flex items-center gap-2 border-b border-emerald-500/20 pb-1">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    <h4 className="font-bold text-sm md:text-base text-emerald-300 tracking-tight">{headerText}</h4>
+                </div>
+            );
+        }
+
+        if (trimmed.toLowerCase().includes('caution') || trimmed.toLowerCase().includes('safety') || trimmed.toLowerCase().includes('warning') || trimmed.toLowerCase().includes('phi:')) {
+            return (
+                <div key={idx} className="my-2 p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2 text-xs text-amber-300 shadow-sm">
+                    <span className="material-icons-round text-amber-400 text-sm shrink-0 mt-0.5">gpp_maybe</span>
+                    <span className="leading-relaxed">{trimmed.replace(/\*\*/g, '')}</span>
+                </div>
+            );
+        }
+
+        if (trimmed.toLowerCase().includes('cost per acre') || trimmed.toLowerCase().includes('estimated cost') || trimmed.toLowerCase().includes('₹/acre')) {
+            return (
+                <div key={idx} className="my-2 p-2 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center gap-2 text-xs text-emerald-300 font-bold">
+                    <span className="material-icons-round text-emerald-400 text-sm">currency_rupee</span>
+                    <span>{trimmed.replace(/^[-*•]\s*/, '').replace(/\*\*/g, '')}</span>
+                </div>
+            );
+        }
+
+        if (/^\d+\./.test(trimmed)) {
+            const parts = trimmed.split(/^(?:\d+\.)\s*/);
+            const stepNum = trimmed.match(/^(\d+)\./)?.[1] || '•';
+            const content = parts[1] || trimmed;
+            return (
+                <div key={idx} className="flex items-start gap-2.5 my-1.5 ml-0.5 text-sm">
+                    <span className="w-5 h-5 rounded-full bg-primary/20 text-emerald-400 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                        {stepNum}
+                    </span>
+                    <div className="flex-1 leading-relaxed text-slate-200">
+                        {renderBoldText(content)}
+                    </div>
+                </div>
+            );
+        }
+
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
+            const content = trimmed.substring(2);
+            return (
+                <div key={idx} className="flex items-start gap-2 my-1 ml-1.5 text-sm text-slate-200">
+                    <span className="text-primary font-bold text-sm shrink-0 mt-0.5">•</span>
+                    <div className="flex-1 leading-relaxed">{renderBoldText(content)}</div>
+                </div>
+            );
+        }
+
+        if (!trimmed) {
+            return <div key={idx} className="h-1.5" />;
+        }
+
+        return (
+            <p key={idx} className="text-sm leading-relaxed text-slate-200 my-1">
+                {renderBoldText(line)}
+            </p>
+        );
+    });
+}
+
+// ============================================================================
+// 1. HARDWARE-ACCELERATED 3D AMBIENT CANVAS BACKGROUND
+// ============================================================================
+const Interactive3DBackground = React.memo(() => {
     const canvasRef = useRef(null);
     const mousePos = useRef({ x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 });
+    const isVisibleRef = useRef(true);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: true });
         let animationFrameId;
 
-        let width = (canvas.width = canvas.offsetWidth);
-        let height = (canvas.height = canvas.offsetHeight);
+        let width = (canvas.width = canvas.offsetWidth || window.innerWidth);
+        let height = (canvas.height = canvas.offsetHeight || window.innerHeight);
 
         const handleResize = () => {
             if (!canvas) return;
-            width = canvas.width = canvas.offsetWidth;
-            height = canvas.height = canvas.offsetHeight;
+            width = canvas.width = canvas.offsetWidth || window.innerWidth;
+            height = canvas.height = canvas.offsetHeight || window.innerHeight;
         };
-        window.addEventListener('resize', handleResize);
 
+        const handleVisibilityChange = () => {
+            isVisibleRef.current = !document.hidden;
+        };
+
+        let lastMove = 0;
         const handleMouseMove = (e) => {
+            const now = performance.now();
+            if (now - lastMove < 16) return;
+            lastMove = now;
             const rect = canvas.getBoundingClientRect();
             mousePos.current.targetX = (e.clientX - rect.left) / width;
             mousePos.current.targetY = (e.clientY - rect.top) / height;
         };
-        window.addEventListener('mousemove', handleMouseMove);
 
-        // Generate 45 3D spatial particles with depth factor (z)
-        const particleCount = 42;
+        window.addEventListener('resize', handleResize, { passive: true });
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        const particleCount = 20;
         const particles = Array.from({ length: particleCount }, () => ({
             x: Math.random() * width,
             y: Math.random() * height,
-            z: Math.random() * 0.8 + 0.2,
-            vx: (Math.random() - 0.5) * 0.4,
-            vy: (Math.random() - 0.5) * 0.4,
-            radius: Math.random() * 2.4 + 1.2,
-            baseHue: Math.random() > 0.2 ? 142 : 45, // 142 = Chlorophyll Green, 45 = Amber Gold
+            z: Math.random() * 0.7 + 0.3,
+            vx: (Math.random() - 0.5) * 0.35,
+            vy: (Math.random() - 0.5) * 0.35,
+            radius: Math.random() * 2.0 + 1.0,
+            baseHue: Math.random() > 0.25 ? 142 : 45,
             pulse: Math.random() * Math.PI * 2
         }));
 
         const render = () => {
-            // Smooth mouse easing
-            mousePos.current.x += (mousePos.current.targetX - mousePos.current.x) * 0.05;
-            mousePos.current.y += (mousePos.current.targetY - mousePos.current.y) * 0.05;
+            if (!isVisibleRef.current) {
+                animationFrameId = requestAnimationFrame(render);
+                return;
+            }
 
-            const offsetX = (mousePos.current.x - 0.5) * 45;
-            const offsetY = (mousePos.current.y - 0.5) * 45;
+            mousePos.current.x += (mousePos.current.targetX - mousePos.current.x) * 0.06;
+            mousePos.current.y += (mousePos.current.targetY - mousePos.current.y) * 0.06;
+
+            const offsetX = (mousePos.current.x - 0.5) * 35;
+            const offsetY = (mousePos.current.y - 0.5) * 35;
 
             ctx.clearRect(0, 0, width, height);
 
-            // Subtle ambient energy gradient
-            const ambientGrad = ctx.createRadialGradient(
-                width * mousePos.current.x,
-                height * mousePos.current.y,
-                10,
-                width * mousePos.current.x,
-                height * mousePos.current.y,
-                width * 0.7
-            );
-            ambientGrad.addColorStop(0, 'rgba(19, 236, 19, 0.07)');
-            ambientGrad.addColorStop(0.5, 'rgba(14, 208, 84, 0.02)');
-            ambientGrad.addColorStop(1, 'transparent');
-            ctx.fillStyle = ambientGrad;
-            ctx.fillRect(0, 0, width, height);
-
-            // Draw particles and links
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
                 p.x += p.vx * p.z;
                 p.y += p.vy * p.z;
-                p.pulse += 0.025;
+                p.pulse += 0.02;
 
                 if (p.x < 0) p.x = width;
                 if (p.x > width) p.x = 0;
@@ -83,28 +171,29 @@ const Interactive3DBackground = () => {
 
                 const drawX = p.x + offsetX * p.z;
                 const drawY = p.y + offsetY * p.z;
-                const dynamicRadius = p.radius * p.z * (1 + Math.sin(p.pulse) * 0.25);
-                const alpha = (0.25 + Math.sin(p.pulse) * 0.15) * p.z;
+                const dynamicRadius = p.radius * p.z;
+                const alpha = 0.28 * p.z;
 
                 ctx.beginPath();
                 ctx.arc(drawX, drawY, dynamicRadius, 0, Math.PI * 2);
                 ctx.fillStyle = `hsla(${p.baseHue}, 85%, 55%, ${alpha})`;
                 ctx.fill();
 
-                // Proximity constellation links
                 for (let j = i + 1; j < particles.length; j++) {
                     const p2 = particles[j];
                     const p2DrawX = p2.x + offsetX * p2.z;
                     const p2DrawY = p2.y + offsetY * p2.z;
-                    const dist = Math.hypot(drawX - p2DrawX, drawY - p2DrawY);
+                    const dx = drawX - p2DrawX;
+                    const dy = drawY - p2DrawY;
+                    const distSq = dx * dx + dy * dy;
 
-                    if (dist < 85) {
-                        const lineAlpha = (1 - dist / 85) * 0.12 * Math.min(p.z, p2.z);
+                    if (distSq < 5625) {
+                        const lineAlpha = (1 - distSq / 5625) * 0.12 * p.z;
                         ctx.beginPath();
                         ctx.moveTo(drawX, drawY);
                         ctx.lineTo(p2DrawX, p2DrawY);
                         ctx.strokeStyle = `hsla(142, 80%, 60%, ${lineAlpha})`;
-                        ctx.lineWidth = 0.8;
+                        ctx.lineWidth = 0.75;
                         ctx.stroke();
                     }
                 }
@@ -118,6 +207,7 @@ const Interactive3DBackground = () => {
         return () => {
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
             cancelAnimationFrame(animationFrameId);
         };
     }, []);
@@ -125,16 +215,154 @@ const Interactive3DBackground = () => {
     return (
         <canvas
             ref={canvasRef}
-            className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-80"
+            className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-75 will-change-transform"
         />
     );
-};
+});
+
+Interactive3DBackground.displayName = 'Interactive3DBackground';
 
 // ============================================================================
-// 2. MAIN AI ADVISORY CHATBOT COMPONENT
+// 2. MEMOIZED CHAT MESSAGE ITEM FOR HIGH FRAME RATES
+// ============================================================================
+const ChatMessageItem = React.memo(({
+    msg,
+    onOpenSources,
+    onCopy,
+    onPlayback,
+    onRegenerate,
+    onReaction,
+    isPlaying,
+    isCopied,
+    reaction
+}) => {
+    return (
+        <div className={`flex gap-3 items-end ${msg.isAI ? '' : 'flex-row-reverse'}`}>
+            {msg.isAI && (
+                <div className="w-8 h-8 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center self-end mb-1 text-primary shrink-0">
+                    <span className="material-icons-round text-sm">smart_toy</span>
+                </div>
+            )}
+
+            <div className={`flex flex-col gap-1 max-w-[88%] md:max-w-[78%] ${msg.isAI ? '' : 'items-end'}`}>
+                <div className={`${
+                    msg.isAI 
+                        ? 'bg-[#0c2415]/90 border border-white/10 text-slate-100 rounded-3xl rounded-bl-sm shadow-xl backdrop-blur-md' 
+                        : 'bg-gradient-to-r from-[#0ED054] to-[#0A9E3E] text-white rounded-3xl rounded-br-sm shadow-[0_4px_16px_rgba(14,208,84,0.3)] font-semibold'
+                } p-4 md:p-5 relative transition-all`}>
+                    
+                    {msg.attachment && (
+                        <div className="mb-3 p-2 rounded-2xl bg-black/30 border border-white/20 flex items-center gap-3">
+                            {msg.attachment.previewUrl ? (
+                                <img 
+                                    src={msg.attachment.previewUrl} 
+                                    alt="Sample" 
+                                    className="w-14 h-14 object-cover rounded-xl border border-white/30"
+                                />
+                            ) : (
+                                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
+                                    <span className="material-icons-round text-xl">description</span>
+                                </div>
+                            )}
+                            <div className="overflow-hidden text-xs">
+                                <p className="font-bold truncate text-white">{msg.attachment.name}</p>
+                                <p className="text-[10px] text-white/75">{msg.attachment.sizeKb} KB • Uploaded for Diagnosis</p>
+                            </div>
+                        </div>
+                    )}
+
+                    <div>{renderAgronomicMarkdown(msg.text, msg.isAI)}</div>
+
+                    {msg.isAI && (
+                        <div className="mt-3.5 pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5">
+                                {msg.sources && msg.sources.length > 0 && (
+                                    <button
+                                        onClick={() => onOpenSources(msg.sources)}
+                                        className="px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer"
+                                        title="View multi-source verified intelligence"
+                                    >
+                                        <span className="material-icons-round text-xs">verified</span>
+                                        <span>{msg.sources.length} Sources Analyzed</span>
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={() => onCopy(msg)}
+                                    className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1 text-[11px]"
+                                    title="Copy text"
+                                >
+                                    <span className="material-icons-round text-sm">
+                                        {isCopied ? 'check' : 'content_copy'}
+                                    </span>
+                                    {isCopied && <span className="text-primary font-bold">Copied!</span>}
+                                </button>
+
+                                <button
+                                    onClick={() => onPlayback(msg)}
+                                    className={`p-1.5 rounded-xl transition-all cursor-pointer text-[11px] ${
+                                        isPlaying
+                                            ? 'bg-primary text-slate-900 font-bold animate-pulse'
+                                            : 'bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white'
+                                    }`}
+                                    title={isPlaying ? 'Stop audio' : 'Listen audio'}
+                                >
+                                    <span className="material-icons-round text-sm">
+                                        {isPlaying ? 'stop' : 'volume_up'}
+                                    </span>
+                                </button>
+
+                                <button
+                                    onClick={() => onRegenerate(msg.id)}
+                                    className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                    title="Regenerate"
+                                >
+                                    <span className="material-icons-round text-sm">refresh</span>
+                                </button>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => onReaction(msg.id, 'like')}
+                                    className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+                                        reaction === 'like'
+                                            ? 'bg-emerald-500/25 text-emerald-400 border border-emerald-500/40'
+                                            : 'bg-white/5 hover:bg-white/15 text-slate-400 hover:text-slate-200'
+                                    }`}
+                                    title="Like"
+                                >
+                                    <span className="material-icons-round text-sm">thumb_up</span>
+                                </button>
+                                <button
+                                    onClick={() => onReaction(msg.id, 'dislike')}
+                                    className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+                                        reaction === 'dislike'
+                                            ? 'bg-red-500/25 text-red-400 border border-red-500/40'
+                                            : 'bg-white/5 hover:bg-white/15 text-slate-400 hover:text-slate-200'
+                                    }`}
+                                    title="Dislike"
+                                >
+                                    <span className="material-icons-round text-sm">thumb_down</span>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mx-1">
+                    {msg.time}
+                </span>
+            </div>
+        </div>
+    );
+});
+
+ChatMessageItem.displayName = 'ChatMessageItem';
+
+// ============================================================================
+// 3. MAIN AI COPILOT CHATBOT CONTAINER
 // ============================================================================
 const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, clearContext }) => {
-    // Session & Message State
     const [sessionId, setSessionId] = useState(() => 'sess_' + Date.now().toString(36));
     const [savedSessions, setSavedSessions] = useState([]);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -143,17 +371,16 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
     const [isTyping, setIsTyping] = useState(false);
     const [farmData, setFarmData] = useState(null);
 
-    // Multimodal Attachment State
+    // Attachments
     const [attachment, setAttachment] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef(null);
 
-    // Speech & Audio State
+    // Audio & Speech
     const [isListening, setIsListening] = useState(false);
-    const [isSpeaking, setIsSpeaking] = useState(false);
     const [playingMessageId, setPlayingMessageId] = useState(null);
 
-    // Citations / Multi-Source Intelligence Modal State
+    // Citations & Reactions
     const [activeSourcesModal, setActiveSourcesModal] = useState(null);
     const [copiedMessageId, setCopiedMessageId] = useState(null);
     const [messageReactions, setMessageReactions] = useState({});
@@ -163,15 +390,10 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
     const scrollRef = useRef(null);
     const recognitionRef = useRef(null);
     const hasProcessedContext = useRef(false);
-    const initialTextRef = useRef('');
-    const ignoreResultRef = useRef(false);
     const latestInputRef = useRef('');
     const shouldAutoSendRef = useRef(false);
-    const autoSpeakNext = useRef(false);
 
-    // ------------------------------------------------------------------------
-    // Session Memory Management (Local + Backend sync)
-    // ------------------------------------------------------------------------
+    // Load Sessions
     const loadSessions = useCallback(async () => {
         try {
             const { data } = await aiAPI.getSessions();
@@ -185,9 +407,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
 
         try {
             const local = localStorage.getItem('kisan_chat_sessions');
-            if (local) {
-                setSavedSessions(JSON.parse(local));
-            }
+            if (local) setSavedSessions(JSON.parse(local));
         } catch {
             // Ignore
         }
@@ -228,19 +448,20 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         });
     }, [farmData]);
 
-    const handleSelectSession = (session) => {
+    const handleSelectSession = useCallback((session) => {
         setSessionId(session.sessionId || session._id);
         setMessages(session.messages || []);
         setIsDrawerOpen(false);
-        stopSpeaking();
-    };
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        setPlayingMessageId(null);
+    }, []);
 
-    const handleNewChat = () => {
+    const handleNewChat = useCallback(() => {
         const newId = 'sess_' + Date.now().toString(36);
         setSessionId(newId);
         setMessages([{
             id: 1,
-            text: `Namaste${userProfile?.name ? `, ${userProfile.name.split(' ')[0]}` : ''}! I am your AI Farming Copilot. How can I help you with crop disease diagnosis, soil lab tests, mandi prices, or fertilizer plans today?`,
+            text: `Namaste${userProfile?.name ? `, ${userProfile.name.split(' ')[0]}` : ''}! I am your AI Farming Copilot. How can I assist you with crop diagnosis, soil health cards, mandi rates, or fertilizer schedules today?`,
             isAI: true,
             sources: [
                 {
@@ -248,22 +469,23 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                     title: 'ICAR Package of Practices & Agronomy Standards',
                     org: 'Indian Council of Agricultural Research',
                     type: 'Official Research Standard',
-                    detail: 'Field-tested agronomic practices, crop calendars, and integrated management.'
+                    detail: 'Field-tested agronomic practices, crop calendars, and integrated pest management.'
                 }
             ],
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }]);
         setAttachment(null);
         setIsDrawerOpen(false);
-        stopSpeaking();
-    };
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        setPlayingMessageId(null);
+    }, [userProfile]);
 
-    const handleDeleteSession = async (e, sid) => {
+    const handleDeleteSession = useCallback(async (e, sid) => {
         e.stopPropagation();
         try {
             await aiAPI.deleteSession(sid);
         } catch {
-            // Ignore backend error and delete locally
+            // Ignore
         }
 
         setSavedSessions(prev => {
@@ -279,85 +501,54 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         if (sessionId === sid) {
             handleNewChat();
         }
-    };
+    }, [sessionId, handleNewChat]);
 
-    // ------------------------------------------------------------------------
-    // Speech Synthesis (Audio Output)
-    // ------------------------------------------------------------------------
-    const stopSpeaking = () => {
-        if (window.speechSynthesis) {
+    // Speech Output
+    const togglePlayback = useCallback((msg) => {
+        if (!('speechSynthesis' in window)) return;
+
+        if (playingMessageId === msg.id) {
             window.speechSynthesis.cancel();
-            setIsSpeaking(false);
             setPlayingMessageId(null);
-        }
-    };
-
-    const togglePlayback = (msg) => {
-        if (isSpeaking && playingMessageId === msg.id) {
-            stopSpeaking();
             return;
         }
 
-        stopSpeaking();
-        if (!('speechSynthesis' in window)) return;
-
-        const textToRead = msg.text
-            .replace(/[*#_`~]/g, '')
-            .replace(/•/g, '')
-            .replace(/https?:\/\/\S+/g, '')
-            .trim();
-
+        window.speechSynthesis.cancel();
+        const textToRead = (msg.text || '').replace(/[*#_`~•]/g, '').trim();
         const utterance = new SpeechSynthesisUtterance(textToRead);
+        
         const langMap = {
             'hi': 'hi-IN', 'mr': 'mr-IN', 'ta': 'ta-IN', 'te': 'te-IN',
             'en': 'en-IN', 'gu': 'gu-IN', 'bn': 'bn-IN', 'pa': 'pa-IN'
         };
         utterance.lang = langMap[userProfile?.preferred_language] || 'hi-IN';
 
-        utterance.onstart = () => {
-            setIsSpeaking(true);
-            setPlayingMessageId(msg.id);
-        };
-        utterance.onend = () => {
-            setIsSpeaking(false);
-            setPlayingMessageId(null);
-        };
-        utterance.onerror = () => {
-            setIsSpeaking(false);
-            setPlayingMessageId(null);
-        };
+        utterance.onstart = () => setPlayingMessageId(msg.id);
+        utterance.onend = () => setPlayingMessageId(null);
+        utterance.onerror = () => setPlayingMessageId(null);
 
         window.speechSynthesis.speak(utterance);
-    };
+    }, [playingMessageId, userProfile]);
 
-    // ------------------------------------------------------------------------
-    // Message Interactions: Copy, Reactions, Sources
-    // ------------------------------------------------------------------------
-    const handleCopy = (msg) => {
-        const cleanText = msg.text.replace(/\*\*/g, '').trim();
+    // Message Actions
+    const handleCopy = useCallback((msg) => {
+        const cleanText = (msg.text || '').replace(/\*\*/g, '').trim();
         navigator.clipboard.writeText(cleanText).then(() => {
             setCopiedMessageId(msg.id);
             setTimeout(() => setCopiedMessageId(null), 2000);
         });
-    };
+    }, []);
 
-    const handleReaction = (msgId, type) => {
+    const handleReaction = useCallback((msgId, type) => {
         setMessageReactions(prev => {
-            const current = prev[msgId];
-            const next = current === type ? null : type;
-            if (next === 'like') {
-                setReactionToast('👍 Thank you! Glad this recommendation was helpful.');
-            } else if (next === 'dislike') {
-                setReactionToast('👎 Feedback noted. We will refine future advisory accuracy.');
-            }
-            setTimeout(() => setReactionToast(''), 2500);
+            const next = prev[msgId] === type ? null : type;
+            setReactionToast(next === 'like' ? '👍 Thank you! Glad this helped.' : '👎 Feedback noted.');
+            setTimeout(() => setReactionToast(''), 2000);
             return { ...prev, [msgId]: next };
         });
-    };
+    }, []);
 
-    // ------------------------------------------------------------------------
-    // Multimodal Attachment File Handler
-    // ------------------------------------------------------------------------
+    // File Upload Handler
     const handleFileSelect = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -366,50 +557,42 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         const fileName = file.name;
         const sizeKb = Math.round(file.size / 1024);
         const isImage = file.type.startsWith('image/');
-        const isTextDoc = file.name.endsWith('.txt') || file.name.endsWith('.csv') || file.name.endsWith('.json');
+        const isTextDoc = file.name.endsWith('.txt') || file.name.endsWith('.csv');
 
+        const reader = new FileReader();
         if (isImage) {
-            const reader = new FileReader();
             reader.onload = (event) => {
-                const base64 = event.target.result;
                 setAttachment({
-                    file,
                     name: fileName,
                     type: 'image',
                     mimeType: file.type,
-                    base64,
-                    previewUrl: base64,
+                    base64: event.target.result,
+                    previewUrl: event.target.result,
                     sizeKb
                 });
                 setIsUploading(false);
             };
             reader.readAsDataURL(file);
         } else if (isTextDoc) {
-            const reader = new FileReader();
             reader.onload = (event) => {
-                const textContent = event.target.result;
                 setAttachment({
-                    file,
                     name: fileName,
                     type: 'document',
                     mimeType: file.type || 'text/plain',
-                    textContent,
+                    textContent: event.target.result,
                     sizeKb
                 });
                 setIsUploading(false);
             };
             reader.readAsText(file);
         } else {
-            const reader = new FileReader();
             reader.onload = (event) => {
-                const base64 = event.target.result;
                 setAttachment({
-                    file,
                     name: fileName,
                     type: 'document',
                     mimeType: file.type || 'application/octet-stream',
-                    base64,
-                    textContent: `[Document File: ${fileName} (${sizeKb} KB) attached for analysis]`,
+                    base64: event.target.result,
+                    textContent: `[Document: ${fileName} (${sizeKb} KB) attached for analysis]`,
                     sizeKb
                 });
                 setIsUploading(false);
@@ -420,236 +603,20 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         e.target.value = '';
     };
 
-    const removeAttachment = () => {
-        setAttachment(null);
-    };
-
-    // ------------------------------------------------------------------------
-    // Chat Dispatch & Multi-Turn AI Call
-    // ------------------------------------------------------------------------
-    const processAutoMessage = useCallback(async (history) => {
-        setIsTyping(true);
-        const messageHistory = history.map(m => ({
-            role: m.isAI ? 'assistant' : 'user',
-            content: m.text
-        }));
-
-        try {
-            const { data } = await aiAPI.chat(
-                messageHistory,
-                selectedFarmId,
-                userProfile?.preferred_language || 'en',
-                userProfile?.personalization_mode || 'farmer',
-                [],
-                sessionId
-            );
-
-            const aiMsg = {
-                id: Date.now() + 1,
-                text: data.response,
-                isAI: true,
-                sources: data.sources || [],
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-
-            setMessages(prev => {
-                const updated = [...prev, aiMsg];
-                persistCurrentSession(updated, sessionId);
-                return updated;
-            });
-        } catch (error) {
-            console.error('Auto message error:', error);
-            const errorMsg = {
-                id: Date.now() + 1,
-                text: "I couldn't process the scan advisory right now. Please ask your question below.",
-                isAI: true,
-                sources: [],
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setMessages(prev => [...prev, errorMsg]);
-        } finally {
-            setIsTyping(false);
-        }
-    }, [selectedFarmId, userProfile, sessionId, persistCurrentSession]);
-
-    // Initial Load & Farm Context
-    useEffect(() => {
-        loadSessions();
-
-        const loadContext = async () => {
-            if (selectedFarmId) {
-                try {
-                    const { data } = await farmAPI.getFarmById(selectedFarmId);
-                    setFarmData(data.farm);
-                    setMessages([{
-                        id: 1,
-                        text: `Namaste${userProfile?.name ? `, ${userProfile.name.split(' ')[0]}` : ''}! I have loaded your **${data.farm.crop_type || 'Crop'}** farm data${data.farm.state ? ` from **${data.farm.state}**` : ''}. You can ask questions, upload lab test reports, or share crop photos for multi-source cross-analysis.`,
-                        isAI: true,
-                        sources: [
-                            {
-                                id: 'icar-farm',
-                                title: 'ICAR Package of Practices for ' + (data.farm.crop_type || 'Crops'),
-                                org: 'Indian Council of Agricultural Research (ICAR)',
-                                type: 'Agronomic Research Benchmark',
-                                detail: 'Verified agronomic schedules, soil-water-crop relations, and IPM guidelines.'
-                            }
-                        ],
-                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    }]);
-                } catch (e) {
-                    console.error('Failed to load farm data:', e);
-                    setMessages([{
-                        id: 1,
-                        text: "Namaste! I am your AI Farming Copilot. How can I help you with crops, lab soil tests, or mandi rates today?",
-                        isAI: true,
-                        sources: [],
-                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    }]);
-                }
-            } else {
-                setMessages([{
-                    id: 1,
-                    text: "Namaste! I am your AI Farming Copilot. Please feel free to ask any agriculture question, upload a Soil Health Card report, or attach a leaf photo for pathology diagnosis.",
-                    isAI: true,
-                    sources: [],
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                }]);
-            }
-        };
-
-        loadContext();
-    }, [selectedFarmId, userProfile, loadSessions]);
-
-    // Handle Incoming External Scan Context
-    useEffect(() => {
-        if (chatContext?.type === 'crop_scan' && chatContext.data && farmData && !hasProcessedContext.current) {
-            hasProcessedContext.current = true;
-            const timer = setTimeout(() => {
-                const scan = chatContext.data;
-                const indicators = scan.indicators?.length > 0 ? scan.indicators.join(', ') : 'None';
-                const assessment = scan.analysis?.overall_assessment || scan.analysis?.raw_analysis || 'Unknown issue';
-
-                const autoPrompt = `I just scanned my ${farmData.crop_type || 'crop'} with the computer vision tool. Diagnostic assessment: "${assessment}". Primary observed indicators: ${indicators}. Please give me a step-by-step treatment protocol and chemical/organic dosages per acre.`;
-
-                const userMsg = {
-                    id: Date.now(),
-                    text: autoPrompt,
-                    isAI: false,
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                };
-
-                setMessages(prev => {
-                    const newMessages = [...prev, userMsg];
-                    processAutoMessage(newMessages);
-                    return newMessages;
-                });
-
-                if (clearContext) clearContext();
-            }, 700);
-            return () => clearTimeout(timer);
-        }
-    }, [chatContext, farmData, clearContext, processAutoMessage]);
-
-    // Auto-scroll on new message
-    useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-    }, [messages, isTyping]);
-
-    // Cleanup speech on unmount
-    useEffect(() => {
-        return () => {
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-        };
-    }, []);
-
-    // Speech Recognition
-    const toggleListening = () => {
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            alert("Voice input is not supported in your browser.");
-            return;
-        }
-
-        if (!recognitionRef.current) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = true;
-
-            const langMap = {
-                'hi': 'hi-IN', 'mr': 'mr-IN', 'ta': 'ta-IN', 'te': 'te-IN',
-                'en': 'en-IN', 'gu': 'gu-IN', 'bn': 'bn-IN', 'pa': 'pa-IN'
-            };
-            recognition.lang = langMap[userProfile?.preferred_language] || 'hi-IN';
-
-            recognition.onstart = () => setIsListening(true);
-            recognition.onresult = (event) => {
-                if (ignoreResultRef.current) return;
-                let transcript = '';
-                for (let i = 0; i < event.results.length; i++) {
-                    transcript += event.results[i][0].transcript;
-                }
-                const newText = initialTextRef.current ? initialTextRef.current + ' ' + transcript : transcript;
-                setInputText(newText);
-                latestInputRef.current = newText;
-            };
-            recognition.onerror = (event) => {
-                console.error("Speech Recognition Error:", event.error);
-                setIsListening(false);
-                shouldAutoSendRef.current = false;
-            };
-            recognition.onend = () => setIsListening(false);
-
-            recognitionRef.current = recognition;
-        }
-
-        if (isListening) {
-            recognitionRef.current.stop();
-        } else {
-            ignoreResultRef.current = false;
-            shouldAutoSendRef.current = true;
-            initialTextRef.current = inputText;
-            latestInputRef.current = inputText;
-            recognitionRef.current.start();
-        }
-    };
-
-    // Auto-send after voice pause
-    useEffect(() => {
-        if (!isListening && shouldAutoSendRef.current && latestInputRef.current.trim()) {
-            shouldAutoSendRef.current = false;
-            autoSpeakNext.current = true;
-            setInputText(latestInputRef.current);
-            setTimeout(() => {
-                document.getElementById('send-btn')?.click();
-            }, 50);
-        }
-    }, [isListening]);
-
-    // Send Message Handler
+    // Send Handler
     const handleSend = async () => {
         const text = (inputText.trim() ? inputText : latestInputRef.current).trim();
         if (!text && !attachment) return;
 
-        if (isListening && recognitionRef.current) {
-            ignoreResultRef.current = true;
-            shouldAutoSendRef.current = false;
-            recognitionRef.current.stop();
-            setIsListening(false);
-            autoSpeakNext.current = true;
-        } else {
-            autoSpeakNext.current = false;
-        }
-
-        stopSpeaking();
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        setPlayingMessageId(null);
 
         const currentAttachment = attachment;
         setAttachment(null);
 
         const userMsg = {
             id: Date.now(),
-            text: text || (currentAttachment ? `Analyzed attachment: ${currentAttachment.name}` : ''),
+            text: text || (currentAttachment ? `Analyzed file: ${currentAttachment.name}` : ''),
             isAI: false,
             attachment: currentAttachment ? {
                 name: currentAttachment.name,
@@ -702,11 +669,6 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                 persistCurrentSession(finalMessages, sessionId);
                 return finalMessages;
             });
-
-            if (autoSpeakNext.current) {
-                autoSpeakNext.current = false;
-                setTimeout(() => togglePlayback(aiMsg), 200);
-            }
         } catch (error) {
             console.error('AI Chat Error:', error);
             const msgText = error.response?.data?.message || "I am having trouble connecting right now. Please check your network and try again.";
@@ -722,8 +684,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         }
     };
 
-    // Regenerate Response
-    const handleRegenerate = async (lastAIMsgId) => {
+    const handleRegenerate = useCallback(async (lastAIMsgId) => {
         const msgIdx = messages.findIndex(m => m.id === lastAIMsgId);
         if (msgIdx <= 0) return;
 
@@ -764,120 +725,157 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         } finally {
             setIsTyping(false);
         }
-    };
+    }, [messages, selectedFarmId, userProfile, sessionId, persistCurrentSession]);
 
-    // ------------------------------------------------------------------------
-    // Rich Markdown Formatter for Multi-Source Agronomic Outputs
-    // ------------------------------------------------------------------------
-    const renderFormattedAIText = (text) => {
-        if (!text) return null;
-        const lines = text.split('\n');
+    // Initial context load
+    useEffect(() => {
+        loadSessions();
 
-        return lines.map((line, idx) => {
-            const trimmed = line.trim();
-
-            // Section Headers (e.g. 1. 🌱 Immediate Core Takeaway, ### Header)
-            if (trimmed.startsWith('###') || (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.length < 60) || /^\d+\.\s+\*\*.*?\*\*/.test(trimmed)) {
-                const headerText = trimmed.replace(/^###\s*/, '').replace(/^\d+\.\s*/, '').replace(/\*\*/g, '');
-                return (
-                    <div key={idx} className="mt-4 mb-2 flex items-center gap-2 border-b border-primary/20 pb-1">
-                        <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
-                        <h4 className="font-bold text-sm md:text-base text-slate-900 dark:text-emerald-300 tracking-tight">{headerText}</h4>
-                    </div>
-                );
-            }
-
-            // Chemical Caution / Safety callout
-            if (trimmed.toLowerCase().includes('caution') || trimmed.toLowerCase().includes('safety') || trimmed.toLowerCase().includes('warning') || trimmed.toLowerCase().includes('phi:')) {
-                return (
-                    <div key={idx} className="my-2 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-300 shadow-sm">
-                        <span className="material-icons-round text-amber-500 text-base shrink-0 mt-0.5">gpp_maybe</span>
-                        <span className="leading-relaxed">{trimmed.replace(/\*\*/g, '')}</span>
-                    </div>
-                );
-            }
-
-            // Cost per Acre Callout
-            if (trimmed.toLowerCase().includes('cost per acre') || trimmed.toLowerCase().includes('estimated cost') || trimmed.toLowerCase().includes('₹/acre') || trimmed.toLowerCase().includes('₹')) {
-                if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ') || /^\d+\./.test(trimmed)) {
-                    return (
-                        <div key={idx} className="my-2 p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2 text-xs text-emerald-300 font-bold">
-                            <span className="material-icons-round text-emerald-400 text-sm">currency_rupee</span>
-                            <span>{trimmed.replace(/^[-*•]\s*/, '').replace(/\*\*/g, '')}</span>
-                        </div>
-                    );
+        const loadContext = async () => {
+            if (selectedFarmId) {
+                try {
+                    const { data } = await farmAPI.getFarmById(selectedFarmId);
+                    setFarmData(data.farm);
+                    setMessages([{
+                        id: 1,
+                        text: `Namaste${userProfile?.name ? `, ${userProfile.name.split(' ')[0]}` : ''}! I have loaded your **${data.farm.crop_type || 'Crop'}** farm data${data.farm.state ? ` from **${data.farm.state}**` : ''}. You can ask questions, upload lab test reports, or share crop photos for instant analysis.`,
+                        isAI: true,
+                        sources: [
+                            {
+                                id: 'icar-farm',
+                                title: 'ICAR Package of Practices for ' + (data.farm.crop_type || 'Crops'),
+                                org: 'Indian Council of Agricultural Research (ICAR)',
+                                type: 'Agronomic Research Benchmark',
+                                detail: 'Verified agronomic schedules, soil-water-crop relations, and IPM guidelines.'
+                            }
+                        ],
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    }]);
+                } catch {
+                    setMessages([{
+                        id: 1,
+                        text: "Namaste! I am your AI Farming Copilot. How can I help you with crops, lab soil tests, or mandi rates today?",
+                        isAI: true,
+                        sources: [],
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    }]);
                 }
+            } else {
+                setMessages([{
+                    id: 1,
+                    text: "Namaste! I am your AI Farming Copilot. Please feel free to ask any agriculture question, upload a Soil Health Card report, or attach a leaf photo for pathology diagnosis.",
+                    isAI: true,
+                    sources: [],
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                }]);
             }
+        };
 
-            // Numbered Action Steps (e.g. 1. Step description)
-            if (/^\d+\./.test(trimmed)) {
-                const parts = trimmed.split(/^(?:\d+\.)\s*/);
-                const stepNum = trimmed.match(/^(\d+)\./)?.[1] || '•';
-                const content = parts[1] || trimmed;
-                return (
-                    <div key={idx} className="flex items-start gap-2.5 my-1.5 ml-1 text-sm">
-                        <span className="w-5 h-5 rounded-full bg-primary/20 text-primary dark:text-emerald-400 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                            {stepNum}
-                        </span>
-                        <div className="flex-1 leading-relaxed text-slate-800 dark:text-slate-200">
-                            {renderBoldSegments(content)}
-                        </div>
-                    </div>
-                );
-            }
+        loadContext();
+    }, [selectedFarmId, userProfile, loadSessions]);
 
-            // Bullet Point
-            if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
-                const content = trimmed.substring(2);
-                return (
-                    <div key={idx} className="flex items-start gap-2 my-1 ml-2 text-sm text-slate-800 dark:text-slate-200">
-                        <span className="text-primary font-bold text-sm shrink-0 mt-0.5">•</span>
-                        <div className="flex-1 leading-relaxed">{renderBoldSegments(content)}</div>
-                    </div>
-                );
-            }
+    // Handle Incoming Scan Context
+    useEffect(() => {
+        if (chatContext?.type === 'crop_scan' && chatContext.data && farmData && !hasProcessedContext.current) {
+            hasProcessedContext.current = true;
+            const timer = setTimeout(() => {
+                const scan = chatContext.data;
+                const indicators = scan.indicators?.length > 0 ? scan.indicators.join(', ') : 'None';
+                const assessment = scan.analysis?.overall_assessment || scan.analysis?.raw_analysis || 'Unknown issue';
 
-            if (!trimmed) {
-                return <div key={idx} className="h-2" />;
-            }
+                const autoPrompt = `I just scanned my ${farmData.crop_type || 'crop'}. Diagnostic assessment: "${assessment}". Primary indicators: ${indicators}. Please give me a step-by-step treatment protocol and chemical/organic dosages per acre.`;
 
-            return (
-                <p key={idx} className="text-sm leading-relaxed text-slate-800 dark:text-slate-200 my-1">
-                    {renderBoldSegments(line)}
-                </p>
-            );
-        });
+                setInputText(autoPrompt);
+                setTimeout(() => {
+                    document.getElementById('send-btn')?.click();
+                }, 50);
+
+                if (clearContext) clearContext();
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [chatContext, farmData, clearContext]);
+
+    // Auto-scroll
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, [messages, isTyping]);
+
+    // Cleanup
+    useEffect(() => {
+        return () => {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+        };
+    }, []);
+
+    // Speech Recognition
+    const toggleListening = () => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert("Voice input is not supported in your browser.");
+            return;
+        }
+
+        if (!recognitionRef.current) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            const langMap = {
+                'hi': 'hi-IN', 'mr': 'mr-IN', 'ta': 'ta-IN', 'te': 'te-IN',
+                'en': 'en-IN', 'gu': 'gu-IN', 'bn': 'bn-IN', 'pa': 'pa-IN'
+            };
+            recognition.lang = langMap[userProfile?.preferred_language] || 'hi-IN';
+
+            recognition.onstart = () => setIsListening(true);
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                setInputText(transcript);
+                latestInputRef.current = transcript;
+            };
+            recognition.onerror = () => setIsListening(false);
+            recognition.onend = () => setIsListening(false);
+
+            recognitionRef.current = recognition;
+        }
+
+        if (isListening) {
+            recognitionRef.current.stop();
+        } else {
+            shouldAutoSendRef.current = true;
+            recognitionRef.current.start();
+        }
     };
 
-    const renderBoldSegments = (str) => {
-        if (!str.includes('**')) return str;
-        const parts = str.split('**');
-        return parts.map((part, i) =>
-            i % 2 === 1 ? (
-                <strong key={i} className="font-bold text-slate-900 dark:text-white bg-primary/10 dark:bg-primary/20 px-1 py-0.5 rounded">
-                    {part}
-                </strong>
-            ) : part
-        );
-    };
+    useEffect(() => {
+        if (!isListening && shouldAutoSendRef.current && latestInputRef.current.trim()) {
+            shouldAutoSendRef.current = false;
+            setInputText(latestInputRef.current);
+            setTimeout(() => {
+                document.getElementById('send-btn')?.click();
+            }, 50);
+        }
+    }, [isListening]);
 
     return (
         <div className="relative w-full h-screen bg-[#07130c] text-slate-100 font-display antialiased flex flex-col overflow-hidden selection:bg-primary/30">
-            {/* 1. 3D Reactive Ambient Canvas */}
+            {/* 1. Hardware-Accelerated 3D Reactive Ambient Canvas */}
             <Interactive3DBackground />
 
-            {/* 2. Chat History Side Drawer (3-Lines Hamburger Menu) */}
+            {/* 2. Side Drawer (3-Lines Hamburger Menu) */}
             {isDrawerOpen && (
                 <div className="fixed inset-0 z-50 flex">
-                    {/* Backdrop */}
                     <div 
                         onClick={() => setIsDrawerOpen(false)}
                         className="fixed inset-0 bg-black/75 backdrop-blur-sm animate-fade-in"
                     />
 
-                    {/* Drawer Panel */}
                     <div className="relative w-80 max-w-[85vw] h-full bg-[#0c1f14]/95 border-r border-white/10 p-5 flex flex-col shadow-2xl z-10 backdrop-blur-xl animate-slide-in-left">
-                        {/* Drawer Header */}
                         <div className="flex items-center justify-between pb-4 border-b border-white/10">
                             <div className="flex items-center gap-2.5">
                                 <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center border border-primary/30">
@@ -893,7 +891,6 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                             </button>
                         </div>
 
-                        {/* New Chat Button */}
                         <button
                             onClick={handleNewChat}
                             className="mt-4 w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-[#0ED054] to-[#0A9E3E] text-white font-bold text-xs shadow-lg shadow-primary/25 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
@@ -902,7 +899,6 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                             <span>Start New Conversation</span>
                         </button>
 
-                        {/* Current Active Farm Context Badge */}
                         {farmData && (
                             <div className="mt-4 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
@@ -916,7 +912,6 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                             </div>
                         )}
 
-                        {/* Saved Session Threads List */}
                         <div className="flex-1 overflow-y-auto no-scrollbar my-4 space-y-2 pr-0.5">
                             <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-1">Past Conversations</p>
                             {savedSessions.length === 0 ? (
@@ -957,7 +952,6 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                             )}
                         </div>
 
-                        {/* Drawer Footer */}
                         <div className="pt-3 border-t border-white/10 text-[10px] text-slate-400 text-center">
                             Grounded in ICAR, CIBRC, IMD & Agmarknet standards
                         </div>
@@ -965,7 +959,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                 </div>
             )}
 
-            {/* 3. Multi-Source Intelligence & Verification Modal */}
+            {/* 3. Multi-Source Intelligence Modal */}
             {activeSourcesModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
                     <div className="bg-[#0c1f14] border border-white/15 rounded-3xl p-6 w-full max-w-lg shadow-2xl relative max-h-[88vh] flex flex-col">
@@ -975,7 +969,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                                     <span className="material-icons-round text-xl">verified</span>
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-base text-white">Cross-Referenced Multi-Source Intelligence</h3>
+                                    <h3 className="font-bold text-base text-white">Multi-Source Intelligence</h3>
                                     <p className="text-[11px] text-emerald-400 font-semibold">6 Authoritative Agricultural Pillars Synthesized</p>
                                 </div>
                             </div>
@@ -1015,7 +1009,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                 </div>
             )}
 
-            {/* Reaction Feedback Toast */}
+            {/* Reaction Toast */}
             {reactionToast && (
                 <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[#0c2e17] border border-primary/40 text-emerald-300 px-4 py-2 rounded-2xl shadow-xl text-xs font-bold animate-bounce-short backdrop-blur-lg">
                     {reactionToast}
@@ -1026,11 +1020,10 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
             <header className="sticky top-0 z-20 px-4 pt-12 pb-3.5 bg-[#07130c]/85 border-b border-white/10 backdrop-blur-xl shadow-lg">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        {/* Side Drawer Hamburger Menu (3-lines) */}
                         <button
                             onClick={() => setIsDrawerOpen(true)}
                             className="p-2 -ml-2 rounded-2xl hover:bg-white/10 text-white transition-colors cursor-pointer relative"
-                            title="Open Chat Memory & History"
+                            title="Open Chat Memory"
                         >
                             <span className="material-icons-round text-2xl">menu</span>
                             {savedSessions.length > 0 && (
@@ -1041,7 +1034,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                         <button
                             onClick={onBack}
                             className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                            title="Back to Dashboard"
+                            title="Back"
                         >
                             <span className="material-icons-round text-lg">arrow_back</span>
                         </button>
@@ -1056,17 +1049,16 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                             <div>
                                 <h1 className="font-bold text-sm md:text-base text-white leading-tight flex items-center gap-1.5">
                                     <span>Kisan Copilot</span>
-                                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">Multi-Source</span>
+                                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">Ultra-Fast Pro</span>
                                 </h1>
                                 <p className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                                    <span>{farmData ? `${farmData.crop_type || 'Farm'} • ICAR + CIBRC + IMD` : 'Online • Multi-Source Intelligence'}</span>
+                                    <span>{farmData ? `${farmData.crop_type || 'Farm'} • ICAR + CIBRC + IMD` : 'Online • Instant Multi-Source'}</span>
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* New Chat Top Shortcut */}
                     <button
                         onClick={handleNewChat}
                         className="p-2 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer text-xs font-bold flex items-center gap-1"
@@ -1081,149 +1073,27 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
             {/* 5. Main Chat Messages List */}
             <main ref={scrollRef} className="flex-1 overflow-y-auto p-4 pb-44 space-y-5 scroll-smooth no-scrollbar relative z-10">
                 {messages.map((msg) => (
-                    <div key={msg.id} className={`flex gap-3 animate-fade-in items-end ${msg.isAI ? '' : 'flex-row-reverse'}`}>
-                        {/* Avatar */}
-                        {msg.isAI && (
-                            <div className="w-8 h-8 rounded-2xl bg-gradient-to-tr from-[#0ED054]/25 to-emerald-400/10 border border-[#0ED054]/30 flex items-center justify-center self-end mb-1 text-primary shrink-0">
-                                <span className="material-icons-round text-sm">smart_toy</span>
-                            </div>
-                        )}
-
-                        <div className={`flex flex-col gap-1.5 max-w-[88%] md:max-w-[78%] ${msg.isAI ? '' : 'items-end'}`}>
-                            {/* Message Bubble */}
-                            <div className={`${
-                                msg.isAI 
-                                    ? 'bg-[#0f2818]/80 border border-white/10 text-slate-100 rounded-3xl rounded-bl-sm shadow-xl backdrop-blur-md' 
-                                    : 'bg-gradient-to-r from-[#0ED054] to-[#0A9E3E] text-white rounded-3xl rounded-br-sm shadow-[0_4px_16px_rgba(14,208,84,0.3)] font-semibold'
-                            } p-4 md:p-5 relative group transition-all`}>
-                                
-                                {/* User Uploaded Attachment Preview */}
-                                {msg.attachment && (
-                                    <div className="mb-3 p-2 rounded-2xl bg-black/25 border border-white/20 flex items-center gap-3">
-                                        {msg.attachment.previewUrl ? (
-                                            <img 
-                                                src={msg.attachment.previewUrl} 
-                                                alt="Uploaded field sample" 
-                                                className="w-16 h-16 object-cover rounded-xl border border-white/30"
-                                            />
-                                        ) : (
-                                            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-white">
-                                                <span className="material-icons-round text-2xl">description</span>
-                                            </div>
-                                        )}
-                                        <div className="overflow-hidden text-xs">
-                                            <p className="font-bold truncate text-white">{msg.attachment.name}</p>
-                                            <p className="text-[10px] text-white/75">{msg.attachment.sizeKb} KB • Uploaded for AI Diagnostic</p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Message Content */}
-                                {msg.isAI ? (
-                                    <div>{renderFormattedAIText(msg.text)}</div>
-                                ) : (
-                                    <p className="drop-shadow-sm text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
-                                )}
-
-                                {/* AI Message Action Bar (ChatGPT / Gemini Style) */}
-                                {msg.isAI && (
-                                    <div className="mt-3.5 pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
-                                        {/* Left action tools: Sources, Voice, Copy, Regenerate */}
-                                        <div className="flex items-center gap-1.5">
-                                            {/* Multi-Source Cross-Analysis Chip */}
-                                            {msg.sources && msg.sources.length > 0 && (
-                                                <button
-                                                    onClick={() => setActiveSourcesModal(msg.sources)}
-                                                    className="px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-sm"
-                                                    title="View cross-referenced multi-source intelligence"
-                                                >
-                                                    <span className="material-icons-round text-xs">verified</span>
-                                                    <span>{msg.sources.length} Sources Analyzed</span>
-                                                </button>
-                                            )}
-
-                                            {/* Copy Button */}
-                                            <button
-                                                onClick={() => handleCopy(msg)}
-                                                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1 text-[11px]"
-                                                title="Copy to clipboard"
-                                            >
-                                                <span className="material-icons-round text-sm">
-                                                    {copiedMessageId === msg.id ? 'check' : 'content_copy'}
-                                                </span>
-                                                {copiedMessageId === msg.id && <span className="text-primary font-bold">Copied!</span>}
-                                            </button>
-
-                                            {/* Voice Text-To-Speech Button */}
-                                            <button
-                                                onClick={() => togglePlayback(msg)}
-                                                className={`p-1.5 rounded-xl transition-all cursor-pointer text-[11px] flex items-center gap-1 ${
-                                                    playingMessageId === msg.id
-                                                        ? 'bg-primary text-slate-900 font-bold animate-pulse shadow-md shadow-primary/30'
-                                                        : 'bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white'
-                                                }`}
-                                                title={playingMessageId === msg.id ? 'Stop audio' : 'Listen to answer'}
-                                            >
-                                                <span className="material-icons-round text-sm">
-                                                    {playingMessageId === msg.id ? 'stop' : 'volume_up'}
-                                                </span>
-                                            </button>
-
-                                            {/* Regenerate Button */}
-                                            <button
-                                                onClick={() => handleRegenerate(msg.id)}
-                                                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors cursor-pointer"
-                                                title="Regenerate alternative response"
-                                            >
-                                                <span className="material-icons-round text-sm">refresh</span>
-                                            </button>
-                                        </div>
-
-                                        {/* Right action tools: Like / Dislike */}
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                onClick={() => handleReaction(msg.id, 'like')}
-                                                className={`p-1.5 rounded-xl transition-all cursor-pointer ${
-                                                    messageReactions[msg.id] === 'like'
-                                                        ? 'bg-emerald-500/25 text-emerald-400 border border-emerald-500/40'
-                                                        : 'bg-white/5 hover:bg-white/15 text-slate-400 hover:text-slate-200'
-                                                }`}
-                                                title="Good recommendation (Like)"
-                                            >
-                                                <span className="material-icons-round text-sm">thumb_up</span>
-                                            </button>
-                                            <button
-                                                onClick={() => handleReaction(msg.id, 'dislike')}
-                                                className={`p-1.5 rounded-xl transition-all cursor-pointer ${
-                                                    messageReactions[msg.id] === 'dislike'
-                                                        ? 'bg-red-500/25 text-red-400 border border-red-500/40'
-                                                        : 'bg-white/5 hover:bg-white/15 text-slate-400 hover:text-slate-200'
-                                                }`}
-                                                title="Needs improvement (Dislike)"
-                                            >
-                                                <span className="material-icons-round text-sm">thumb_down</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Message Timestamp */}
-                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mx-1">
-                                {msg.time}
-                            </span>
-                        </div>
-                    </div>
+                    <ChatMessageItem
+                        key={msg.id}
+                        msg={msg}
+                        onOpenSources={setActiveSourcesModal}
+                        onCopy={handleCopy}
+                        onPlayback={togglePlayback}
+                        onRegenerate={handleRegenerate}
+                        onReaction={handleReaction}
+                        isPlaying={playingMessageId === msg.id}
+                        isCopied={copiedMessageId === msg.id}
+                        reaction={messageReactions[msg.id]}
+                    />
                 ))}
 
-                {/* Typing / Multi-Source Analyzing Indicator */}
                 {isTyping && (
                     <div className="flex gap-3 items-center ml-11 animate-fade-in">
                         <div className="flex items-center gap-2.5 bg-[#0c2415]/90 border border-primary/30 py-2.5 px-4 rounded-2xl shadow-lg backdrop-blur-md">
                             <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
                             <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.15s]"></div>
                             <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.3s]"></div>
-                            <span className="text-xs font-extrabold text-emerald-300 ml-1">Cross-analyzing ICAR, CIBRC, IMD & Agmarknet datasets...</span>
+                            <span className="text-xs font-extrabold text-emerald-300 ml-1">Cross-referencing ICAR, CIBRC, IMD & Agmarknet...</span>
                         </div>
                     </div>
                 )}
@@ -1253,10 +1123,8 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                 ))}
             </div>
 
-            {/* 7. Bottom Input Bar with File Uploader */}
+            {/* 7. Bottom Input Bar */}
             <div className="fixed bottom-0 left-0 w-full bg-[#07130c]/90 border-t border-white/10 pb-6 pt-2.5 z-30 shadow-[0_-12px_40px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
-                
-                {/* Active Attachment Preview Banner */}
                 {attachment && (
                     <div className="max-w-md mx-auto px-4 mb-2">
                         <div className="p-2.5 rounded-2xl bg-[#0e2a18] border border-primary/40 flex items-center justify-between gap-3 shadow-lg animate-fade-in">
@@ -1278,7 +1146,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                                 </div>
                             </div>
                             <button
-                                onClick={removeAttachment}
+                                onClick={() => setAttachment(null)}
                                 className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
                                 title="Remove file"
                             >
@@ -1288,9 +1156,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                     </div>
                 )}
 
-                {/* Input Controls */}
                 <div className="max-w-md mx-auto px-4 flex items-end gap-2">
-                    {/* Hidden Native File Input */}
                     <input
                         type="file"
                         ref={fileInputRef}
@@ -1299,7 +1165,6 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                         className="hidden"
                     />
 
-                    {/* Attachment Button */}
                     <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isUploading || isTyping}
@@ -1311,8 +1176,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                         </span>
                     </button>
 
-                    {/* Text Input Container */}
-                    <div className={`flex-1 rounded-2xl px-3.5 py-2.5 flex items-center gap-2 border transition-all duration-300 ${
+                    <div className={`flex-1 rounded-2xl px-3.5 py-2.5 flex items-center gap-2 border transition-all duration-200 ${
                         isListening 
                             ? 'border-red-500/50 ring-2 ring-red-500/20 bg-red-950/20' 
                             : 'bg-white/5 border-white/10 focus-within:border-primary/60 focus-within:bg-white/10'
@@ -1337,7 +1201,6 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                             }}
                         />
 
-                        {/* Mic Voice Input */}
                         <button
                             onClick={toggleListening}
                             className={`flex-shrink-0 p-1.5 rounded-full transition-colors cursor-pointer ${
@@ -1351,7 +1214,6 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                         </button>
                     </div>
 
-                    {/* Send Button */}
                     <button
                         id="send-btn"
                         onClick={handleSend}

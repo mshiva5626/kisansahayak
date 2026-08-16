@@ -82,9 +82,9 @@ async function getAIAdvisory(queryOrMessages, context = {}) {
         }
     }
 
-    // 2. Multi-Source Fetching & Cross-Analysis (ICAR, CIBRC, IMD, Agmarknet, Soil Health Card)
+    // 2. Ultra-Fast Parallel Multi-Source Intelligence Retrieval (ICAR, CIBRC, IMD, Agmarknet, Soil Health Card)
     const multiSourceResult = await fetchAndAnalyzeMultiSources({
-        query: latestQuery,
+        query: latestQuery + ' ' + attachmentContext,
         crop: farm?.crop_type,
         farm,
         userProfile: farmer,
@@ -92,41 +92,34 @@ async function getAIAdvisory(queryOrMessages, context = {}) {
         attachments
     });
 
-    // 3. Tool & RAG Orchestration
-    const orchestration = await orchestrateTools({
-        query: latestQuery + ' ' + attachmentContext,
-        farm,
-        userProfile: farmer,
-        skipWeather: !!weather
-    });
-    
-    const activeWeather = weather || orchestration.weather;
-    
-    // Build direct image analysis snippet if passed separately
+    const activeWeather = weather || multiSourceResult.weatherAnalysis;
+
+    // Direct image analysis snippet if passed separately
     let directImageText = '';
     if (image_analysis) {
         directImageText = `\nFIELD IMAGE ANALYSIS EVIDENCE:\n`;
         directImageText += `- Diagnostic Result: ${JSON.stringify(image_analysis.analysis_result || image_analysis)}\n`;
         directImageText += `- Confidence Score: ${image_analysis.confidence_score || 'N/A'}\n`;
     }
-    
-    // 4. Build Master Agricultural System Instruction with Multi-Source Intelligence
+
+    // 3. Build Master Agricultural System Instruction with Multi-Source Intelligence
     const systemInstruction = buildAgriculturalSystemInstruction({
         userProfile: farmer,
         farm,
         weather: activeWeather,
-        ragContext: orchestration.ragContext,
-        toolContext: (orchestration.toolContext || '') + '\n' + multiSourceResult.multiSourceContext + directImageText,
+        ragContext: '',
+        toolContext: multiSourceResult.multiSourceContext + directImageText,
         attachmentContext,
         personalizationMode: personalizationMode || farmer.personalization_mode || 'farmer',
         language: language || farmer.preferred_language || 'en'
     });
-    
-    // 5. Dispatch to Configured Central AI Model
+
+    // 4. Dispatch to Configured Central AI Model
     const completion = await generateAgriculturalCompletion({
         messages: messagesHistory,
         systemInstruction,
-        temperature: 0.2 // Strict factual precision for agronomy
+        temperature: 0.2, // Strict factual precision for agronomy
+        maxTokens: 3500 // Full output headroom for reasoning models
     });
 
     return {
