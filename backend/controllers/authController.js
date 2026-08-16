@@ -18,9 +18,23 @@ const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET || 'kisan_farm_copilot_jwt_secret_2026', { expiresIn: '30d' });
 };
 
-// Register new user (Supabase Native Auth)
+// Register new user (Supabase Native Auth + Local Hybrid Store)
 exports.register = async (req, res) => {
-    const { email, password, name } = req.body;
+    const { 
+        email, 
+        password, 
+        name, 
+        age, 
+        mobile_number, 
+        land_size, 
+        experience_years, 
+        estimated_revenue, 
+        has_degree,
+        education_qualification,
+        role,
+        preferred_language, 
+        farming_type 
+    } = req.body;
 
     if (!email || !password) {
         return res.status(400).json({ message: 'Email and password are required' });
@@ -39,39 +53,54 @@ exports.register = async (req, res) => {
         let authUser = null;
         let token = null;
 
+        const assignedRole = role || (has_degree ? 'verified_agri_entrepreneur' : 'verified_farmer');
+
+        const profileMetadata = {
+            name: name || '',
+            age: age ? Number(age) : null,
+            mobile_number: mobile_number || '',
+            land_size: land_size || '',
+            experience_years: experience_years || '',
+            estimated_revenue: estimated_revenue || '',
+            has_degree: Boolean(has_degree),
+            education_qualification: education_qualification || '',
+            role: assignedRole,
+            preferred_language: preferred_language || 'en',
+            farming_type: farming_type || 'Conventional'
+        };
+
+        // 1. Hash password for secure local persistence
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // 2. Try Supabase Auth integration if available
         if (realSupabase && realSupabase.auth) {
-            // Check if user already exists in Supabase
-            const { data: userList } = await realSupabase.auth.admin.listUsers();
-            const existing = userList?.users?.find(u => u.email?.toLowerCase() === normalizedEmail);
+            try {
+                // Check if user already exists in Supabase
+                const { data: supaUser, error: supaErr } = await realSupabase.auth.admin.createUser({
+                    email: normalizedEmail,
+                    password: password,
+                    email_confirm: true,
+                    user_metadata: profileMetadata
+                });
 
-            if (existing) {
-                return res.status(400).json({ message: 'User already exists with this email. Please login instead.' });
+                if (!supaErr && supaUser?.user) {
+                    authUser = supaUser.user;
+                    userId = authUser.id;
+
+                    const { data: signInData } = await realSupabase.auth.signInWithPassword({
+                        email: normalizedEmail,
+                        password: password
+                    });
+                    token = signInData?.session?.access_token;
+                }
+            } catch (supaNetErr) {
+                console.warn('Supabase Auth remote error/timeout, using local fallback:', supaNetErr.message);
             }
+        }
 
-            // Create confirmed user in Supabase Auth
-            const { data: supaUser, error: supaErr } = await realSupabase.auth.admin.createUser({
-                email: normalizedEmail,
-                password: password,
-                email_confirm: true,
-                user_metadata: { name: name || '', role: 'farmer' }
-            });
-
-            if (supaErr) {
-                return res.status(400).json({ message: supaErr.message });
-            }
-
-            authUser = supaUser.user;
-            userId = authUser.id;
-
-            // Also attempt to get a Supabase session token
-            const { data: signInData } = await realSupabase.auth.signInWithPassword({
-                email: normalizedEmail,
-                password: password
-            });
-
-            token = signInData?.session?.access_token || generateToken(userId);
-        } else {
-            // Offline fallback
+        // 3. Fallback UUID if Supabase was offline
+        if (!userId) {
             const { data: existingUser } = await supabase
                 .from('users')
                 .select('id')
@@ -81,53 +110,52 @@ exports.register = async (req, res) => {
             if (existingUser) {
                 return res.status(400).json({ message: 'User already exists with this email' });
             }
+            userId = 'farmer_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+        }
 
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
-
-            const { data: newUser, error } = await supabase
-                .from('users')
-                .insert([{ email: normalizedEmail, password: hashedPassword, name: name || '' }])
-                .select()
-                .single();
-
-            if (error) throw error;
-            userId = newUser.id;
+        if (!token) {
             token = generateToken(userId);
         }
 
-        // Ensure user record exists in persistent data store
+        // 4. Save/update full farmer profile in persistent store
         const { data: existingRecord } = await supabase
             .from('users')
-            .select('id')
+            .select('*')
             .eq('id', userId)
             .maybeSingle();
 
         let finalUser;
         if (!existingRecord) {
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
-
             const { data: savedRecord } = await supabase
                 .from('users')
                 .insert([{
                     id: userId,
                     email: normalizedEmail,
                     password: hashedPassword,
-                    name: name || '',
-                    role: 'farmer',
-                    preferred_language: 'en'
+                    ...profileMetadata
                 }])
                 .select()
                 .maybeSingle();
-            finalUser = savedRecord || { id: userId, email: normalizedEmail, name: name || '' };
+            finalUser = savedRecord || { id: userId, email: normalizedEmail, ...profileMetadata };
         } else {
-            finalUser = existingRecord;
+            const { data: updatedRecord } = await supabase
+                .from('users')
+                .update({
+                    ...profileMetadata,
+                    password: hashedPassword
+                })
+                .eq('id', userId)
+                .select()
+                .maybeSingle();
+            finalUser = updatedRecord || existingRecord;
         }
+
+        const userResponse = { ...finalUser, ...profileMetadata, _id: userId, id: userId };
+        delete userResponse.password;
 
         res.status(201).json({
             token,
-            user: { ...finalUser, _id: userId, id: userId, name: name || finalUser.name || '' }
+            user: userResponse
         });
     } catch (error) {
         console.error('Register error:', error.message);
@@ -135,122 +163,90 @@ exports.register = async (req, res) => {
     }
 };
 
-// Login existing user (Supabase Native Auth)
+// Login existing user (Supports Email OR Mobile Number)
 exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({ message: 'Email and password are required' });
+        return res.status(400).json({ message: 'Email/Mobile and password are required' });
     }
 
     try {
         const inputStr = email.trim();
         const isEmail = inputStr.includes('@');
-        const realSupabase = getRealSupabase();
         const supabase = getSupabase();
+        const realSupabase = getRealSupabase();
 
-        let userId = null;
-        let token = null;
-        let userData = null;
+        let user = null;
 
-        if (isEmail && realSupabase && realSupabase.auth) {
-            const normalizedEmail = inputStr.toLowerCase();
-
-            // Authenticate with Supabase Auth
-            const { data: signInData, error: signInErr } = await realSupabase.auth.signInWithPassword({
-                email: normalizedEmail,
-                password: password
-            });
-
-            if (signInData && signInData.session && signInData.user) {
-                userId = signInData.user.id;
-                token = signInData.session.access_token;
-                userData = {
-                    id: userId,
-                    email: signInData.user.email,
-                    name: signInData.user.user_metadata?.name || signInData.user.user_metadata?.full_name || ''
-                };
-            } else {
-                // If Supabase auth failed, check if user exists in local persistent store
-                const { data: localUser } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('email', normalizedEmail)
-                    .maybeSingle();
-
-                if (localUser && localUser.password) {
-                    const isMatch = await bcrypt.compare(password, localUser.password);
-                    if (isMatch) {
-                        userId = localUser.id;
-                        token = generateToken(userId);
-                        userData = localUser;
-
-                        // Migrate user to Supabase Auth in background
-                        try {
-                            await realSupabase.auth.admin.createUser({
-                                email: normalizedEmail,
-                                password: password,
-                                email_confirm: true,
-                                user_metadata: { name: localUser.name || '' }
-                            });
-                        } catch (migrateErr) {
-                            // User might already exist in Supabase
-                        }
-                    } else {
-                        return res.status(401).json({ message: 'Invalid email or password' });
-                    }
-                } else {
-                    return res.status(401).json({
-                        message: signInErr?.message === 'Invalid login credentials' 
-                            ? 'Invalid email or password. Please check your credentials or register.' 
-                            : (signInErr?.message || 'Invalid email or password')
-                    });
-                }
-            }
+        // 1. Search persistent store by Email OR Mobile
+        if (isEmail) {
+            const { data } = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', inputStr.toLowerCase())
+                .maybeSingle();
+            user = data;
         } else {
-            // Phone login or offline mode
-            let query = supabase.from('users').select('*');
-            if (isEmail) {
-                query = query.eq('email', inputStr.toLowerCase());
-            } else {
-                query = query.eq('mobile_number', inputStr);
-            }
-
-            const { data: user, error } = await query.maybeSingle();
-
-            if (error || !user) {
-                return res.status(401).json({ message: 'Invalid credentials or user not found. Please register.' });
-            }
-
-            const isMatch = await bcrypt.compare(password, user.password);
-            if (!isMatch) {
-                return res.status(401).json({ message: 'Invalid email/phone or password' });
-            }
-
-            userId = user.id;
-            token = generateToken(userId);
-            userData = user;
+            // Mobile search (e.g. 9876543210)
+            const cleanDigits = inputStr.replace(/\D/g, '');
+            const { data } = await supabase
+                .from('users')
+                .select('*')
+                .eq('mobile_number', cleanDigits || inputStr)
+                .maybeSingle();
+            user = data;
         }
 
-        // Fetch or create profile record in persistent store
-        const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', userId)
-            .maybeSingle();
+        // 2. If user found locally, verify bcrypt password
+        if (user && user.password) {
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (isMatch) {
+                const userId = user.id || user._id;
+                const token = generateToken(userId);
+                const userResponse = { ...user, id: userId, _id: userId };
+                delete userResponse.password;
 
-        const mergedUser = {
-            ...userData,
-            ...(profile || {}),
-            id: userId,
-            _id: userId
-        };
+                return res.status(200).json({
+                    token,
+                    user: userResponse
+                });
+            }
+        }
 
-        delete mergedUser.password;
+        // 3. If email login and Supabase Auth is online, try Supabase password login
+        if (isEmail && realSupabase && realSupabase.auth) {
+            try {
+                const { data: signInData, error: signInErr } = await realSupabase.auth.signInWithPassword({
+                    email: inputStr.toLowerCase(),
+                    password: password
+                });
 
-        res.status(200).json({
-            token,
-            user: mergedUser
+                if (signInData?.session && signInData?.user) {
+                    const userId = signInData.user.id;
+                    const token = generateToken(userId);
+                    const userData = {
+                        id: userId,
+                        _id: userId,
+                        email: signInData.user.email,
+                        name: signInData.user.user_metadata?.name || 'Farmer',
+                        preferred_language: signInData.user.user_metadata?.preferred_language || 'en',
+                        ...(user || {})
+                    };
+                    delete userData.password;
+
+                    return res.status(200).json({
+                        token,
+                        user: userData
+                    });
+                }
+            } catch (supaErr) {
+                console.warn('Supabase remote sign in error:', supaErr.message);
+            }
+        }
+
+        return res.status(401).json({ 
+            message: 'Invalid email/mobile number or password. Please check your credentials or register.' 
         });
     } catch (error) {
         console.error('Login error:', error.message);
@@ -345,7 +341,8 @@ exports.googleSync = async (req, res) => {
             finalUser = existingUser;
         }
 
-        const token = accessToken || generateToken(userId);
+        // Always issue a long-lived application JWT token
+        const token = generateToken(userId);
 
         res.status(200).json({
             token,

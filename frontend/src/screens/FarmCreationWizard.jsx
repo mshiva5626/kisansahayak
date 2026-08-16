@@ -20,13 +20,6 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
         sowingDate: ''
     });
 
-    // Fetch GPS location when entering step 2
-    useEffect(() => {
-        if (step === 2 && !formData.latitude) {
-            fetchCurrentLocation();
-        }
-    }, [step]);
-
     const fetchCurrentLocation = () => {
         setLocationStatus('fetching');
         if (!navigator.geolocation) {
@@ -51,7 +44,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                             address: geo.display_name || ''
                         }));
                     }
-                } catch (e) {
+                } catch {
                     console.log('Reverse geocoding failed, using coords only');
                 }
             },
@@ -62,6 +55,13 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
             { enableHighAccuracy: true, timeout: 10000 }
         );
     };
+
+    // Fetch GPS location when entering step 2
+    useEffect(() => {
+        if (step === 2 && !formData.latitude) {
+            fetchCurrentLocation();
+        }
+    }, [step, formData.latitude]);
 
     const handleNext = async () => {
         if (step === 1) {

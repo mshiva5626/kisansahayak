@@ -1,65 +1,50 @@
-const OPENROUTER_API_KEY = process.env.SCHEMES_API_KEY || "";
-const MODEL_NAME = "stepfun/step-3.5-flash:free";
+/**
+ * Kisan Sahayak - Government Schemes AI Advisory & Verification Service
+ * 
+ * Provides verified guidance on official Central and State government schemes,
+ * eligibility verification, and direct portal links without fabrication.
+ */
+
+const { generateAgriculturalCompletion } = require('../config/aiConfig');
+const { getAllSchemes } = require('../knowledge/knowledgeBase');
 
 /**
- * Generates an AI response based on user queries regarding schemes.
- * Injecting the current matching schemes as context.
+ * Generates an AI response for questions regarding government schemes
  */
 const getSchemeAdvice = async (messages, schemesContext, userState) => {
     try {
-        console.log(`\n--- OPENROUTER SCHEME AI REQUEST ---`);
-        console.log(`Model: ${MODEL_NAME}`);
+        const verifiedSchemes = getAllSchemes(userState);
+        const combinedSchemes = schemesContext && schemesContext.length > 0 ? schemesContext : verifiedSchemes;
 
-        // Build context payload from schemes
-        const schemeDetails = schemesContext.map(s =>
-            `- **${s.name}** (${s.ministry || 'N/A'}):\n  Benefits: ${s.benefits}\n  Eligibility: ${s.eligibility || 'N/A'}\n  Apply: ${s.application_guidance || 'N/A'}`
+        const schemeDetails = combinedSchemes.map(s =>
+            `- **${s.name}** (${s.ministry || s.scheme_type || 'Govt'}):\n  • Benefits: ${s.benefits}\n  • Eligibility: ${s.eligibility || 'N/A'}\n  • Application Guidance: ${s.application_guidance || 'N/A'}\n  • Official Website: ${s.website_url || 'https://agricoop.nic.in'}`
         ).join('\n\n');
 
-        const systemPrompt = `You are a knowledgeable AI Assistant specializing in Indian Government Agricultural Schemes.
-    You help farmers understand the schemes available to them. 
+        const systemPrompt = `You are a Senior Agricultural Extension Officer specializing in Indian Government Agricultural Schemes and DBT Portals.
+You assist farmers with accurate eligibility rules, required documentation, and application steps.
 
-    Consider the following context:
-    User's State: ${userState || 'Not specified'}
-    
-    Here is the list of currently visible government schemes on the farmer's dashboard:
-    ${schemeDetails ? schemeDetails : "(No specific schemes available, provide general guidance)"}
-    
-    CRITICAL RULES:
-    1. Be concise, polite, and farmer-friendly in your answers.
-    2. Only answer questions based on the schemes provided in the context above. If they ask about something else, politely guide them back to discussing agricultural schemes.
-    3. Provide accurate information about eligibility and application steps based ONLY on the context.
-    4. Keep your responses short (under 4-5 sentences) unless explaining a complex eligibility rule. Provide bullet points if explaining steps.`;
+FARMER STATE: ${userState || 'All India'}
 
-        // Combine system prompt with user history
-        const apiMessages = [
-            { role: 'system', content: systemPrompt },
-            ...messages
-        ];
+OFFICIAL VERIFIED SCHEMES DIRECTORY:
+${schemeDetails}
 
-        // Standard HTTP Fetch to OpenRouter (non-streaming for reliability)
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: MODEL_NAME,
-                messages: apiMessages,
-                stream: false
-            })
+CRITICAL RULES:
+1. Ground your answers strictly in the verified schemes provided in the directory above.
+2. Clearly mention the official portal URLs (e.g. pmkisan.gov.in, pmfby.gov.in, agriinfra.dac.gov.in) and required documents (Aadhaar, Land RoR/Khatian, Bank passbook).
+3. If the user asks about a scheme not in the verified list, state that they should verify with their local District Agriculture Office or CSC rather than guessing.
+4. Keep the explanation concise, polite, structured with bullet points, and farmer-friendly.`;
+
+        const formattedMessages = messages.map(m => ({
+            role: m.role === 'assistant' || m.role === 'model' ? 'assistant' : 'user',
+            content: m.content
+        }));
+
+        const reply = await generateAgriculturalCompletion({
+            messages: formattedMessages,
+            systemInstruction: systemPrompt,
+            temperature: 0.2
         });
 
-        if (!response.ok) {
-            const errBody = await response.text();
-            console.error(`OpenRouter Fetch Error: ${response.status} - ${errBody}`);
-            throw new Error(`OpenRouter returned status ${response.status}`);
-        }
-
-        const data = await response.json();
-        const reply = data.choices?.[0]?.message?.content || "I couldn't process your request regarding schemes right now.";
-
-        console.log(`OpenRouter Scheme AI Response received. Length: ${reply.length} chars.`);
         return reply;
 
     } catch (error) {
@@ -69,73 +54,32 @@ const getSchemeAdvice = async (messages, schemesContext, userState) => {
 };
 
 /**
- * Asks the AI to generate a list of real and current agricultural schemes 
- * for a specific Indian state in real-time.
+ * Returns verified real-time schemes for a state from the authoritative registry
  */
 const generateRealtimeSchemes = async (state) => {
     try {
-        console.log(`\n--- OPENROUTER REALTIME SCHEME SYNC ---`);
-        const userState = state || 'India';
+        const userState = state || 'All India';
+        const schemes = getAllSchemes(userState);
 
-        const systemPrompt = `You are an expert in Indian government agricultural schemes. 
-The user is a farmer from the state of: ${userState}.
-Your task is to provide exactly 5 real, active, and highly relevant government agricultural schemes available to them. 
-
-CRITICAL RULE: You MUST output ONLY a valid JSON array of objects. Do not include markdown formatting like \`\`\`json or any conversational text.
-
-Each object in the array MUST have exactly these keys:
-- "name": (String) Name of the scheme
-- "ministry": (String) The responsible ministry or department
-- "benefits": (String) 1-2 sentences summarizing financial or material benefits
-- "eligibility": (String) 1-2 sentences summarizing who is eligible
-- "application_guidance": (String) Short steps on how to apply or where to go
-- "scheme_type": (String) Must be exactly "central" or "state"
-- "state": (String) The specific state name, or "All" if it's Central`;
-
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: MODEL_NAME,
-                messages: [{ role: 'system', content: systemPrompt }],
-                stream: false
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`OpenRouter returned status ${response.status}`);
-        }
-
-        const data = await response.json();
-        const reply = data.choices?.[0]?.message?.content || "[]";
-
-        // Cleanup potential markdown blocks if the AI disobeys the instruction
-        let cleanedReply = reply.trim();
-        if (cleanedReply.startsWith("```json")) {
-            cleanedReply = cleanedReply.replace(/```json/gi, '').replace(/```/g, '').trim();
-        } else if (cleanedReply.startsWith("```")) {
-            cleanedReply = cleanedReply.replace(/```/g, '').trim();
-        }
-
-        const parsedSchemes = JSON.parse(cleanedReply);
-
-        // Assign a mock _id to each for frontend mapping
-        const schemesWithIds = parsedSchemes.map((s, i) => ({
-            ...s,
-            _id: `ai-gen-${Date.now()}-${i}`
+        const formattedSchemes = schemes.map((s, i) => ({
+            _id: s.id || `scheme-${Date.now()}-${i}`,
+            name: s.name,
+            ministry: s.ministry,
+            benefits: s.benefits,
+            eligibility: s.eligibility,
+            application_guidance: s.application_guidance,
+            scheme_type: s.scheme_type,
+            state: s.state,
+            website_url: s.website_url
         }));
 
-        console.log(`Successfully generated ${schemesWithIds.length} realtime schemes for ${userState}.`);
-        return schemesWithIds;
+        return formattedSchemes;
 
     } catch (error) {
-        console.error('Realtime Scheme AI Service Error:', error.message);
-        throw new Error('Failed to generate realtime schemes: ' + error.message);
+        console.error('Realtime Scheme Registry Error:', error.message);
+        throw new Error('Failed to retrieve realtime schemes: ' + error.message);
     }
-}
+};
 
 module.exports = {
     getSchemeAdvice,

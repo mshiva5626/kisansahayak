@@ -40,7 +40,12 @@ API.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-    register: (email, password, name) => API.post('/auth/register', { email, password, name }),
+    register: (payloadOrEmail, password, name) => {
+        if (typeof payloadOrEmail === 'object' && payloadOrEmail !== null) {
+            return API.post('/auth/register', payloadOrEmail);
+        }
+        return API.post('/auth/register', { email: payloadOrEmail, password, name });
+    },
     login: (email, password) => API.post('/auth/login', { email, password }),
     getProfile: () => API.get('/auth/profile'),
     updateProfile: (profileData) => API.put('/auth/profile', profileData),
@@ -111,9 +116,13 @@ export const locationAPI = {
     getSatelliteImage: (lat, lon) => API.get('/location/satellite', { params: { lat, lon } })
 };
 
-// Mandi Prices API
+// Mandi Prices API (Grounded in Official Govt Agmarknet & e-NAM)
 export const mandiAPI = {
-    getPrices: (farmId, state, district, crop) => API.get('/mandi-prices', { params: { farm_id: farmId, state, district, crop } })
+    getPrices: (farmId, state, district, crop, search) => API.get('/mandi-prices', { 
+        params: { farm_id: farmId || undefined, state, district, crop, search } 
+    }),
+    getTrending: () => API.get('/mandi-prices/trending'),
+    getSources: () => API.get('/mandi-prices/sources')
 };
 
 // Soil API

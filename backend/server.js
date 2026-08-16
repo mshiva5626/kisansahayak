@@ -3,11 +3,11 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const connectDB = require('./config/db');
+const { validateAIConfig } = require('./config/aiConfig');
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
@@ -23,6 +23,9 @@ const mandiRoutes = require('./routes/mandiRoutes');
 const soilRoutes = require('./routes/soilRoutes');
 const fertilizerRoutes = require('./routes/fertilizerRoutes');
 const amiRoutes = require('./routes/amiRoutes');
+
+// Validate Central AI Configuration at server startup
+validateAIConfig();
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -62,18 +65,28 @@ app.use('/api/ami', amiRoutes);
 app.get('/', (req, res) => {
     res.json({
         status: 'running',
-        message: 'AI Copilot for Intelligent Farm Operations - Backend API',
-        version: '2.0.0',
+        message: 'Kisan Sahayak - Evidence-Grounded Agricultural AI Copilot Backend API',
+        version: '3.0.0',
+        model_architecture: {
+            provider: process.env.MODEL_PROVIDER || 'openrouter',
+            model: process.env.MODEL_NAME || 'nvidia/nemotron-3.5-lightning:free',
+            rag_enabled: true,
+            vision_model: process.env.VISION_MODEL_NAME || 'nvidia/nemotron-nano-12b-v2-vl:free'
+        },
         endpoints: {
             auth: '/api/auth (register, login, profile)',
             farms: '/api/farms (CRUD)',
             weather: '/api/weather (current + forecast)',
             ai: '/api/ai (advisory, chat, history)',
             images: '/api/images (upload, analyze)',
-            schemes: '/api/schemes (govt schemes)',
+            schemes: '/api/schemes (govt schemes, chat)',
             notifications: '/api/notifications (alerts)',
             location: '/api/location (reverse geocode, satellite)',
-            crop: '/api/crop (scan, diagnostics)'
+            crop: '/api/crop (scan, diagnostics)',
+            mandi: '/api/mandi-prices (APMC prices)',
+            soil: '/api/soil (soil analysis)',
+            fertilizer: '/api/fertilizer (fertilizer advisory)',
+            ami: '/api/ami (AIF infrastructure data)'
         }
     });
 });
@@ -90,7 +103,7 @@ app.use((err, req, res, next) => {
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`\n🌾 AI Farm Copilot Backend running on port ${PORT}`);
+    console.log(`\n🌾 Kisan Sahayak Agricultural AI Copilot running on port ${PORT}`);
     console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
     console.log(`🏠 Health Check:  http://localhost:${PORT}/\n`);
 });

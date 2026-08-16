@@ -1,115 +1,66 @@
-// Model fallback chain — tries each model until one works
-const FERTILIZER_MODELS = [
-    'meta-llama/llama-3.2-3b-instruct:free',
-    'google/gemma-3-4b-it:free',
-    'mistralai/mistral-7b-instruct:free',
-    'liquid/lfm-2.5-1.2b-thinking:free'
-];
+/**
+ * Kisan Sahayak - Fertilizer Calculation & Advisory Service
+ * 
+ * Provides authentic ICAR-grounded NPK dose recommendations,
+ * NBS subsidized MRP pricing, and basal vs top-dressing schedules.
+ */
 
-const systemPrompt = `You are an expert Agricultural Fertilizer AI Assistant on the 'Fertilizer Marketplace' platform for Indian farmers.
+const { generateAgriculturalCompletion } = require('../config/aiConfig');
 
-CRITICAL RULES — ALWAYS FOLLOW:
-1. PRICING: You MUST always state current approximate Indian government-subsidized fertilizer prices. Use these:
-   - Urea: ₹266 per 45kg bag (₹5.91/kg) - NBS subsidized
-   - DAP (Di-ammonium Phosphate): ₹1,350 per 50kg bag (₹27/kg) 
-   - MOP (Muriate of Potash): ₹1,700 per 50kg bag (₹34/kg)
-   - NPK (10:26:26): ₹1,470 per 50kg bag
-   - NPK (12:32:16): ₹1,420 per 50kg bag
-   - SSP (Single Super Phosphate): ₹450 per 50kg bag
-   - Neem-coated Urea: ₹266 per 45kg bag
-   NEVER say you cannot provide prices. These are official GOI-subsidized MRP figures.
+const fertilizerSystemPrompt = `You are a Senior Agronomist and Nutrient Management Specialist on the Kisan Sahayak platform.
 
-2. DOSAGE FORMULAS: For any crop, always use authentic ICAR (Indian Council of Agricultural Research) recommended NPK dosages. Format as:
-   - Total NPK requirement (kg/acre or kg/hectare)  
-   - Which fertilizer to use for each nutrient
-   - Exact quantity of each fertilizer bag needed
-   - Application timing: Basal (at sowing) vs Top Dressing (after germination)
+MANDATORY RULES:
+1. OFFICIAL GOI-SUBSIDIZED FERTILIZER MRP PRICES (Nutrient Based Subsidy - NBS):
+   - Urea (45 kg bag): ₹266 (approx. ₹5.91/kg)
+   - DAP (50 kg bag): ₹1,350 (approx. ₹27.00/kg)
+   - MOP (50 kg bag): ₹1,700 (approx. ₹34.00/kg)
+   - SSP (50 kg bag): ₹450 (approx. ₹9.00/kg)
+   - NPK 10:26:26 (50 kg bag): ₹1,470
+   - NPK 12:32:16 (50 kg bag): ₹1,420
+   - Zinc Sulphate 21% (1 kg): approx. ₹60-70
 
-3. FORMAT: Use clean Markdown tables with ₹ costs. Be precise and authoritative.
+2. AUTHENTIC ICAR NPK DOSAGE CALCULATIONS:
+   - Always state exact nutrient requirements in kg/acre (or kg/ha).
+   - Convert pure N-P-K into exact commercial bags required.
+   - Example 1 Acre Wheat (Standard 50:25:12 kg N:P2O5:K2O per acre):
+     • Basal at sowing: 55 kg DAP (1 bag + 5 kg) + 20 kg MOP + 45 kg Urea (1 bag)
+     • 1st Top Dressing at CRI stage (21 DAS): 45 kg Urea (1 bag)
+     • 2nd Top Dressing at Late Tillering (40-45 DAS): 20 kg Urea
+   - Example 1 Acre Paddy (Standard 45:20:20 kg N:P2O5:K2O per acre):
+     • Basal at transplanting: 45 kg DAP + 35 kg MOP + 30 kg Urea
+     • Top dress at active tillering (21 DAT): 35 kg Urea
+     • Top dress at panicle initiation (42 DAT): 30 kg Urea + 10 kg MOP
 
-Example for WHEAT (per acre):
- - N: 60 kg → Urea 130 kg (₹765) 
- - P: 30 kg → DAP 65 kg (₹1,755)  
- - K: 30 kg → MOP 50 kg (₹1,700)`;
+3. STRUCTURE & FORMAT:
+   - Provide clean Markdown with bold headers and calculation tables with estimated ₹ costs.
+   - Clearly separate BASAL APPLICATION (at sowing/planting) from TOP-DRESSING splits.
+   - Include application safety precautions and soil moisture requirements before applying urea.`;
 
-const tryModelRequest = async (apiKey, model, messages) => {
-    console.log(`[FertilizerService] Trying model: ${model}`);
-    
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout per model
-    
+async function callLiquidModel(messages, context = null) {
     try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "HTTP-Referer": process.env.FRONTEND_URL || "http://localhost:5173",
-                "X-Title": "Kisan Sahayak Fertilizer Market",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ model, messages }),
-            signal: controller.signal
+        let systemPromptWithContext = fertilizerSystemPrompt;
+        if (context) {
+            systemPromptWithContext += `\n\nFARMER & FIELD CONTEXT:\n${JSON.stringify(context, null, 2)}`;
+        }
+
+        const formattedMessages = messages.map(m => ({
+            role: m.role === 'assistant' || m.role === 'model' ? 'assistant' : 'user',
+            content: m.content
+        }));
+
+        const completion = await generateAgriculturalCompletion({
+            messages: formattedMessages,
+            systemInstruction: systemPromptWithContext,
+            temperature: 0.2
         });
 
-        clearTimeout(timeout);
-        
-        if (!response.ok) {
-            const errText = await response.text();
-            console.warn(`[FertilizerService] ${model} returned HTTP ${response.status}: ${errText.substring(0, 200)}`);
-            return null; // Signal to try next model
-        }
-
-        const result = await response.json();
-        
-        // Check for valid content (handle empty/null responses from unstable free models)
-        const content = result?.choices?.[0]?.message?.content || result?.choices?.[0]?.text;
-        if (!content || content.trim().length === 0) {
-            console.warn(`[FertilizerService] ${model} returned empty content.`);
-            return null; // Signal to try next model
-        }
-        
-        console.log(`[FertilizerService] ✅ Success with model: ${model} (${content.length} chars)`);
-        return content;
-        
-    } catch (err) {
-        clearTimeout(timeout);
-        if (err.name === 'AbortError') {
-            console.warn(`[FertilizerService] ${model} timed out after 30s.`);
-        } else {
-            console.warn(`[FertilizerService] ${model} fetch error: ${err.message}`);
-        }
-        return null; // Signal to try next model
+        return completion;
+    } catch (error) {
+        console.error('Fertilizer Service Error:', error.message);
+        throw error;
     }
+}
+
+module.exports = {
+    callLiquidModel
 };
-
-const callLiquidModel = async (messages, context = null) => {
-    const API_KEY = process.env.FERTILIZER_API_KEY;
-    
-    if (!API_KEY) {
-        console.error("[FertilizerService] FERTILIZER_API_KEY is missing from environment variables!");
-        throw new Error("Fertilizer API key is not configured.");
-    }
-    
-    console.log(`[FertilizerService] API Key loaded: ${API_KEY.substring(0, 15)}...`);
-
-    // Build conversation with system prompt
-    const conversationContent = [
-        { role: "system", content: context 
-            ? systemPrompt + `\n\nFARMER CONTEXT: ${JSON.stringify(context)}` 
-            : systemPrompt 
-        },
-        ...messages
-    ];
-
-    // Try each model in the fallback chain
-    for (const model of FERTILIZER_MODELS) {
-        const result = await tryModelRequest(API_KEY, model, conversationContent);
-        if (result) return result;
-        console.log(`[FertilizerService] Falling back to next model...`);
-    }
-
-    // All models failed
-    throw new Error("All AI models are currently unavailable. Please try again in a moment.");
-};
-
-module.exports = { callLiquidModel };

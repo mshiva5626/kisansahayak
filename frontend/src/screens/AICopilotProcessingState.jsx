@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 
+const STATUSES = [
+    "Analyzing farm context...",
+    "Checking weather conditions...",
+    "Preparing execution plan..."
+];
+
 const AICopilotProcessingState = ({ onCancel, onComplete }) => {
     const [statusIndex, setStatusIndex] = useState(0);
-    const statuses = [
-        "Analyzing farm context...",
-        "Checking weather conditions...",
-        "Preparing execution plan..."
-    ];
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setStatusIndex((prev) => (prev + 1) % statuses.length);
+            setStatusIndex((prev) => (prev + 1) % STATUSES.length);
         }, 3000);
 
         // Simulate completion after 9 seconds
@@ -62,7 +63,7 @@ const AICopilotProcessingState = ({ onCancel, onComplete }) => {
                     {/* Status Text Area */}
                     <div className="h-28 flex flex-col items-center justify-start text-center space-y-4">
                         <div className="relative h-8 w-full flex justify-center overflow-hidden">
-                            {statuses.map((text, i) => (
+                            {STATUSES.map((text, i) => (
                                 <h2
                                     key={i}
                                     className={`absolute inset-0 text-xl md:text-2xl font-semibold text-slate-800 dark:text-white tracking-tight transition-all duration-700 transform ${i === statusIndex ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'

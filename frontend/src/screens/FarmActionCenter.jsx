@@ -1,7 +1,7 @@
 import React from 'react';
 import BottomNavbar from '../components/BottomNavbar';
 
-const FarmActionCenter = ({ onBack, onAICopilotClick, onNavigate }) => {
+const FarmActionCenter = ({ onAICopilotClick, onNavigate }) => {
     const actions = [
         { id: 'weather', title: 'Weather', sub: 'Rain expected 4 PM', icon: 'thunderstorm', color: 'blue' },
         { id: 'ai', title: 'AI Copilot', sub: 'Ask anything', icon: 'smart_toy', color: 'primary', premium: true },

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { amiAPI } from '../api';
 import BottomNavbar from '../components/BottomNavbar';
 
-const AMIInsightCenter = ({ onBack, onNavigate, userProfile }) => {
+const AMIInsightCenter = ({ onBack, onNavigate }) => {
     const [summary, setSummary] = useState(null);
     const [statesAndDistricts, setStatesAndDistricts] = useState({});
     const [projects, setProjects] = useState([]);

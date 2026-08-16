@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { aiAPI, farmAPI, weatherAPI } from '../api';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { aiAPI, farmAPI } from '../api';
 
 const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, clearContext }) => {
     const [messages, setMessages] = useState([]);
@@ -71,6 +71,36 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         };
     }, []);
 
+    const processAutoMessage = useCallback(async (history) => {
+        setIsTyping(true);
+        const messageHistory = history.map(m => ({
+            role: m.isAI ? 'assistant' : 'user',
+            content: m.text
+        }));
+
+        try {
+            const { data } = await aiAPI.chat(messageHistory, selectedFarmId);
+            const aiMsg = {
+                id: Date.now() + 1,
+                text: data.response,
+                isAI: true,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages(prev => [...prev, aiMsg]);
+        } catch (error) {
+            console.error('Auto message error:', error);
+            const errorMsg = {
+                id: Date.now() + 1,
+                text: "I couldn't process the scan advisory. Please ask your question below.",
+                isAI: true,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages(prev => [...prev, errorMsg]);
+        } finally {
+            setIsTyping(false);
+        }
+    }, [selectedFarmId]);
+
     // Load farm data on mount
     useEffect(() => {
         const loadContext = async () => {
@@ -114,7 +144,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         if (chatContext?.type === 'crop_scan' && chatContext.data && farmData && !hasProcessedContext.current) {
             hasProcessedContext.current = true;
             // Give the UI a tiny moment to render the greeting first
-            setTimeout(() => {
+            const timer = setTimeout(() => {
                 const scan = chatContext.data;
                 const indicators = scan.indicators?.length > 0 ? scan.indicators.join(', ') : 'None';
                 const assessment = scan.analysis?.overall_assessment || scan.analysis?.raw_analysis || 'Unknown issue';
@@ -132,43 +162,15 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                 setMessages(prev => {
                     const newMessages = [...prev, userMsg];
                     // Trigger the API call
-                    processAutoMessage(newMessages, autoPrompt);
+                    processAutoMessage(newMessages);
                     return newMessages;
                 });
 
                 if (clearContext) clearContext();
             }, 800);
+            return () => clearTimeout(timer);
         }
-    }, [chatContext, farmData, clearContext]);
-
-    const processAutoMessage = async (history, newText) => {
-        setIsTyping(true);
-        const messageHistory = history.map(m => ({
-            role: m.isAI ? 'assistant' : 'user',
-            content: m.text
-        }));
-
-        try {
-            const { data } = await aiAPI.chat(messageHistory, selectedFarmId);
-            const aiMsg = {
-                id: Date.now() + 1,
-                text: data.response,
-                isAI: true,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setMessages(prev => [...prev, aiMsg]);
-        } catch (error) {
-            console.error('AI Error (Auto Context):', error);
-            setMessages(prev => [...prev, {
-                id: Date.now() + 1,
-                text: "I received your scan, but I'm having trouble analyzing the treatment plan right now. Please try asking again.",
-                isAI: true,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }]);
-        } finally {
-            setIsTyping(false);
-        }
-    };
+    }, [chatContext, farmData, clearContext, processAutoMessage]);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -435,6 +437,29 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                     </div>
                 )}
             </main>
+
+            {/* Quick Mandi & Advisory Question Chips */}
+            <div className="fixed bottom-20 left-0 w-full px-4 overflow-x-auto no-scrollbar flex space-x-2 z-20 pointer-events-auto">
+                {[
+                    '📈 What is today\'s Mandi Bhav?',
+                    '🌾 Is wheat price hiking or lowering?',
+                    '💰 Compare market rate with Govt MSP',
+                    '🌱 Crop disease treatment plan'
+                ].map((q) => (
+                    <button
+                        key={q}
+                        onClick={() => {
+                            setInputText(q);
+                            setTimeout(() => {
+                                document.getElementById('send-btn')?.click();
+                            }, 50);
+                        }}
+                        className="px-3 py-1.5 rounded-full bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-white/10 text-xs font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap shadow-sm hover:border-[#0ED054] hover:text-[#0ED054] active:scale-95 transition-all cursor-pointer backdrop-blur-md"
+                    >
+                        {q}
+                    </button>
+                ))}
+            </div>
 
             {/* Bottom Input Section */}
             <div className="fixed bottom-0 left-0 w-full krishi-glass border-t border-white/20 dark:border-white/5 pb-10 pt-2 z-30 shadow-[0_-8px_32px_rgba(0,0,0,0.05)] dark:shadow-[0_-8px_32px_rgba(0,0,0,0.3)]">

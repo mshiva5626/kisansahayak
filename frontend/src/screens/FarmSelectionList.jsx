@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import BottomNavbar from '../components/BottomNavbar';
 import { farmAPI } from '../api';
 
-const FarmSelectionList = ({ onBack, onAddFarm, onFarmClick, onNotificationClick, onNavigate, userProfile }) => {
+const FarmSelectionList = ({ onAddFarm, onFarmClick, onNotificationClick, onNavigate, userProfile }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState('All');
     const [farms, setFarms] = useState([]);

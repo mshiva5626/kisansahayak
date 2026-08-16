@@ -1,0 +1,86 @@
+[
+  {
+    "id": "GOI-SCHEME-01",
+    "name": "PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)",
+    "ministry": "Ministry of Agriculture & Farmers Welfare, Government of India",
+    "level": 1,
+    "scheme_type": "central",
+    "state": "All India",
+    "benefits": "Income support of ₹6,000 per year in three equal 4-monthly installments of ₹2,000 transferred via Direct Benefit Transfer (DBT) into farmer bank accounts.",
+    "eligibility": "All landholding farmer families having cultivable landholding in their names. Exclusions: Institutional landholders, constitutional post holders, serving/retired government employees, income-tax payers, pensioners with monthly pension >₹10,000.",
+    "application_guidance": "Apply online at pmkisan.gov.in (Farmers Corner > New Farmer Registration) or via local Common Service Centre (CSC) or District Agriculture Officer. Required: Aadhaar card, updated land record (Khata/Khatian/RoR), Aadhaar-linked active bank account.",
+    "website_url": "https://pmkisan.gov.in"
+  },
+  {
+    "id": "GOI-SCHEME-02",
+    "name": "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+    "ministry": "Ministry of Agriculture & Farmers Welfare, Government of India",
+    "level": 1,
+    "scheme_type": "central",
+    "state": "All India (participating States/UTs)",
+    "benefits": "Comprehensive crop insurance coverage against non-preventable natural risks (drought, flood, unseasonal rain, pest/disease attack, post-harvest losses). Farmers pay nominal premium: 2% for Kharif food & oilseeds, 1.5% for Rabi crops, and 5% for annual commercial/horticultural crops.",
+    "eligibility": "All farmers growing notified crops in notified areas, including sharecroppers, tenant farmers, loanee, and non-loanee farmers.",
+    "application_guidance": "Enroll through bank branch, PMFBY Portal (pmfby.gov.in), CSC, or authorized insurance company representative before seasonal cut-off date (usually July 31 for Kharif, Dec 31 for Rabi). Required: Sowing certificate, land record/lease agreement, Aadhaar, bank passbook.",
+    "website_url": "https://pmfby.gov.in"
+  },
+  {
+    "id": "GOI-SCHEME-03",
+    "name": "Kisan Credit Card (KCC) Scheme",
+    "ministry": "Department of Financial Services / NABARD",
+    "level": 1,
+    "scheme_type": "central",
+    "state": "All India",
+    "benefits": "Concessional institutional short-term credit up to ₹3.00 lakh at effective interest rate of 4% per annum (7% base rate with 3% prompt repayment incentive). Also covers post-harvest expenses, animal husbandry, and fisheries up to ₹2.00 lakh.",
+    "eligibility": "Individual/joint borrowers who are owner cultivators, tenant farmers, oral lessees, sharecroppers, SHGs, and JLGs.",
+    "application_guidance": "Apply at any Commercial Bank, Regional Rural Bank (RRB), or Cooperative Bank branch, or online through JanSamarth portal. Documents: Application form, Land Records/RoR, Identity proof (Aadhaar/Voter ID), Pan card.",
+    "website_url": "https://www.jansamarth.in"
+  },
+  {
+    "id": "GOI-SCHEME-04",
+    "name": "Agriculture Infrastructure Fund (AIF)",
+    "ministry": "Ministry of Agriculture & Farmers Welfare, Government of India",
+    "level": 1,
+    "scheme_type": "central",
+    "state": "All India",
+    "benefits": "Medium-long term debt financing for post-harvest management infrastructure and community farming assets. 3% per annum interest subvention up to ₹2 crore loan for a maximum period of 7 years, along with CGTMSE credit guarantee coverage.",
+    "eligibility": "Farmers, FPOs, Primary Agricultural Credit Societies (PACS), Agri-entrepreneurs, Start-ups, SHGs, JLGs, and Central/State agencies.",
+    "application_guidance": "Apply online at agriinfra.dac.gov.in portal. Submit Detailed Project Report (DPR), land records/lease, KYC, and select lending bank. Online approval workflow.",
+    "website_url": "https://agriinfra.dac.gov.in"
+  },
+  {
+    "id": "GOI-SCHEME-05",
+    "name": "PM Krishi Sinchayee Yojana (PMKSY) - Per Drop More Crop (PDMC)",
+    "ministry": "Department of Agriculture & Farmers Welfare, Government of India",
+    "level": 1,
+    "scheme_type": "central",
+    "state": "All India",
+    "benefits": "Financial subsidy up to 55% for Small & Marginal farmers and 45% for other farmers for installation of Micro Irrigation Systems (Drip and Sprinkler irrigation).",
+    "eligibility": "All landholding farmers with assured irrigation water source. Priority given to water-stressed blocks, small/marginal farmers, and SC/ST farmers.",
+    "application_guidance": "Apply through State Horticulture/Agriculture portal or District Horticulture Office. Requires: Land records (7/12 / RoR), Aadhaar card, bank passbook, quotation from empanelled micro-irrigation manufacturer.",
+    "website_url": "https://pmksy.gov.in"
+  },
+  {
+    "id": "ODISHA-SCHEME-01",
+    "name": "KALIA (Krushak Assistance for Livelihood and Income Augmentation)",
+    "ministry": "Department of Agriculture & Farmers' Empowerment, Government of Odisha",
+    "level": 6,
+    "scheme_type": "state",
+    "state": "Odisha",
+    "benefits": "Financial assistance for small & marginal farmers for cultivation inputs and livelihood assistance of ₹12,500 for landless agricultural households, along with life and accidental insurance cover.",
+    "eligibility": "Small and marginal farmers, landless agricultural laborers, and vulnerable agricultural households of Odisha.",
+    "application_guidance": "Apply via kalia.odisha.gov.in or through Gram Panchayat nodal officer. Required: Aadhaar card, ration card, land record / proof of landless laborer status, active bank account.",
+    "website_url": "https://kalia.odisha.gov.in"
+  },
+  {
+    "id": "TELANGANA-SCHEME-01",
+    "name": "Rythu Bharosa / Rythu Bandhu Scheme",
+    "ministry": "Department of Agriculture, Government of Telangana",
+    "level": 6,
+    "scheme_type": "state",
+    "state": "Telangana",
+    "benefits": "Direct investment support per acre per season for purchase of seeds, fertilizers, pesticides, labor, and other field operations directly into farmer accounts.",
+    "eligibility": "Pattadar passbook holder farmers and eligible tenant farmers of Telangana with verified land records.",
+    "application_guidance": "Verified through Dharani land records portal and Agriculture Extension Officers (AEOs). Requires: Pattadar Passbook, Aadhaar card, IFSC-linked bank account.",
+    "website_url": "https://rythubandhu.telangana.gov.in"
+  }
+]

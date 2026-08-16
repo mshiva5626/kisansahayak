@@ -1,6 +1,7 @@
 const { getSupabase } = require('../config/db');
 const { getAIAdvisory } = require('../services/aiService');
 const { getWeather } = require('../services/weatherService');
+const { getChatbotResponse } = require('../services/chatbotService');
 
 // Helper: get schemes for state
 async function getSchemesForState(state) {
@@ -63,7 +64,7 @@ async function saveAdvisory(data) {
 // Get a full AI advisory for a farm
 exports.getAdvisory = async (req, res) => {
     try {
-        const { farm_id, query, image_analysis } = req.body;
+        const { farm_id, query, image_analysis, language, personalization_mode } = req.body;
         const userId = req.user._id || req.user.id;
 
         if (!farm_id || !query) {
@@ -75,11 +76,10 @@ exports.getAdvisory = async (req, res) => {
             return res.status(404).json({ message: 'Farm not found' });
         }
 
-        // Conditional Feature Logic (Rule 2)
         const lat = farm.latitude || farm.location?.lat;
         const lon = farm.longitude || farm.location?.lon;
 
-        console.log(`[DEBUG getAdvisory] Farm: ${farm.farm_name}, Crop: ${farm.crop_type}, Lat: ${lat}, Lon: ${lon}, Raw Farm Object:`, JSON.stringify(farm));
+        console.log(`[DEBUG getAdvisory] Farm: ${farm.farm_name}, Crop: ${farm.crop_type}, Lat: ${lat}, Lon: ${lon}`);
 
         if (!farm.crop_type || !lat || !lon) {
             return res.status(200).json({
@@ -94,17 +94,9 @@ exports.getAdvisory = async (req, res) => {
         // Fetch weather if coordinates available
         let weatherData = null;
         try {
-            console.log(`\n--- WEATHER API REQUEST ---`);
-            console.log(`Coordinates: Lat ${lat}, Lon ${lon}`);
             weatherData = await getWeather(lat, lon);
-            console.log(`Weather Fetched: ${weatherData.temperature || weatherData.temp}°C, ${weatherData.condition}`);
         } catch (err) {
-            console.error('\n❌ Weather fetch failed for advisory:', err.message);
-            return res.status(200).json({
-                response: 'Weather data temporarily unavailable for your location. Please try again later.',
-                weather: null,
-                created_at: new Date()
-            });
+            console.error('Weather fetch warning for advisory:', err.message);
         }
 
         // Fetch schemes for the AI context
@@ -120,11 +112,13 @@ exports.getAdvisory = async (req, res) => {
                 state: farmer?.state,
                 district: farmer?.district,
                 farming_type: farmer?.farming_type,
-                preferred_language: farmer?.preferred_language
+                preferred_language: language || farmer?.preferred_language || 'en',
+                personalization_mode: personalization_mode || farmer?.personalization_mode || 'farmer'
             },
             farm: {
                 farm_name: farm.farm_name,
                 state: farm.state,
+                district: farm.district,
                 area: farm.area,
                 terrain_type: farm.terrain_type,
                 water_source: farm.water_source,
@@ -135,7 +129,9 @@ exports.getAdvisory = async (req, res) => {
             },
             weather: weatherData,
             image_analysis: image_analysis || null,
-            schemes: schemesData
+            schemes: schemesData,
+            language: language || farmer?.preferred_language || 'en',
+            personalizationMode: personalization_mode || farmer?.personalization_mode || 'farmer'
         };
 
         const advisoryText = await getAIAdvisory(query, context);
@@ -188,9 +184,10 @@ exports.getAdvisoryHistory = async (req, res) => {
     }
 };
 
+// Multi-turn Interactive Chat
 exports.chat = async (req, res) => {
     try {
-        const { messages, farm_id } = req.body;
+        const { messages, farm_id, language, personalization_mode } = req.body;
         const userId = req.user._id || req.user.id;
 
         if (!messages || !Array.isArray(messages) || messages.length === 0 || !farm_id) {
@@ -199,31 +196,51 @@ exports.chat = async (req, res) => {
 
         const latestQuery = messages[messages.length - 1].content;
 
-        // Fetch farm to ensure it exists and to retain logging (Rule: don't break routes)
         const farm = await getFarm(farm_id, userId);
         if (!farm) {
             return res.status(404).json({ message: 'Farm not found' });
         }
 
-        // --- NEW DEDICATED CHATBOT LOGIC ---
-        console.log(`Triggering Dedicated Chatbot Service...`);
-        const { getChatbotResponse } = require('../services/chatbotService');
-        
-        // As requested: Send user message -> Get response -> Extract text safely -> Return response
-        const responseText = await getChatbotResponse(messages);
+        const farmer = await getUser(userId);
 
-        // Keep existing route behavior: save interaction to history
+        const context = {
+            farmer: {
+                name: farmer?.name,
+                state: farmer?.state,
+                district: farmer?.district,
+                farming_type: farmer?.farming_type,
+                preferred_language: language || farmer?.preferred_language || 'en',
+                personalization_mode: personalization_mode || farmer?.personalization_mode || 'farmer'
+            },
+            farm: {
+                farm_name: farm.farm_name,
+                state: farm.state,
+                district: farm.district,
+                area: farm.area,
+                terrain_type: farm.terrain_type,
+                water_source: farm.water_source,
+                crop_type: farm.crop_type,
+                sowing_date: farm.sowing_date,
+                latitude: farm.latitude,
+                longitude: farm.longitude
+            },
+            language: language || farmer?.preferred_language || 'en',
+            personalizationMode: personalization_mode || farmer?.personalization_mode || 'farmer'
+        };
+
+        const responseText = await getChatbotResponse(messages, context);
+
+        // Persist interaction to advisory history
         await saveAdvisory({
             farm_id: farm._id || farm.id,
             advisory_text: responseText,
-            weather_snapshot: null, // intentionally stripped out per "only chatbot logic" request
+            weather_snapshot: null,
             query: latestQuery
         });
 
         res.status(200).json({ response: responseText });
     } catch (error) {
         console.error('Chat error:', error.message);
-        // Error handling requirement
-        res.status(500).json({ message: 'AI service unavailable, try again later' });
+        res.status(500).json({ message: 'AI copilot service temporarily unavailable. Please try again.' });
     }
 };

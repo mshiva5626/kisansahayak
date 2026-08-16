@@ -12,6 +12,9 @@ backend/testOutput.txt
 backend/csv_report.txt
 backend/out.txt
 backend/result.txt
+backend/uploads/
+uploads/
 dist/
+frontend/dist/
 build/
 .DS_Store

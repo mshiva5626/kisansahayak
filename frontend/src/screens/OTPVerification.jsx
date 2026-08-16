@@ -22,6 +22,12 @@ const OTPVerification = ({ onVerify, onBack, phoneNumber }) => {
         setOtp(newOtp);
     };
 
+    const handleVerify = () => {
+        const fullOtp = otp.join('');
+        if (fullOtp.length < 6) return alert('Please enter full OTP');
+        onVerify(fullOtp);
+    };
+
     React.useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Backspace') {
@@ -34,13 +40,7 @@ const OTPVerification = ({ onVerify, onBack, phoneNumber }) => {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [activeIndex, otp]);
-
-    const handleVerify = () => {
-        const fullOtp = otp.join('');
-        if (fullOtp.length < 6) return alert('Please enter full OTP');
-        onVerify(fullOtp);
-    };
+    });
 
     return (
         <div className="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 h-screen flex flex-col overflow-hidden antialiased">

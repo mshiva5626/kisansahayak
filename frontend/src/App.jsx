@@ -30,43 +30,75 @@ import { authAPI } from './api';
 import { supabase, signInWithGoogle } from './supabaseClient';
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState('welcome');
-  const [language, setLanguage] = useState('en');
-  const [userProfile, setUserProfile] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const [userProfile, setUserProfile] = useState(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      return (localStorage.getItem('token') && storedUser) ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [currentScreen, setCurrentScreen] = useState(() => {
+    return (localStorage.getItem('token') && localStorage.getItem('user')) ? 'dashboard' : 'welcome';
+  });
+  const [language, setLanguage] = useState(() => localStorage.getItem('kisan_lang') || 'en');
+  const [userLocation, setUserLocation] = useState(() => {
+    try {
+      const stored = localStorage.getItem('kisan_location');
+      return stored ? JSON.parse(stored) : { state: 'Madhya Pradesh', district: 'Indore', city: 'Indore' };
+    } catch {
+      return { state: 'Madhya Pradesh', district: 'Indore', city: 'Indore' };
+    }
+  });
   const [scanResult, setScanResult] = useState(null);
   const [chatContext, setChatContext] = useState(null);
   const [selectedFarmId, setSelectedFarmId] = useState(null);
 
-  useEffect(() => {
-    // 1. Check existing local storage session
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    if (token && storedUser) {
-      try {
-        setUserProfile(JSON.parse(storedUser));
-        setIsLoggedIn(true);
-        setCurrentScreen('dashboard');
-      } catch (e) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
-    }
+  const handleLanguageChange = (newLang) => {
+    setLanguage(newLang);
+    localStorage.setItem('kisan_lang', newLang);
+  };
 
-    // 2. Check for incoming Supabase OAuth callback in URL
+  const handleLocationChange = (newLoc) => {
+    setUserLocation(newLoc);
+    try {
+      localStorage.setItem('kisan_location', JSON.stringify(newLoc));
+    } catch {
+      // Ignored
+    }
+  };
+
+  useEffect(() => {
+    // Check for incoming Supabase OAuth callback in URL hash or session
     const checkOAuthSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session && session.user) {
-          console.log('Detected Supabase OAuth session:', session.user.email);
-          const syncRes = await authAPI.syncGoogleUser(session.access_token, session.user);
+        // Direct Hash Extraction (Handles both Supabase JS client and direct redirect flows)
+        let accessToken = null;
+        if (window.location.hash && window.location.hash.includes('access_token=')) {
+          const hashStr = window.location.hash.substring(1);
+          const hashParams = new URLSearchParams(hashStr);
+          accessToken = hashParams.get('access_token');
+        }
+
+        // Try getting session from Supabase client if available
+        let sessionUser = null;
+        if (supabase?.auth?.getSession) {
+          const { data } = await supabase.auth.getSession();
+          if (data?.session) {
+            accessToken = accessToken || data.session.access_token;
+            sessionUser = data.session.user;
+          }
+        }
+
+        if (accessToken) {
+          console.log('Detected Google OAuth token, syncing session...');
+          const syncRes = await authAPI.syncGoogleUser(accessToken, sessionUser);
           const loggedInUser = syncRes.data.user;
-          const authToken = syncRes.data.token || session.access_token;
+          const authToken = syncRes.data.token || accessToken;
 
           localStorage.setItem('token', authToken);
           localStorage.setItem('user', JSON.stringify(loggedInUser));
           setUserProfile(loggedInUser);
-          setIsLoggedIn(true);
 
           if (window.location.hash || window.location.search.includes('code=')) {
             window.history.replaceState(null, '', window.location.pathname);
@@ -81,27 +113,30 @@ function App() {
     checkOAuthSession();
 
     // 3. Listen for real-time auth state changes from Supabase
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
-        try {
-          const syncRes = await authAPI.syncGoogleUser(session.access_token, session.user);
-          const loggedInUser = syncRes.data.user;
-          const authToken = syncRes.data.token || session.access_token;
-          localStorage.setItem('token', authToken);
-          localStorage.setItem('user', JSON.stringify(loggedInUser));
-          setUserProfile(loggedInUser);
-          setIsLoggedIn(true);
-          if (window.location.hash) {
-            window.history.replaceState(null, '', window.location.pathname);
+    let authListener = null;
+    if (supabase?.auth?.onAuthStateChange) {
+      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+          try {
+            const syncRes = await authAPI.syncGoogleUser(session.access_token, session.user);
+            const loggedInUser = syncRes.data.user;
+            const authToken = syncRes.data.token || session.access_token;
+            localStorage.setItem('token', authToken);
+            localStorage.setItem('user', JSON.stringify(loggedInUser));
+            setUserProfile(loggedInUser);
+            if (window.location.hash) {
+              window.history.replaceState(null, '', window.location.pathname);
+            }
+          } catch (e) {
+            console.error('Auth state change sync failed:', e);
           }
-        } catch (e) {
-          console.error('Auth state change sync failed:', e);
         }
-      }
-    });
+      });
+      authListener = data;
+    }
 
     return () => {
-      authListener?.subscription?.unsubscribe();
+      authListener?.subscription?.unsubscribe?.();
     };
   }, []);
 
@@ -124,40 +159,39 @@ function App() {
     setCurrentScreen(screen);
   };
 
+  const [authInitialTab, setAuthInitialTab] = useState('login');
+
   // --- Auth Handlers ---
   const handleLogin = async (email, password) => {
-    try {
-      const { data } = await authAPI.login(email, password);
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setUserProfile(data.user);
-      setIsLoggedIn(true);
-      navigateTo('dashboard');
-    } catch (error) {
-      alert(error.response?.data?.message || 'Login failed');
-      throw error;
-    }
+    const { data } = await authAPI.login(email, password);
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setUserProfile(data.user);
+    navigateTo('dashboard');
+    return data;
   };
 
-  const handleRegister = async (email, password, name) => {
-    try {
-      const { data } = await authAPI.register(email, password, name);
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setUserProfile(data.user);
-      setIsLoggedIn(true);
-      navigateTo('profile-setup');
-    } catch (error) {
-      alert(error.response?.data?.message || 'Registration failed');
-      throw error;
-    }
+  const handleRegister = async (payloadOrEmail, password, name) => {
+    const { data } = await authAPI.register(payloadOrEmail, password, name);
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setUserProfile(data.user);
+    navigateTo('dashboard');
+    return data;
   };
 
   const handleGoogleLogin = async () => {
     try {
-      await signInWithGoogle(window.location.origin);
+      const res = await signInWithGoogle(window.location.origin);
+      if (!res) {
+        // Fallback to direct auth URL endpoint
+        const { data } = await authAPI.getGoogleAuthUrl(window.location.origin);
+        if (data?.url) {
+          window.location.href = data.url;
+        }
+      }
     } catch (err) {
-      console.error('Failed to trigger client Google sign-in:', err);
+      console.error('Google Sign In trigger error, falling back to direct URL:', err);
       const { data } = await authAPI.getGoogleAuthUrl(window.location.origin);
       if (data?.url) {
         window.location.href = data.url;
@@ -182,13 +216,12 @@ function App() {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-    } catch (e) {
+    } catch {
       // Ignore
     }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUserProfile(null);
-    setIsLoggedIn(false);
     setSelectedFarmId(null);
     navigateTo('welcome');
   };
@@ -204,18 +237,34 @@ function App() {
         <div className="flex-1 w-full h-full overflow-y-auto no-scrollbar relative flex flex-col">
           {currentScreen === 'welcome' && (
             <WelcomeScreen
+              language={language}
+              onLanguageChange={handleLanguageChange}
               onGetStarted={() => navigateTo('language')}
-              onLogin={() => navigateTo('login')}
+              onLogin={() => {
+                setAuthInitialTab('login');
+                navigateTo('login');
+              }}
+              onRegister={() => {
+                setAuthInitialTab('register');
+                navigateTo('login');
+              }}
             />
           )}
           {currentScreen === 'language' && (
-            <LanguageSelection onContinue={(lang) => {
-              setLanguage(lang || 'en');
-              navigateTo('login');
-            }} />
+            <LanguageSelection 
+              currentLanguage={language}
+              onContinue={(lang) => {
+                handleLanguageChange(lang || 'en');
+                setAuthInitialTab('register');
+                navigateTo('login');
+              }} 
+            />
           )}
           {currentScreen === 'login' && (
             <LoginRegistration
+              initialTab={authInitialTab}
+              language={language}
+              onLanguageChange={handleLanguageChange}
               onLogin={handleLogin}
               onRegister={handleRegister}
               onGoogleLogin={handleGoogleLogin}
@@ -246,6 +295,8 @@ function App() {
               onNavigate={navigateTo}
               userProfile={userProfile}
               selectedFarmId={selectedFarmId}
+              userLocation={userLocation}
+              onLocationChange={handleLocationChange}
             />
           )}
           {currentScreen === 'farm-list' && (
@@ -309,6 +360,7 @@ function App() {
               onBack={() => navigateTo('dashboard')}
               selectedFarmId={selectedFarmId}
               userProfile={userProfile}
+              userLocation={userLocation}
               chatContext={chatContext}
               clearContext={() => setChatContext(null)}
             />
@@ -389,6 +441,8 @@ function App() {
               onBack={() => navigateTo('dashboard')}
               userProfile={userProfile}
               selectedFarmId={selectedFarmId}
+              userLocation={userLocation}
+              onLocationChange={handleLocationChange}
             />
           )}
           {currentScreen === 'soil-test' && (
