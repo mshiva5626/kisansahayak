@@ -1,493 +1,454 @@
 import React, { useState, useEffect } from 'react';
 import { farmAPI } from '../api';
+import InteractiveGoogleMap from '../components/InteractiveGoogleMap';
 import { detectAndResolveCurrentLocation } from '../utils/geolocation';
 
+const CROPS_LIST = [
+    { name: 'Wheat', icon: '🌾', season: 'Rabi' },
+    { name: 'Paddy (Rice)', icon: '🍚', season: 'Kharif' },
+    { name: 'Cotton', icon: '🌿', season: 'Kharif' },
+    { name: 'Soybean', icon: '🫘', season: 'Kharif' },
+    { name: 'Sugarcane', icon: '🎋', season: 'Annual' },
+    { name: 'Maize', icon: '🌽', season: 'Kharif' },
+    { name: 'Mustard', icon: '🌻', season: 'Rabi' },
+    { name: 'Onion', icon: '🧅', season: 'Rabi/Kharif' },
+    { name: 'Tomato', icon: '🍅', season: 'All Season' },
+    { name: 'Chilli', icon: '🌶️', season: 'All Season' },
+    { name: 'Brinjal', icon: '🍆', season: 'All Season' },
+    { name: 'Gram (Chana)', icon: '🧆', season: 'Rabi' },
+    { name: 'Groundnut', icon: '🥜', season: 'Kharif' },
+    { name: 'Potato', icon: '🥔', season: 'Rabi' }
+];
+
+const SOIL_TYPES = ['Black Clayey (Regur)', 'Alluvial Loam', 'Red & Yellow Soil', 'Sandy Loam', 'Laterite Soil'];
+const WATER_SOURCES = ['Drip Irrigation', 'Borewell', 'Canal Water', 'Sprinkler System', 'Rainfed'];
+
 const FarmCreationWizard = ({ onBack, onComplete }) => {
+    // 2-Step Progressive Workflow: 1 = Farm & Crop Profile, 2 = Terrain Map & GPS Location
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
-    const [locationStatus, setLocationStatus] = useState('idle'); // idle | fetching | success | error
+
+    // Form Data State
     const [formData, setFormData] = useState({
         name: '',
         area: '',
         unit: 'Acres',
-        latitude: '',
-        longitude: '',
+        crop: 'Wheat',
+        sowingDate: new Date().toISOString().split('T')[0],
+        season: 'Rabi',
+        soilType: 'Alluvial Loam',
+        waterSources: ['Drip Irrigation'],
+        latitude: 20.5937,
+        longitude: 78.9629,
         state: '',
         district: '',
+        subDistrict: '',
+        village: '',
         address: '',
-        terrain: 'Plain',
-        waterSources: ['Rainfed'],
-        crop: 'Wheat',
-        sowingDate: ''
+        plotNotes: '',
+        source: 'GPS Terrain Pin'
     });
 
-    const fetchCurrentLocation = async () => {
-        setLocationStatus('fetching');
-        try {
-            const loc = await detectAndResolveCurrentLocation();
-            setFormData(prev => ({
-                ...prev,
-                latitude: loc.latitude ? Number(loc.latitude).toFixed(5) : prev.latitude,
-                longitude: loc.longitude ? Number(loc.longitude).toFixed(5) : prev.longitude,
-                state: loc.state && loc.state !== 'India' ? loc.state : prev.state,
-                district: loc.district || prev.district,
-                address: loc.formattedAddress || `${loc.locality || loc.district}, ${loc.state}`
-            }));
-            setLocationStatus('success');
-        } catch (error) {
-            console.error('High-accuracy GPS error:', error);
-            setLocationStatus('error');
-        }
-    };
-
-    // Fetch GPS location when entering step 2
+    // Auto-detect GPS when component mounts
     useEffect(() => {
-        if (step === 2 && !formData.latitude) {
-            fetchCurrentLocation();
-        }
-    }, [step, formData.latitude]);
+        detectAndResolveCurrentLocation()
+            .then((loc) => {
+                if (loc && loc.latitude) {
+                    setFormData((prev) => ({
+                        ...prev,
+                        latitude: loc.latitude,
+                        longitude: loc.longitude,
+                        state: loc.state && loc.state !== 'India' ? loc.state : prev.state,
+                        district: loc.district || prev.district,
+                        subDistrict: loc.subDistrict || prev.subDistrict,
+                        address: loc.formattedAddress || prev.address
+                    }));
+                }
+            })
+            .catch(() => {
+                // Ignore initial background locate failure
+            });
+    }, []);
 
-    const handleNext = async () => {
-        if (step === 1) {
-            if (!formData.name || !formData.area) return alert('Please provide farm name and area.');
-        } else if (step === 2) {
-            if (!formData.latitude || !formData.longitude) return alert('Please pin your farm location.');
-        } else if (step === 3) {
-            if (!formData.terrain || formData.waterSources.length === 0) return alert('Please select terrain and at least one water source.');
-        }
+    // Handle Map Pin / Location Selection from InteractiveGoogleMap
+    const handleMapLocationSelect = (locDetails) => {
+        if (!locDetails) return;
+        setFormData((prev) => ({
+            ...prev,
+            latitude: locDetails.latitude || prev.latitude,
+            longitude: locDetails.longitude || prev.longitude,
+            state: locDetails.state && locDetails.state !== 'India' ? locDetails.state : prev.state,
+            district: locDetails.district || prev.district,
+            subDistrict: locDetails.subDistrict || prev.subDistrict,
+            village: locDetails.locality || prev.village,
+            address: locDetails.formattedAddress || `${locDetails.district || 'Farm'}, ${locDetails.state || 'India'}`,
+            source: locDetails.source || 'Interactive Map'
+        }));
+    };
 
-        if (step < 4) {
-            setStep(step + 1);
-        } else {
-            if (!formData.crop) return alert('Please specify the primary crop.');
-
-            try {
-                setIsLoading(true);
-                const payload = {
-                    name: formData.name,
-                    farm_name: formData.name,
-                    area: formData.area,
-                    latitude: parseFloat(formData.latitude) || 0,
-                    longitude: parseFloat(formData.longitude) || 0,
-                    state: formData.state,
-                    terrain_type: formData.terrain,
-                    water_source: formData.waterSources.join(', '),
-                    crop_type: formData.crop,
-                    sowing_date: formData.sowingDate,
-                    location: {
-                        lat: parseFloat(formData.latitude) || 0,
-                        lon: parseFloat(formData.longitude) || 0,
-                        address: formData.address
-                    }
-                };
-                const { data } = await farmAPI.createFarm(payload);
-                onComplete(data.farm);
-            } catch (error) {
-                alert('Failed to save farm: ' + (error.response?.data?.message || error.message));
-            } finally {
-                setIsLoading(false);
+    // Toggle water sources
+    const toggleWaterSource = (source) => {
+        setFormData((prev) => {
+            const exists = prev.waterSources.includes(source);
+            if (exists) {
+                if (prev.waterSources.length === 1) return prev;
+                return { ...prev, waterSources: prev.waterSources.filter((s) => s !== source) };
+            } else {
+                return { ...prev, waterSources: [...prev.waterSources, source] };
             }
-        }
+        });
     };
 
-    const handleBack = () => {
-        if (step > 1) {
-            setStep(step - 1);
-        } else {
-            onBack();
+    // Form submission
+    const handleSaveFarm = async () => {
+        if (!formData.name.trim()) {
+            alert('Please provide a Farm Name.');
+            setStep(1);
+            return;
+        }
+        if (!formData.area || parseFloat(formData.area) <= 0) {
+            alert('Please enter a valid farm area.');
+            setStep(1);
+            return;
+        }
+        if (!formData.latitude || !formData.longitude) {
+            alert('Please pin your farm coordinates on the map.');
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            const payload = {
+                name: formData.name.trim(),
+                farm_name: formData.name.trim(),
+                area: parseFloat(formData.area),
+                unit: formData.unit,
+                crop_type: formData.crop,
+                sowing_date: formData.sowingDate,
+                soil_type: formData.soilType,
+                water_source: formData.waterSources.join(', '),
+                terrain_type: 'Topographic Terrain',
+                state: formData.state || 'India',
+                district: formData.district || 'Regional District',
+                latitude: parseFloat(formData.latitude),
+                longitude: parseFloat(formData.longitude),
+                location: {
+                    lat: parseFloat(formData.latitude),
+                    lon: parseFloat(formData.longitude),
+                    address: formData.address || `${formData.district}, ${formData.state}`,
+                    notes: formData.plotNotes
+                }
+            };
+
+            const { data } = await farmAPI.createFarm(payload);
+            onComplete(data.farm);
+        } catch (error) {
+            alert('Failed to register farm: ' + (error.response?.data?.message || error.message));
+        } finally {
+            setIsLoading(false);
         }
     };
-
-    const coordsDisplay = formData.latitude && formData.longitude
-        ? `${formData.latitude}° N, ${formData.longitude}° E`
-        : 'Not set';
-
-    const inputClasses = "w-full px-4 py-3.5 rounded-xl bg-white/40 dark:bg-black/30 border border-white/60 dark:border-emerald-500/10 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 outline-none text-slate-905 dark:text-white transition-all text-sm";
-    const labelClasses = "block text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-2 ml-1";
 
     return (
-        <div className="bg-gradient-to-b from-[#fcfdfc] to-[#e3eae4] dark:from-[#03140A] dark:to-[#081d11] text-slate-800 dark:text-slate-100 font-display antialiased min-h-screen flex flex-col relative overflow-hidden">
-            {/* Ambient glows */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
+        <div className="min-h-screen bg-[#07130c] text-slate-100 font-display antialiased flex flex-col relative selection:bg-emerald-500/30">
             {/* Header */}
-            <header className={`flex items-center justify-between px-6 pt-12 pb-4 z-20 shrink-0 border-b border-white/20 dark:border-emerald-500/5 bg-white/30 dark:bg-[#03140A]/30 backdrop-blur-md ${step === 2 ? 'absolute top-0 left-0 w-full' : ''}`}>
-                <button
-                    onClick={handleBack}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/40 dark:bg-white/10 shadow-sm active:scale-95 transition-transform text-slate-800 dark:text-white tactile-btn"
-                >
-                    <span className="material-icons">arrow_back</span>
-                </button>
-                <h1 className={`text-base font-bold tracking-tight ${step === 2 ? 'text-slate-950 dark:text-white drop-shadow-md' : 'text-slate-900 dark:text-white'}`}>
-                    {step === 4 ? 'Review & Confirm' : 'Add Connected Farm'}
-                </h1>
-                <div className="w-10"></div>
+            <header className="sticky top-0 z-30 px-6 pt-12 pb-4 bg-[#07130c]/90 border-b border-white/10 backdrop-blur-xl flex items-center justify-between shadow-lg">
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={step === 1 ? onBack : () => setStep(1)}
+                        className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                        title="Back"
+                    >
+                        <span className="material-icons-round text-lg">arrow_back</span>
+                    </button>
+
+                    <div>
+                        <h1 className="font-bold text-base md:text-lg text-white leading-tight flex items-center gap-2">
+                            <span>{step === 1 ? 'Step 1: Farm & Crop Profile' : 'Step 2: Terrain Map & Field GPS'}</span>
+                            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
+                                {step}/2
+                            </span>
+                        </h1>
+                        <p className="text-xs text-emerald-400 font-medium">
+                            {step === 1 ? 'Configure agronomic identity and crop schedule' : 'Pin precision boundary on Google Terrain map'}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Step Indicator Progress Pills */}
+                <div className="flex items-center gap-1.5">
+                    <div
+                        onClick={() => setStep(1)}
+                        className={`w-8 h-2 rounded-full transition-all cursor-pointer ${
+                            step === 1 ? 'bg-primary shadow-[0_0_10px_rgba(19,236,19,0.5)]' : 'bg-primary/40'
+                        }`}
+                    />
+                    <div
+                        onClick={() => formData.name && setStep(2)}
+                        className={`w-8 h-2 rounded-full transition-all cursor-pointer ${
+                            step === 2 ? 'bg-primary shadow-[0_0_10px_rgba(19,236,19,0.5)]' : 'bg-white/10'
+                        }`}
+                    />
+                </div>
             </header>
 
-            {/* Step 2 Map Background */}
-            {step === 2 && (
-                <div className="absolute inset-0 z-0">
-                    <img
-                        alt="Map"
-                        className="w-full h-full object-cover saturate-110 contrast-110"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWmm-zamQdZ3NiMoxZ0_oJTwhTSgvEnMpeQkpVaKl8pM13n9GZ4XeoQAVXEpIrFFccsMVbSOPfr6jGil0XBAtZZVhOOMbbcfaEqPaXN-ceD9QRksZgqgvwty25jRNE0PZ4LT2KxHeDIBF5grDX4spmyEQtfaRmpXxlD_L_uRNMd0fbWoZy8zb4ctfSijC7hBh8TRA8QKlWKcqbEz5WRqjmfXtRO09yCHgYHjJwpYxHWnD0o4g457wHpxU2li4WaOMlPkjEspBFB6La"
-                    />
-                    <div className="absolute inset-0 bg-black/10 dark:bg-[#03140A]/20"></div>
-                </div>
+            {/* Step 1: Agronomic & Crop Profile */}
+            {step === 1 && (
+                <main className="flex-1 max-w-2xl w-full mx-auto p-6 space-y-6 animate-fade-in pb-32">
+                    {/* Basic Details Card */}
+                    <div className="p-5 rounded-3xl bg-[#0c2415]/80 border border-white/10 backdrop-blur-md shadow-xl space-y-4">
+                        <h3 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-lg text-primary">agriculture</span>
+                            <span>Farm Basic Identity</span>
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-[11px] font-extrabold uppercase text-slate-300 mb-1.5 ml-1">
+                                    Farm Name *
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Green Acres North Field"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-primary focus:bg-white/10 transition-all font-semibold"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[11px] font-extrabold uppercase text-slate-300 mb-1.5 ml-1">
+                                    Total Farm Size *
+                                </label>
+                                <div className="flex">
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        placeholder="e.g. 5.0"
+                                        value={formData.area}
+                                        onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                                        className="flex-1 px-4 py-3 rounded-l-2xl bg-white/5 border border-r-0 border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-primary focus:bg-white/10 transition-all font-semibold"
+                                    />
+                                    <select
+                                        value={formData.unit}
+                                        onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                                        className="px-3.5 py-3 rounded-r-2xl bg-[#0e2c1a] border border-white/10 text-emerald-300 text-xs font-bold focus:outline-none cursor-pointer"
+                                    >
+                                        <option value="Acres">Acres</option>
+                                        <option value="Hectares">Hectares</option>
+                                        <option value="Bigha">Bigha</option>
+                                        <option value="Gunta">Gunta</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Primary Crop Selector */}
+                    <div className="p-5 rounded-3xl bg-[#0c2415]/80 border border-white/10 backdrop-blur-md shadow-xl space-y-3">
+                        <h3 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-lg text-primary">eco</span>
+                            <span>Select Primary Cultivated Crop</span>
+                        </h3>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-56 overflow-y-auto no-scrollbar pr-1">
+                            {CROPS_LIST.map((c) => {
+                                const isSelected = formData.crop.toLowerCase() === c.name.toLowerCase() || formData.crop.toLowerCase().includes(c.name.toLowerCase().split(' ')[0]);
+                                return (
+                                    <button
+                                        key={c.name}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, crop: c.name, season: c.season })}
+                                        className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-2.5 cursor-pointer ${
+                                            isSelected
+                                                ? 'bg-primary/20 border-primary text-white shadow-[0_0_15px_rgba(19,236,19,0.2)]'
+                                                : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'
+                                        }`}
+                                    >
+                                        <span className="text-2xl shrink-0">{c.icon}</span>
+                                        <div className="overflow-hidden">
+                                            <p className="text-xs font-bold truncate">{c.name}</p>
+                                            <p className="text-[10px] text-slate-400 font-medium">{c.season}</p>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Soil Type & Irrigation Setup */}
+                    <div className="p-5 rounded-3xl bg-[#0c2415]/80 border border-white/10 backdrop-blur-md shadow-xl space-y-4">
+                        <h3 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-lg text-primary">water_drop</span>
+                            <span>Soil & Irrigation Profile</span>
+                        </h3>
+
+                        <div>
+                            <label className="block text-[11px] font-extrabold uppercase text-slate-300 mb-1.5 ml-1">
+                                Soil Type
+                            </label>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                {SOIL_TYPES.map((st) => (
+                                    <button
+                                        key={st}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, soilType: st })}
+                                        className={`p-2.5 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
+                                            formData.soilType === st
+                                                ? 'bg-primary/20 border-primary text-emerald-300'
+                                                : 'bg-white/5 border-white/5 text-slate-400 hover:text-slate-200'
+                                        }`}
+                                    >
+                                        {st}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-[11px] font-extrabold uppercase text-slate-300 mb-1.5 ml-1">
+                                Water & Irrigation Sources (Select All That Apply)
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {WATER_SOURCES.map((ws) => {
+                                    const active = formData.waterSources.includes(ws);
+                                    return (
+                                        <button
+                                            key={ws}
+                                            type="button"
+                                            onClick={() => toggleWaterSource(ws)}
+                                            className={`px-3 py-2 rounded-2xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                                                active
+                                                    ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300'
+                                                    : 'bg-white/5 border-white/5 text-slate-400 hover:text-slate-200'
+                                            }`}
+                                        >
+                                            <span className="material-icons-round text-sm">{active ? 'check_circle' : 'add'}</span>
+                                            <span>{ws}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Continue to Step 2 Button */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (!formData.name.trim()) return alert('Please enter a Farm Name.');
+                            if (!formData.area) return alert('Please enter Farm Area.');
+                            setStep(2);
+                        }}
+                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#0ED054] to-[#0a9e3e] text-white font-extrabold text-sm shadow-xl shadow-primary/25 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
+                    >
+                        <span>Next: Map Coordinates on Terrain View</span>
+                        <span className="material-icons-round text-lg">arrow_forward</span>
+                    </button>
+                </main>
             )}
 
-            {/* Main Content Area */}
-            <main className={`flex-1 z-10 flex flex-col overflow-y-auto no-scrollbar pb-36 ${step === 2 ? 'relative' : 'px-6'}`}>
-                {/* Progress Indicator */}
-                {step !== 2 && step !== 4 && (
-                    <div className="mb-6 mt-6">
-                        <div className="flex justify-between items-end mb-2">
-                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Step {step} of 4</span>
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">{Math.round((step / 4) * 100)}% Complete</span>
+            {/* Step 2: Google Maps Terrain & Field Pinning */}
+            {step === 2 && (
+                <main className="flex-1 flex flex-col p-4 md:p-6 max-w-4xl w-full mx-auto space-y-4 animate-fade-in pb-32">
+                    {/* Map Instructions Card */}
+                    <div className="p-3.5 rounded-2xl bg-[#0c2415]/90 border border-emerald-500/30 flex items-center justify-between gap-3 shadow-lg backdrop-blur-md">
+                        <div className="flex items-center gap-2.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping"></span>
+                            <div>
+                                <p className="text-xs font-bold text-white">Google Maps High-Precision Terrain Pinning</p>
+                                <p className="text-[11px] text-emerald-400">Drag marker directly to your field parcel or switch to Satellite view</p>
+                            </div>
                         </div>
-                        <div className="h-1.5 w-full bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-gradient-to-r from-emerald-500 to-[#13ec13] rounded-full transition-all duration-500 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-                                style={{ width: `${(step / 4) * 100}%` }}
-                            ></div>
+                        <span className="text-[10px] uppercase font-extrabold bg-primary/20 text-primary border border-primary/30 px-2 py-1 rounded-xl">
+                            API Active
+                        </span>
+                    </div>
+
+                    {/* Interactive Google Map Component with Terrain & Satellite Switcher */}
+                    <InteractiveGoogleMap
+                        initialLat={formData.latitude}
+                        initialLon={formData.longitude}
+                        selectedLocation={{ latitude: formData.latitude, longitude: formData.longitude }}
+                        onLocationSelect={handleMapLocationSelect}
+                        height="440px"
+                    />
+
+                    {/* Detected Location & Field Notes Form */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Auto-Resolved Address */}
+                        <div className="p-4 rounded-2xl bg-[#0c2415]/80 border border-white/10 space-y-2">
+                            <div className="flex items-center justify-between text-xs font-bold text-emerald-300">
+                                <span className="flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-base text-primary">location_on</span>
+                                    <span>Detected Field Location</span>
+                                </span>
+                                <span className="text-[10px] text-emerald-400 font-mono">
+                                    {Number(formData.latitude).toFixed(4)}°, {Number(formData.longitude).toFixed(4)}°
+                                </span>
+                            </div>
+                            <p className="text-xs font-semibold text-white bg-white/5 p-2.5 rounded-xl border border-white/5">
+                                {formData.address || 'Pin location on the map above'}
+                            </p>
+                            <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-300 pt-1">
+                                <div>State: <strong className="text-white">{formData.state || 'Detected via GPS'}</strong></div>
+                                <div>District: <strong className="text-white">{formData.district || 'Detected via GPS'}</strong></div>
+                            </div>
+                        </div>
+
+                        {/* Additional Plot Notes */}
+                        <div className="p-4 rounded-2xl bg-[#0c2415]/80 border border-white/10 space-y-2">
+                            <label className="block text-xs font-bold text-emerald-300">
+                                Field Landmark / Survey No. (Optional)
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="e.g. Survey No. 42 / Near Canal / North Well"
+                                value={formData.plotNotes}
+                                onChange={(e) => setFormData({ ...formData, plotNotes: e.target.value })}
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-primary font-medium"
+                            />
+                            <p className="text-[10px] text-slate-400">Helps AI localize weather alerts and soil moisture satellite radar.</p>
                         </div>
                     </div>
-                )}
 
-                {/* Step 1: Basic Info */}
-                {step === 1 && (
-                    <div className="animate-fade-in space-y-6 mt-4">
+                    {/* Review Summary Badge */}
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0c2e17] to-[#0e3b1d] border border-primary/40 flex flex-wrap items-center justify-between gap-3 shadow-xl">
                         <div>
-                            <h2 className="text-xl font-bold text-slate-950 dark:text-white tracking-tight">Create Farm Sheet</h2>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-normal mt-1">Configure your farm coordinates and dimensions to feed localized satellite insights.</p>
-                        </div>
-                        <div className="krishi-glass rounded-2xl p-5 shadow-lg border border-white/50 dark:border-emerald-500/10">
-                            <div className="space-y-4">
-                                <div>
-                                    <label className={labelClasses}>Farm Name</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. Green Valley Field"
-                                        className={inputClasses}
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className={labelClasses}>Total Size</label>
-                                    <div className="flex">
-                                        <input
-                                            type="number"
-                                            placeholder="0.0"
-                                            className={`${inputClasses} flex-1 rounded-r-none border-r-0`}
-                                            value={formData.area}
-                                            onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                                        />
-                                        <select
-                                            className="px-4 py-3.5 bg-slate-50 dark:bg-[#081d11] border border-white/60 dark:border-emerald-500/10 rounded-r-xl text-xs font-bold text-slate-700 dark:text-emerald-400 outline-none cursor-pointer"
-                                            value={formData.unit}
-                                            onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                                            style={{ colorScheme: 'dark' }}
-                                        >
-                                            <option className="bg-white dark:bg-[#081d11] text-slate-900 dark:text-white">Acres</option>
-                                            <option className="bg-white dark:bg-[#081d11] text-slate-900 dark:text-white">Hectares</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Step 2: Location Pinning */}
-                {step === 2 && (
-                    <div className="relative h-full pointer-events-none">
-                        {/* Map Overlay Info */}
-                        <div className="absolute top-28 left-6 right-6 pointer-events-auto">
-                            <div className="krishi-glass p-5 rounded-2xl shadow-xl border border-white/60 dark:border-emerald-500/10 max-h-[70vh] overflow-y-auto no-scrollbar">
-                                <div className="flex items-center justify-between mb-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                                    <span>Step 2 of 4</span>
-                                    <span className="text-emerald-600 dark:text-emerald-400">50% Complete</span>
-                                </div>
-                                <div className="w-full bg-slate-200 dark:bg-white/10 h-1 rounded-full mb-3.5">
-                                    <div className="bg-emerald-500 h-full rounded-full w-1/2"></div>
-                                </div>
-                                <h1 className="text-base font-bold text-slate-950 dark:text-white">Pin coordinates</h1>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal mb-3">
-                                    {locationStatus === 'fetching' ? 'Pinpointing GPS location via satellite...' :
-                                        locationStatus === 'success' ? 'Coordinates found! Tap to refresh GPS sensor.' :
-                                            locationStatus === 'error' ? 'GPS failed. Please enter coordinates manually below.' :
-                                                'Enable GPS or input coordinate grids.'}
-                                </p>
-
-                                {/* Coordinates Display */}
-                                {formData.latitude && (
-                                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 mb-3">
-                                        <div className="flex items-center gap-1.5 mb-1 text-emerald-700 dark:text-emerald-400">
-                                            <span className="material-icons text-sm">my_location</span>
-                                            <span className="text-[10px] font-bold uppercase tracking-wide">Pin Details</span>
-                                        </div>
-                                        <p className="text-xs font-mono font-bold text-slate-900 dark:text-white">{coordsDisplay}</p>
-                                        {formData.address && (
-                                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">{formData.address}</p>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Manual coordinate entry */}
-                                <div className="grid grid-cols-2 gap-2.5">
-                                    <div>
-                                        <label className="text-[9px] uppercase font-bold text-slate-400 mb-1 block ml-0.5">Latitude</label>
-                                        <input
-                                            type="number"
-                                            step="0.0001"
-                                            placeholder="e.g. 18.5204"
-                                            className={`${inputClasses} px-3 py-2 text-xs`}
-                                            value={formData.latitude}
-                                            onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[9px] uppercase font-bold text-slate-400 mb-1 block ml-0.5">Longitude</label>
-                                        <input
-                                            type="number"
-                                            step="0.0001"
-                                            placeholder="e.g. 73.8567"
-                                            className={`${inputClasses} px-3 py-2 text-xs`}
-                                            value={formData.longitude}
-                                            onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[9px] uppercase font-bold text-slate-400 mb-1 block ml-0.5">State</label>
-                                        <input
-                                            type="text"
-                                            placeholder="e.g. Punjab"
-                                            className={`${inputClasses} px-3 py-2 text-xs`}
-                                            value={formData.state}
-                                            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[9px] uppercase font-bold text-slate-400 mb-1 block ml-0.5">District</label>
-                                        <input
-                                            type="text"
-                                            placeholder="e.g. Ludhiana"
-                                            className={`${inputClasses} px-3 py-2 text-xs`}
-                                            value={formData.district}
-                                            onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
+                            <p className="text-xs font-extrabold text-white">{formData.name} • {formData.area} {formData.unit}</p>
+                            <p className="text-[11px] text-emerald-300">{formData.crop} ({formData.season}) • {formData.soilType}</p>
                         </div>
 
-                        {/* Central Pin */}
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-16">
-                            <div className="flex flex-col items-center">
-                                <div className="mb-1.5 px-2.5 py-0.5 bg-black/80 dark:bg-[#03140A]/90 text-white text-[9px] font-bold rounded-md shadow-md border border-white/10 uppercase tracking-wider">
-                                    {locationStatus === 'success' ? '📍 Pin Active' : 'Target'}
-                                </div>
-                                <div className={`relative w-8 h-8 ${locationStatus === 'success' ? 'bg-emerald-500' : 'bg-slate-400'} rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-all duration-300`}>
-                                    <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
-                                    {locationStatus === 'success' && (
-                                        <div className="absolute inset-0 rounded-full border-2 border-emerald-500 animate-ping opacity-75"></div>
-                                    )}
-                                </div>
-                                <div className={`w-0.5 h-6 ${locationStatus === 'success' ? 'bg-emerald-500' : 'bg-slate-400'} transition-all`}></div>
-                            </div>
-                        </div>
-
-                        {/* Location FAB */}
-                        <div className="absolute bottom-40 right-6 pointer-events-auto">
+                        <div className="flex items-center gap-2">
                             <button
-                                onClick={fetchCurrentLocation}
-                                className={`${locationStatus === 'fetching' ? 'animate-pulse scale-95' : ''} bg-white dark:bg-[#03140A] border border-white/60 dark:border-emerald-500/20 p-3.5 rounded-xl shadow-lg text-emerald-500 active:scale-90 transition-transform cursor-pointer flex items-center justify-center`}
+                                type="button"
+                                onClick={() => setStep(1)}
+                                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 text-xs font-bold transition-all cursor-pointer"
                             >
-                                <span className="material-icons-round text-xl">{locationStatus === 'fetching' ? 'sync' : 'my_location'}</span>
+                                Edit Profile
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSaveFarm}
+                                disabled={isLoading}
+                                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#0ED054] to-[#0a9e3e] text-white text-xs font-black shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <span className="material-icons-round animate-spin text-sm">sync</span>
+                                        <span>Saving Farm...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="material-icons-round text-base">check_circle</span>
+                                        <span>Confirm & Save Farm</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
-                )}
-
-                {/* Step 3: Terrain & Water */}
-                {step === 3 && (
-                    <div className="animate-fade-in space-y-6 mt-4 tilt-card-container">
-                        <div>
-                            <h2 className="text-xl font-bold tracking-tight text-slate-950 dark:text-white">Terrain Landscape</h2>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">Select agricultural topography of your field.</p>
-                            <div className="space-y-3.5 text-left">
-                                {['Plain', 'Sloping', 'Hilly'].map((t) => (
-                                    <button
-                                        key={t}
-                                        onClick={() => setFormData({ ...formData, terrain: t })}
-                                        className={`w-full p-4 rounded-2xl border flex items-center gap-4 transition-all tilt-card cursor-pointer ${formData.terrain === t ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-md' : 'border-white/60 dark:border-white/5 bg-white/40 dark:bg-white/5'}`}
-                                    >
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${formData.terrain === t ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-400'}`}>
-                                            <span className="material-icons text-2xl">{t === 'Plain' ? 'landscape' : t === 'Sloping' ? 'terrain' : 'filter_hdr'}</span>
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className={`font-bold text-sm ${formData.terrain === t ? 'text-slate-955 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>{t} Fields</h3>
-                                            <p className="text-[10px] opacity-60 leading-none mt-1">Excellent soil stability for robust tillage.</p>
-                                        </div>
-                                        {formData.terrain === t && <span className="material-icons text-emerald-500">check_circle</span>}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        <div>
-                            <div className="flex justify-between items-baseline mb-3">
-                                <h2 className="text-xl font-bold tracking-tight text-slate-955 dark:text-white">Primary Water Source</h2>
-                                <span className="text-[9px] uppercase font-bold text-emerald-500 tracking-wider">Multi-select</span>
-                            </div>
-                            <div className="flex flex-wrap gap-2.5">
-                                {['Rainfed', 'Canal', 'Borewell', 'Drip', 'Sprinkler'].map((w) => (
-                                    <button
-                                        key={w}
-                                        onClick={() => {
-                                            const newSources = formData.waterSources.includes(w)
-                                                ? formData.waterSources.filter(s => s !== w)
-                                                : [...formData.waterSources, w];
-                                            setFormData({ ...formData, waterSources: newSources });
-                                        }}
-                                        className={`px-4 py-2.5 rounded-full border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer tactile-btn ${
-                                            formData.waterSources.includes(w) 
-                                                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm' 
-                                                : 'border-white/60 dark:border-white/5 bg-white/40 dark:bg-white/5 text-slate-500'
-                                        }`}
-                                    >
-                                        <span className="material-icons-round text-base">{w === 'Rainfed' ? 'cloud' : w === 'Canal' ? 'water' : 'opacity'}</span>
-                                        <span>{w}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Step 4: Review */}
-                {step === 4 && (
-                    <div className="animate-fade-in space-y-4 px-1 mt-4">
-                        <div className="mb-4">
-                            <h2 className="text-xl font-bold text-slate-950 dark:text-white tracking-tight">Review & Confirm</h2>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Verify that your agricultural layout is configured correctly.</p>
-                        </div>
-
-                        <div className="space-y-4 text-left">
-                            {/* General Info */}
-                            <div className="krishi-glass rounded-2xl p-5 shadow-sm">
-                                <div className="flex items-center gap-2.5 mb-3 border-b border-white/20 dark:border-emerald-500/5 pb-2.5">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                                        <span className="material-icons-outlined text-base">assignment</span>
-                                    </div>
-                                    <h3 className="text-sm font-bold">General Dimensions</h3>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div><p className="text-[9px] uppercase text-slate-400 font-bold tracking-wider mb-0.5">Farm Title</p><p className="font-bold text-xs">{formData.name || 'Not set'}</p></div>
-                                    <div><p className="text-[9px] uppercase text-slate-400 font-bold tracking-wider mb-0.5">Calculated Area</p><p className="font-bold text-xs">{formData.area || '0'} {formData.unit}</p></div>
-                                </div>
-                            </div>
-
-                            {/* Location */}
-                            <div className="krishi-glass rounded-2xl p-5 shadow-sm relative overflow-hidden">
-                                <div className="flex items-center gap-2.5 mb-3 border-b border-white/20 dark:border-emerald-500/5 pb-2.5">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                                        <span className="material-icons-outlined text-base">place</span>
-                                    </div>
-                                    <h3 className="text-sm font-bold">Location Pin</h3>
-                                </div>
-                                <div className="flex gap-4">
-                                    <div className="flex-1 space-y-2.5">
-                                        <div><p className="text-[9px] uppercase text-slate-400 font-bold tracking-wider mb-0.5">Regional Territory</p><p className="font-bold text-xs">{formData.district || 'Not set'}, {formData.state || 'Not set'}</p></div>
-                                        <div><p className="text-[9px] uppercase text-slate-400 font-bold tracking-wider mb-0.5">GPS Coordinate</p><p className="font-bold text-[10px] font-mono text-emerald-700 dark:text-emerald-400">{coordsDisplay}</p></div>
-                                    </div>
-                                    <div className="w-20 h-20 rounded-xl overflow-hidden bg-emerald-500/10 dark:bg-[#081d11] border border-emerald-500/20 flex items-center justify-center shrink-0">
-                                        {formData.latitude ? (
-                                            <div className="text-center">
-                                                <span className="material-icons text-emerald-500 text-2xl animate-pulse">pin_drop</span>
-                                                <p className="text-[8px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider mt-0.5">GPS PIN</p>
-                                            </div>
-                                        ) : (
-                                            <span className="material-icons text-slate-300 text-3xl">location_off</span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Crop Details */}
-                            <div className="krishi-glass rounded-2xl p-5 shadow-sm">
-                                <div className="flex items-center gap-2.5 mb-3 border-b border-white/20 dark:border-emerald-500/5 pb-2.5">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                                        <span className="material-icons-outlined text-base">grass</span>
-                                    </div>
-                                    <h3 className="text-sm font-bold">Active Crop Sheet</h3>
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center pb-2.5 border-b border-dashed border-white/20 dark:border-emerald-500/5">
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Crop Sown</p>
-                                        <input
-                                            type="text"
-                                            className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-xl text-xs font-bold text-right border border-emerald-500/20 focus:ring-1 focus:ring-emerald-500 outline-none min-w-[120px]"
-                                            value={formData.crop}
-                                            onChange={(e) => setFormData({ ...formData, crop: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Sowing Timestamp</p>
-                                        <input
-                                            type="date"
-                                            className="text-xs font-bold bg-white/40 dark:bg-black/25 border border-white/60 dark:border-emerald-500/10 rounded-xl px-3 py-1.5 text-right focus:ring-1 focus:ring-emerald-500 outline-none min-w-[140px]"
-                                            value={formData.sowingDate}
-                                            onChange={(e) => setFormData({ ...formData, sowingDate: e.target.value })}
-                                            style={{ colorScheme: 'dark' }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Terrain Summary */}
-                            <div className="krishi-glass rounded-2xl p-5 shadow-sm">
-                                <div className="flex items-center gap-2.5 mb-3 border-b border-white/20 dark:border-emerald-500/5 pb-2.5">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                                        <span className="material-icons-outlined text-base">terrain</span>
-                                    </div>
-                                    <h3 className="text-sm font-bold">Terrain & Hydration</h3>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div><p className="text-[9px] uppercase text-slate-400 font-bold tracking-wider mb-0.5">Topography</p><p className="font-bold text-xs">{formData.terrain} Fields</p></div>
-                                    <div><p className="text-[9px] uppercase text-slate-400 font-bold tracking-wider mb-0.5">Water Systems</p><p className="font-bold text-xs truncate">{formData.waterSources.join(', ')}</p></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </main>
-
-            {/* Bottom Action Bar */}
-            <div className={`p-6 bg-gradient-to-t from-[#e3eae4] via-[#e3eae4] to-transparent dark:from-[#081d11] dark:via-[#081d11] pt-12 z-30 shrink-0 absolute bottom-0 left-0 w-full`}>
-                <div className="flex flex-col gap-2.5">
-                    <button
-                        onClick={handleNext}
-                        disabled={isLoading}
-                        className="w-full btn-glass-glow text-white font-bold py-4 px-6 rounded-xl shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 tactile-btn cursor-pointer"
-                    >
-                        {isLoading ? (
-                            <>
-                                <span className="material-icons animate-spin text-lg">sync</span>
-                                <span className="text-sm">Configuring Farm Sheet...</span>
-                            </>
-                        ) : (
-                            <>
-                                <span className="text-sm">{step === 4 ? 'Confirm & Create Farm' : 'Continue'}</span>
-                                <span className="material-icons text-lg">{step === 4 ? 'check_circle' : 'arrow_forward'}</span>
-                            </>
-                        )}
-                    </button>
-                    {step === 4 && (
-                        <button onClick={() => setStep(1)} className="w-full py-2 text-slate-400 hover:text-emerald-500 font-bold text-xs uppercase tracking-wider cursor-pointer transition-colors">Review Configurations</button>
-                    )}
-                </div>
-            </div>
+                </main>
+            )}
         </div>
     );
 };
