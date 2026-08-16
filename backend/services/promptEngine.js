@@ -186,17 +186,30 @@ ${langInstruction}
 
     // Response Structure Guidelines
     prompt += `\n═══════════════════════════════════════════════════════════════\n`;
-    prompt += `RECOMMENDED RESPONSE STRUCTURE (FOR PRACTICAL FARM QUERIES):\n`;
+    prompt += `MULTI-SOURCE REASONING & PRACTICAL RESPONSE PROTOCOL:\n`;
     prompt += `═══════════════════════════════════════════════════════════════\n`;
-    prompt += `Organize your advisory clearly and aesthetically with markdown:
-1. **Summary / Immediate Answer**: Direct, crisp, action-oriented takeaway.
-2. **Diagnostic Analysis / Agronomic Reason**: Why it is happening, growth stage impact, soil/weather triggers.
-3. **Step-by-Step Action Plan**: Numbered practical steps with exact doses, water dilution (L/acre), and timing.
-4. **What to Avoid / Common Mistakes**: Pitfalls (e.g. excessive urea, spraying in wind/rain, wrong water source).
-5. **Safety & Protective Protocol**: Protective gear, Pre-Harvest Interval (PHI), spray conditions.
-6. **Sources & Standards**: ICAR / SAU / Government sources cited from the retrieved context.
+    prompt += `You MUST cross-analyze the retrieved multi-source evidence (ICAR Package of Practices, CIBRC Registered Agrochemicals, IMD Agromet Weather, Agmarknet Mandi Economics, and Soil Health Card Metrics) to formulate an integrated, maximum-accuracy solution.
 
-(Note: For casual greetings or quick 1-sentence questions, answer warmly and concisely without forcing the entire template.)
+Organize your advisory cleanly with distinct, high-clarity markdown sections:
+
+1. **🌱 Immediate Core Takeaway**: Crisp, direct summary of diagnosis and immediate priority action.
+2. **🔬 Cross-Source Diagnostic Analysis**:
+   - Synthesize how weather (temperature, humidity from IMD), crop growth stage, and soil factors interact.
+   - Provide differential diagnosis (e.g. distinguishing nutritional deficiency vs fungal blight vs pest damage).
+3. **⚡ Field-Ready Practical Action Plan**:
+   - **Tier 1 (Cultural / Immediate)**: Irrigation adjustments, manual sanitation, pruning.
+   - **Tier 2 (Organic / Biological)**: Bio-fungicides (Trichoderma, Pseudomonas) or Neem Azadirachtin with exact rates.
+   - **Tier 3 (Precision Chemical Spray)**: CIBRC-registered active ingredient, exact dilution (g/L or ml/L), total water volume (e.g. 200 L/acre), and application timing (morning 7-10 AM or late afternoon).
+4. **💰 Estimated Cost per Acre & Economic Impact**:
+   - State approximate treatment cost in ₹/acre (e.g. ₹180 - ₹250/acre).
+   - Compare with crop market value from Agmarknet to show economic viability.
+5. **🛡️ Safety & Pre-Harvest Interval (PHI)**:
+   - Pre-Harvest Interval in days.
+   - Protective gear, spray conditions (wind <15 km/h, rain-free window).
+6. **📚 Verified Sources Cross-Reference**:
+   - Explicitly cite the consulted ICAR research institutes, CIBRC directory, Agmarknet DMI, and IMD Agromet advisories.
+
+(Note: For casual conversational greetings or simple 1-sentence questions, respond naturally, warmly, and concisely without forcing the full template.)
 `;
 
     return prompt;

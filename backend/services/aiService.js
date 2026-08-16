@@ -1,7 +1,7 @@
 /**
  * Kisan Sahayak - Core AI Advisory & Copilot Service
  * 
- * Provides evidence-grounded agricultural advisory, conversation reasoning,
+ * Provides evidence-grounded agricultural advisory, multi-source cross-referencing,
  * farm-context injection, multimodal attachment analysis, and verified citation formatting.
  */
 
@@ -9,62 +9,7 @@ const { generateAgriculturalCompletion } = require('../config/aiConfig');
 const { buildAgriculturalSystemInstruction } = require('./promptEngine');
 const { orchestrateTools } = require('./toolOrchestrator');
 const { analyzeImageWithAI } = require('./imageAnalysisService');
-
-/**
- * Extracts grounded, authentic sources based on query, farm, and attachments
- */
-function extractGroundedSources(query, farm, toolContext, ragContext, attachments = []) {
-    const sources = [
-        {
-            id: 'icar-iari',
-            title: 'ICAR Package of Practices & Agronomy Guidelines',
-            org: 'Indian Council of Agricultural Research (ICAR)',
-            type: 'Agronomic Research Benchmark',
-            detail: 'Verified crop physiology, fertilizer split timing, and integrated pest management (IPM).'
-        },
-        {
-            id: 'cibrc-dppqs',
-            title: 'CIBRC Registered Agrochemical Safety Directory',
-            org: 'Central Insecticides Board & Registration Committee (Govt of India)',
-            type: 'Chemical & Environmental Safety',
-            detail: 'Approved active ingredients, crop-specific dilutions, and Pre-Harvest Interval (PHI) safety limits.'
-        }
-    ];
-
-    const qLower = (query || '').toLowerCase();
-
-    if (qLower.includes('mandi') || qLower.includes('price') || qLower.includes('rate') || qLower.includes('bhav') || qLower.includes('sell') || qLower.includes('market')) {
-        sources.unshift({
-            id: 'agmarknet-enam',
-            title: 'Agmarknet DMI & e-NAM Mandi Price Database',
-            org: 'Directorate of Marketing & Inspection, Ministry of Agriculture',
-            type: 'Government Market Data',
-            detail: 'Daily arrival modal prices, APMC market yard trends, and MSP price parity.'
-        });
-    }
-
-    if (qLower.includes('soil') || qLower.includes('fertilizer') || qLower.includes('urea') || qLower.includes('dap') || qLower.includes('lab') || qLower.includes('ph') || qLower.includes('npk')) {
-        sources.unshift({
-            id: 'shc-gov',
-            title: 'National Soil Health Card Metric Norms',
-            org: 'Department of Agriculture & Farmers Welfare, Govt of India',
-            type: 'Soil Testing Standard',
-            detail: 'Standard low/medium/high critical ratings for soil pH, EC, Organic Carbon, N-P-K, and micronutrients.'
-        });
-    }
-
-    if (attachments && attachments.length > 0) {
-        sources.unshift({
-            id: 'multimodal-analysis',
-            title: 'Multimodal Crop & Lab Document Intelligence',
-            org: 'Kisan Sahayak Multimodal Agronomy Engine',
-            type: 'Visual & Lab Report Analysis',
-            detail: `Extracted parameters and visual symptoms from ${attachments.length} uploaded file(s).`
-        });
-    }
-
-    return sources;
-}
+const { fetchAndAnalyzeMultiSources } = require('./multiSourceEngine');
 
 /**
  * Generates an evidence-grounded AI advisory for a farmer/farm query
@@ -97,7 +42,7 @@ async function getAIAdvisory(queryOrMessages, context = {}) {
     }
     
     console.log(`\n======================================================`);
-    console.log(`🌾 [AI Advisory Service] Processing Agricultural Query`);
+    console.log(`🌾 [AI Advisory Service] Processing Multi-Source Agronomic Query`);
     console.log(`Farmer: ${farmer.name || 'Anonymous'} | State: ${farm?.state || farmer.state || 'N/A'} | Crop: ${farm?.crop_type || 'N/A'}`);
     console.log(`Query: "${latestQuery.substring(0, 100)}${latestQuery.length > 100 ? '...' : ''}"`);
     console.log(`Attachments: ${attachments.length} attached`);
@@ -137,7 +82,17 @@ async function getAIAdvisory(queryOrMessages, context = {}) {
         }
     }
 
-    // 2. Tool & RAG Orchestration
+    // 2. Multi-Source Fetching & Cross-Analysis (ICAR, CIBRC, IMD, Agmarknet, Soil Health Card)
+    const multiSourceResult = await fetchAndAnalyzeMultiSources({
+        query: latestQuery,
+        crop: farm?.crop_type,
+        farm,
+        userProfile: farmer,
+        weather,
+        attachments
+    });
+
+    // 3. Tool & RAG Orchestration
     const orchestration = await orchestrateTools({
         query: latestQuery + ' ' + attachmentContext,
         farm,
@@ -155,35 +110,33 @@ async function getAIAdvisory(queryOrMessages, context = {}) {
         directImageText += `- Confidence Score: ${image_analysis.confidence_score || 'N/A'}\n`;
     }
     
-    // 3. Build Master Agricultural System Instruction
+    // 4. Build Master Agricultural System Instruction with Multi-Source Intelligence
     const systemInstruction = buildAgriculturalSystemInstruction({
         userProfile: farmer,
         farm,
         weather: activeWeather,
         ragContext: orchestration.ragContext,
-        toolContext: (orchestration.toolContext || '') + directImageText,
+        toolContext: (orchestration.toolContext || '') + '\n' + multiSourceResult.multiSourceContext + directImageText,
         attachmentContext,
         personalizationMode: personalizationMode || farmer.personalization_mode || 'farmer',
         language: language || farmer.preferred_language || 'en'
     });
     
-    // 4. Dispatch to Configured Central AI Model
+    // 5. Dispatch to Configured Central AI Model
     const completion = await generateAgriculturalCompletion({
         messages: messagesHistory,
         systemInstruction,
         temperature: 0.2 // Strict factual precision for agronomy
     });
 
-    const sources = extractGroundedSources(latestQuery, farm, orchestration.toolContext, orchestration.ragContext, attachments);
-    
     return {
         response: completion,
-        sources,
-        weather: activeWeather
+        sources: multiSourceResult.verifiedSources,
+        weather: activeWeather,
+        cibrcMatches: multiSourceResult.cibrcMatches
     };
 }
 
 module.exports = {
-    getAIAdvisory,
-    extractGroundedSources
+    getAIAdvisory
 };

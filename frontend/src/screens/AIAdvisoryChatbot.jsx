@@ -31,26 +31,26 @@ const Interactive3DBackground = () => {
         };
         window.addEventListener('mousemove', handleMouseMove);
 
-        // Generate 42 3D spatial particles with depth (z)
+        // Generate 45 3D spatial particles with depth factor (z)
         const particleCount = 42;
         const particles = Array.from({ length: particleCount }, () => ({
             x: Math.random() * width,
             y: Math.random() * height,
-            z: Math.random() * 0.8 + 0.2, // Depth factor
+            z: Math.random() * 0.8 + 0.2,
             vx: (Math.random() - 0.5) * 0.4,
             vy: (Math.random() - 0.5) * 0.4,
-            radius: Math.random() * 2.5 + 1.2,
-            baseHue: Math.random() > 0.2 ? 142 : 45, // 142 = Chlorophyll Green, 45 = Golden Amber
+            radius: Math.random() * 2.4 + 1.2,
+            baseHue: Math.random() > 0.2 ? 142 : 45, // 142 = Chlorophyll Green, 45 = Amber Gold
             pulse: Math.random() * Math.PI * 2
         }));
 
         const render = () => {
-            // Smooth mouse interpolation
+            // Smooth mouse easing
             mousePos.current.x += (mousePos.current.targetX - mousePos.current.x) * 0.05;
             mousePos.current.y += (mousePos.current.targetY - mousePos.current.y) * 0.05;
 
-            const offsetX = (mousePos.current.x - 0.5) * 40;
-            const offsetY = (mousePos.current.y - 0.5) * 40;
+            const offsetX = (mousePos.current.x - 0.5) * 45;
+            const offsetY = (mousePos.current.y - 0.5) * 45;
 
             ctx.clearRect(0, 0, width, height);
 
@@ -61,28 +61,26 @@ const Interactive3DBackground = () => {
                 10,
                 width * mousePos.current.x,
                 height * mousePos.current.y,
-                width * 0.65
+                width * 0.7
             );
-            ambientGrad.addColorStop(0, 'rgba(19, 236, 19, 0.06)');
+            ambientGrad.addColorStop(0, 'rgba(19, 236, 19, 0.07)');
             ambientGrad.addColorStop(0.5, 'rgba(14, 208, 84, 0.02)');
             ambientGrad.addColorStop(1, 'transparent');
             ctx.fillStyle = ambientGrad;
             ctx.fillRect(0, 0, width, height);
 
-            // Update and draw particles
+            // Draw particles and links
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
                 p.x += p.vx * p.z;
                 p.y += p.vy * p.z;
                 p.pulse += 0.025;
 
-                // Boundary wrapping
                 if (p.x < 0) p.x = width;
                 if (p.x > width) p.x = 0;
                 if (p.y < 0) p.y = height;
                 if (p.y > height) p.y = 0;
 
-                // 3D Parallax coordinates
                 const drawX = p.x + offsetX * p.z;
                 const drawY = p.y + offsetY * p.z;
                 const dynamicRadius = p.radius * p.z * (1 + Math.sin(p.pulse) * 0.25);
@@ -93,7 +91,7 @@ const Interactive3DBackground = () => {
                 ctx.fillStyle = `hsla(${p.baseHue}, 85%, 55%, ${alpha})`;
                 ctx.fill();
 
-                // Draw proximity geometric links
+                // Proximity constellation links
                 for (let j = i + 1; j < particles.length; j++) {
                     const p2 = particles[j];
                     const p2DrawX = p2.x + offsetX * p2.z;
@@ -155,7 +153,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [playingMessageId, setPlayingMessageId] = useState(null);
 
-    // Citations / Sources Modal State
+    // Citations / Multi-Source Intelligence Modal State
     const [activeSourcesModal, setActiveSourcesModal] = useState(null);
     const [copiedMessageId, setCopiedMessageId] = useState(null);
     const [messageReactions, setMessageReactions] = useState({});
@@ -242,12 +240,12 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         setSessionId(newId);
         setMessages([{
             id: 1,
-            text: `Namaste${userProfile?.name ? `, ${userProfile.name.split(' ')[0]}` : ''}! I am your AI Farming Copilot. How can I help you with crop health, lab reports, mandi prices, or fertilizer plans today?`,
+            text: `Namaste${userProfile?.name ? `, ${userProfile.name.split(' ')[0]}` : ''}! I am your AI Farming Copilot. How can I help you with crop disease diagnosis, soil lab tests, mandi prices, or fertilizer plans today?`,
             isAI: true,
             sources: [
                 {
                     id: 'icar-welcome',
-                    title: 'ICAR Package of Practices & Agronomy Guidelines',
+                    title: 'ICAR Package of Practices & Agronomy Standards',
                     org: 'Indian Council of Agricultural Research',
                     type: 'Official Research Standard',
                     detail: 'Field-tested agronomic practices, crop calendars, and integrated management.'
@@ -485,7 +483,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                     setFarmData(data.farm);
                     setMessages([{
                         id: 1,
-                        text: `Namaste${userProfile?.name ? `, ${userProfile.name.split(' ')[0]}` : ''}! I have loaded your **${data.farm.crop_type || 'Crop'}** farm data${data.farm.state ? ` from **${data.farm.state}**` : ''}. You can ask questions, upload lab test reports, or share crop photos for instant analysis.`,
+                        text: `Namaste${userProfile?.name ? `, ${userProfile.name.split(' ')[0]}` : ''}! I have loaded your **${data.farm.crop_type || 'Crop'}** farm data${data.farm.state ? ` from **${data.farm.state}**` : ''}. You can ask questions, upload lab test reports, or share crop photos for multi-source cross-analysis.`,
                         isAI: true,
                         sources: [
                             {
@@ -769,7 +767,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
     };
 
     // ------------------------------------------------------------------------
-    // Rich Markdown Formatter for Agricultural Advisory
+    // Rich Markdown Formatter for Multi-Source Agronomic Outputs
     // ------------------------------------------------------------------------
     const renderFormattedAIText = (text) => {
         if (!text) return null;
@@ -778,25 +776,40 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
         return lines.map((line, idx) => {
             const trimmed = line.trim();
 
-            if (trimmed.startsWith('###') || (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.length < 50)) {
-                const headerText = trimmed.replace(/^###\s*/, '').replace(/\*\*/g, '');
+            // Section Headers (e.g. 1. 🌱 Immediate Core Takeaway, ### Header)
+            if (trimmed.startsWith('###') || (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.length < 60) || /^\d+\.\s+\*\*.*?\*\*/.test(trimmed)) {
+                const headerText = trimmed.replace(/^###\s*/, '').replace(/^\d+\.\s*/, '').replace(/\*\*/g, '');
                 return (
                     <div key={idx} className="mt-4 mb-2 flex items-center gap-2 border-b border-primary/20 pb-1">
-                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                        <h4 className="font-bold text-base text-slate-900 dark:text-emerald-300 tracking-tight">{headerText}</h4>
+                        <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
+                        <h4 className="font-bold text-sm md:text-base text-slate-900 dark:text-emerald-300 tracking-tight">{headerText}</h4>
                     </div>
                 );
             }
 
+            // Chemical Caution / Safety callout
             if (trimmed.toLowerCase().includes('caution') || trimmed.toLowerCase().includes('safety') || trimmed.toLowerCase().includes('warning') || trimmed.toLowerCase().includes('phi:')) {
                 return (
-                    <div key={idx} className="my-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2 text-xs text-amber-800 dark:text-amber-300">
-                        <span className="material-icons-round text-amber-500 text-sm shrink-0 mt-0.5">gpp_maybe</span>
-                        <span>{trimmed.replace(/\*\*/g, '')}</span>
+                    <div key={idx} className="my-2 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-300 shadow-sm">
+                        <span className="material-icons-round text-amber-500 text-base shrink-0 mt-0.5">gpp_maybe</span>
+                        <span className="leading-relaxed">{trimmed.replace(/\*\*/g, '')}</span>
                     </div>
                 );
             }
 
+            // Cost per Acre Callout
+            if (trimmed.toLowerCase().includes('cost per acre') || trimmed.toLowerCase().includes('estimated cost') || trimmed.toLowerCase().includes('₹/acre') || trimmed.toLowerCase().includes('₹')) {
+                if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ') || /^\d+\./.test(trimmed)) {
+                    return (
+                        <div key={idx} className="my-2 p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2 text-xs text-emerald-300 font-bold">
+                            <span className="material-icons-round text-emerald-400 text-sm">currency_rupee</span>
+                            <span>{trimmed.replace(/^[-*•]\s*/, '').replace(/\*\*/g, '')}</span>
+                        </div>
+                    );
+                }
+            }
+
+            // Numbered Action Steps (e.g. 1. Step description)
             if (/^\d+\./.test(trimmed)) {
                 const parts = trimmed.split(/^(?:\d+\.)\s*/);
                 const stepNum = trimmed.match(/^(\d+)\./)?.[1] || '•';
@@ -813,6 +826,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                 );
             }
 
+            // Bullet Point
             if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
                 const content = trimmed.substring(2);
                 return (
@@ -873,7 +887,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                             </div>
                             <button
                                 onClick={() => setIsDrawerOpen(false)}
-                                className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                                className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
                             >
                                 <span className="material-icons-round text-lg">close</span>
                             </button>
@@ -932,7 +946,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                                             </div>
                                             <button
                                                 onClick={(e) => handleDeleteSession(e, s.sessionId || s._id)}
-                                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all"
+                                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all cursor-pointer"
                                                 title="Delete conversation"
                                             >
                                                 <span className="material-icons-round text-sm">delete_outline</span>
@@ -945,29 +959,29 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
 
                         {/* Drawer Footer */}
                         <div className="pt-3 border-t border-white/10 text-[10px] text-slate-400 text-center">
-                            Grounded in ICAR, Agmarknet & CIBRC standards
+                            Grounded in ICAR, CIBRC, IMD & Agmarknet standards
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* 3. Citations & Sources Modal */}
+            {/* 3. Multi-Source Intelligence & Verification Modal */}
             {activeSourcesModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-                    <div className="bg-[#0c1f14] border border-white/15 rounded-3xl p-6 w-full max-w-md shadow-2xl relative max-h-[85vh] flex flex-col">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+                    <div className="bg-[#0c1f14] border border-white/15 rounded-3xl p-6 w-full max-w-lg shadow-2xl relative max-h-[88vh] flex flex-col">
                         <div className="flex items-center justify-between pb-3 border-b border-white/10">
                             <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                                    <span className="material-icons-round text-lg">verified</span>
+                                <div className="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                                    <span className="material-icons-round text-xl">verified</span>
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-base text-white">Verified Sources & Citations</h3>
-                                    <p className="text-[11px] text-slate-400">Grounded scientific & government datasets</p>
+                                    <h3 className="font-bold text-base text-white">Cross-Referenced Multi-Source Intelligence</h3>
+                                    <p className="text-[11px] text-emerald-400 font-semibold">6 Authoritative Agricultural Pillars Synthesized</p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setActiveSourcesModal(null)}
-                                className="p-1 rounded-full text-slate-400 hover:text-white"
+                                className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                             >
                                 <span className="material-icons-round text-lg">close</span>
                             </button>
@@ -975,24 +989,27 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
 
                         <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 my-4 pr-1">
                             {activeSourcesModal.map((src, i) => (
-                                <div key={i} className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                                <div key={i} className="p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/30 transition-all space-y-1.5">
                                     <div className="flex items-center justify-between">
-                                        <h5 className="text-xs font-bold text-emerald-400">{src.title}</h5>
-                                        <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
+                                        <h5 className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                            <span>{src.title}</span>
+                                        </h5>
+                                        <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                                             {src.type || 'Official'}
                                         </span>
                                     </div>
-                                    <p className="text-[11px] font-semibold text-slate-300">{src.org}</p>
-                                    <p className="text-[11px] text-slate-400 leading-relaxed">{src.detail}</p>
+                                    <p className="text-[11px] font-semibold text-slate-200">{src.org}</p>
+                                    <p className="text-[11px] text-slate-400 leading-relaxed bg-black/20 p-2 rounded-xl">{src.detail}</p>
                                 </div>
                             ))}
                         </div>
 
                         <button
                             onClick={() => setActiveSourcesModal(null)}
-                            className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors cursor-pointer"
+                            className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 text-xs font-extrabold transition-all cursor-pointer shadow-lg shadow-emerald-500/20"
                         >
-                            Close Sources
+                            Done Reviewing Sources
                         </button>
                     </div>
                 </div>
@@ -1023,7 +1040,7 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
 
                         <button
                             onClick={onBack}
-                            className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                            className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
                             title="Back to Dashboard"
                         >
                             <span className="material-icons-round text-lg">arrow_back</span>
@@ -1039,11 +1056,11 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                             <div>
                                 <h1 className="font-bold text-sm md:text-base text-white leading-tight flex items-center gap-1.5">
                                     <span>Kisan Copilot</span>
-                                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">AI Pro</span>
+                                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">Multi-Source</span>
                                 </h1>
                                 <p className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                                    <span>{farmData ? `${farmData.crop_type || 'Farm'} Context • Grounded` : 'Online • ICAR Standard'}</span>
+                                    <span>{farmData ? `${farmData.crop_type || 'Farm'} • ICAR + CIBRC + IMD` : 'Online • Multi-Source Intelligence'}</span>
                                 </p>
                             </div>
                         </div>
@@ -1113,15 +1130,15 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                                     <div className="mt-3.5 pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
                                         {/* Left action tools: Sources, Voice, Copy, Regenerate */}
                                         <div className="flex items-center gap-1.5">
-                                            {/* Sources Chip */}
+                                            {/* Multi-Source Cross-Analysis Chip */}
                                             {msg.sources && msg.sources.length > 0 && (
                                                 <button
                                                     onClick={() => setActiveSourcesModal(msg.sources)}
-                                                    className="px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer"
-                                                    title="View verified sources & citations"
+                                                    className="px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-sm"
+                                                    title="View cross-referenced multi-source intelligence"
                                                 >
                                                     <span className="material-icons-round text-xs">verified</span>
-                                                    <span>{msg.sources.length} Sources</span>
+                                                    <span>{msg.sources.length} Sources Analyzed</span>
                                                 </button>
                                             )}
 
@@ -1199,14 +1216,14 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                     </div>
                 ))}
 
-                {/* Typing / Analyzing Indicator */}
+                {/* Typing / Multi-Source Analyzing Indicator */}
                 {isTyping && (
                     <div className="flex gap-3 items-center ml-11 animate-fade-in">
-                        <div className="flex items-center gap-2 bg-[#0c2415]/90 border border-primary/30 py-2.5 px-4 rounded-2xl shadow-lg backdrop-blur-md">
+                        <div className="flex items-center gap-2.5 bg-[#0c2415]/90 border border-primary/30 py-2.5 px-4 rounded-2xl shadow-lg backdrop-blur-md">
                             <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
                             <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.15s]"></div>
                             <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.3s]"></div>
-                            <span className="text-xs font-extrabold text-emerald-300 ml-1">Analyzing Agricultural Science & Sources...</span>
+                            <span className="text-xs font-extrabold text-emerald-300 ml-1">Cross-analyzing ICAR, CIBRC, IMD & Agmarknet datasets...</span>
                         </div>
                     </div>
                 )}
@@ -1216,9 +1233,9 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
             <div className="fixed bottom-24 left-0 w-full px-4 overflow-x-auto no-scrollbar flex space-x-2 z-20 pointer-events-auto">
                 {[
                     '🧪 Analyze Soil Health Card & NPK',
-                    '🌾 Today\'s Mandi Bhav & Trends',
-                    '🐛 Leaf pest / disease treatment',
-                    '💧 Weather impact on irrigation',
+                    '🌾 Today\'s Mandi Bhav & Selling Plan',
+                    '🐛 Leaf Rust / Blast chemical dose',
+                    '💧 Weather risk & spray window',
                     '💰 Govt Subsidies & Schemes'
                 ].map((q) => (
                     <button
@@ -1257,12 +1274,12 @@ const AIAdvisoryChatbot = ({ onBack, selectedFarmId, userProfile, chatContext, c
                                 )}
                                 <div className="overflow-hidden">
                                     <p className="text-xs font-bold text-white truncate">{attachment.name}</p>
-                                    <p className="text-[10px] text-emerald-400 font-semibold">{attachment.sizeKb} KB • Ready for Lab & Agronomic Analysis</p>
+                                    <p className="text-[10px] text-emerald-400 font-semibold">{attachment.sizeKb} KB • Multi-Source Lab & Image Analysis Ready</p>
                                 </div>
                             </div>
                             <button
                                 onClick={removeAttachment}
-                                className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                                className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
                                 title="Remove file"
                             >
                                 <span className="material-icons-round text-base">close</span>
