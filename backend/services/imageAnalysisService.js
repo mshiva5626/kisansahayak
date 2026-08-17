@@ -252,6 +252,46 @@ async function analyzeImageWithAI(imagePathOrBase64, imageType = 'leaf', farm = 
             });
         }
         
+        // Enrich with Official NPSS Reference Images & Regional Incident Stats
+        if (npssIndex) {
+            const cropName = (diagnostic.crop_identified || farm?.crop_type || '').trim();
+            const diseaseName = (diagnostic.disease_name || '').trim();
+            const stateName = (farm?.location?.state || farm?.state || user?.state || '').trim().toLowerCase();
+            const districtName = (farm?.location?.district || farm?.district || user?.district || '').trim().toLowerCase();
+
+            // Look for matching pest/disease images in index
+            let matchedImages = [];
+            if (cropName && diseaseName && npssIndex.referenceImages) {
+                const refKey = `${cropName}_${diseaseName}`.toLowerCase();
+                matchedImages = npssIndex.referenceImages[refKey] || [];
+                if (matchedImages.length === 0) {
+                    for (const [k, imgs] of Object.entries(npssIndex.referenceImages)) {
+                        if (k.includes(cropName.toLowerCase()) && (k.includes(diseaseName.toLowerCase()) || diseaseName.toLowerCase().includes(k.split('_')[1] || ''))) {
+                            matchedImages = imgs;
+                            break;
+                        }
+                    }
+                }
+            }
+            diagnostic.npss_reference_images = matchedImages.slice(0, 5);
+
+            // Regional stats lookup
+            let regionalCount = 0;
+            if (stateName && districtName && cropName && npssIndex.regionalStats) {
+                const regKey = `${stateName}_${districtName}_${cropName}`.toLowerCase();
+                const stats = npssIndex.regionalStats[regKey];
+                if (stats) {
+                    regionalCount = stats[diseaseName] || stats[Object.keys(stats)[0]] || 0;
+                }
+            }
+            diagnostic.npss_regional_reports = {
+                count: regionalCount,
+                district: farm?.location?.district || farm?.district || user?.district || 'Regional',
+                state: farm?.location?.state || farm?.state || user?.state || 'India',
+                pest: diseaseName
+            };
+        }
+        
         return {
             analysis: diagnostic,
             confidence_score: typeof diagnostic.confidence === 'number' ? diagnostic.confidence : 0.80,
@@ -298,7 +338,14 @@ async function analyzeImageWithAI(imagePathOrBase64, imageType = 'leaf', farm = 
                 'Inspect the underside of leaves for spores or insect pests',
                 'Consult your block Agriculture Extension Officer if symptoms worsen'
             ],
-            yield_impact: 'Minimal if managed proactively'
+            yield_impact: 'Minimal if managed proactively',
+            npss_reference_images: [],
+            npss_regional_reports: {
+                count: 0,
+                district: farm?.location?.district || farm?.district || user?.district || 'Regional',
+                state: farm?.location?.state || farm?.state || user?.state || 'India',
+                pest: 'Visual Symptoms'
+            }
         };
         
         return {

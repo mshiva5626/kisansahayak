@@ -82,7 +82,12 @@ export const aiAPI = {
         API.post('/ai/chat', { messages, farm_id, language, personalization_mode, attachments, session_id }),
     getSessions: () => API.get('/ai/sessions'),
     getSessionById: (sessionId) => API.get(`/ai/sessions/${sessionId}`),
-    deleteSession: (sessionId) => API.delete(`/ai/sessions/${sessionId}`)
+    deleteSession: (sessionId) => API.delete(`/ai/sessions/${sessionId}`),
+    // AI Daily Tasks & Field Survey
+    getDailySurvey: (farmId, lang) => API.get(`/ai/daily-survey/${farmId || 'default'}`, { params: { lang } }),
+    submitDailySurvey: (farmId, responses, language) => API.post(`/ai/daily-survey/${farmId || 'default'}/submit`, { responses, language }),
+    getDailyTasks: (farmId, lang) => API.get(`/ai/daily-tasks/${farmId || 'default'}`, { params: { lang } }),
+    updateTaskStatus: (farmId, taskId, status) => API.put(`/ai/daily-tasks/${farmId || 'default'}/task/${taskId}`, status)
 };
 
 // Image API

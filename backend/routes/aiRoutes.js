@@ -6,7 +6,11 @@ const {
     chat, 
     getSessions, 
     getSessionById, 
-    deleteSession 
+    deleteSession,
+    getFieldSurvey,
+    getDailyTasks,
+    submitSurveyAndGetTasks,
+    updateTaskStatus
 } = require('../controllers/advisoryController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -24,4 +28,11 @@ router.get('/sessions', protect, getSessions);
 router.get('/sessions/:sessionId', protect, getSessionById);
 router.delete('/sessions/:sessionId', protect, deleteSession);
 
+// Daily Operations & Field Checks + Adaptive Diagnostic Surveys
+router.get('/daily-survey/:farmId', protect, getFieldSurvey);
+router.post('/daily-survey/:farmId/submit', protect, submitSurveyAndGetTasks);
+router.get('/daily-tasks/:farmId', protect, getDailyTasks);
+router.put('/daily-tasks/:farmId/task/:taskId', protect, updateTaskStatus);
+
 module.exports = router;
+

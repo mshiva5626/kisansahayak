@@ -208,6 +208,114 @@
       "updatedAt": "2026-08-15T20:29:47.194Z",
       "state": "odisha",
       "district": "rayagada"
+    },
+    {
+      "email": "test_npss_1786936674991@example.com",
+      "password": "$2b$10$2MDxKAtIagc15ci4HJrWMuA9viVD4tpC9Sup4e4rO28vtQUOARhiO",
+      "name": "Test Farmer",
+      "age": null,
+      "mobile_number": "",
+      "land_size": "",
+      "experience_years": "",
+      "estimated_revenue": "",
+      "has_degree": false,
+      "education_qualification": "",
+      "role": "verified_farmer",
+      "preferred_language": "en",
+      "farming_type": "Conventional",
+      "_id": "41712414-d181-44f8-80f3-fe034e0a9f89",
+      "createdAt": "2026-08-17T03:17:56.020Z",
+      "updatedAt": "2026-08-17T03:17:56.021Z"
+    },
+    {
+      "email": "test_script@example.com",
+      "password": "$2b$10$kREE2FYz6WYkDjRNBtqNJ.6xwOgvQZ9Bfqf4UrKNLJGkzEbCbdxX6",
+      "name": "Test Script",
+      "age": null,
+      "mobile_number": "",
+      "land_size": "",
+      "experience_years": "",
+      "estimated_revenue": "",
+      "has_degree": false,
+      "education_qualification": "",
+      "role": "verified_farmer",
+      "preferred_language": "en",
+      "farming_type": "Conventional",
+      "_id": "c1827374-ba53-4862-a9d4-1cba6fa26d65",
+      "createdAt": "2026-08-17T03:18:14.314Z",
+      "updatedAt": "2026-08-17T03:18:14.314Z"
+    },
+    {
+      "email": "test_npss_1786936982978@example.com",
+      "password": "$2b$10$Hv/1qxUamSj6pig5SkIc6enxbh8CUBVLMaV6krPqyruVaqlvzQLRG",
+      "name": "Test Farmer",
+      "age": null,
+      "mobile_number": "",
+      "land_size": "",
+      "experience_years": "",
+      "estimated_revenue": "",
+      "has_degree": false,
+      "education_qualification": "",
+      "role": "verified_farmer",
+      "preferred_language": "en",
+      "farming_type": "Conventional",
+      "_id": "37a63eef-b4da-4c3c-a699-0bdaf93ff30d",
+      "createdAt": "2026-08-17T03:23:03.960Z",
+      "updatedAt": "2026-08-17T03:23:03.961Z"
+    },
+    {
+      "email": "test_tasks_1786937007076@example.com",
+      "password": "$2b$10$xUxNaNYKFoDAv5mo99IBpeZ/eX4hht75qqjhLqT.uJnxzibuc/xNS",
+      "name": "Suresh Patel",
+      "age": null,
+      "mobile_number": "",
+      "land_size": "",
+      "experience_years": "",
+      "estimated_revenue": "",
+      "has_degree": false,
+      "education_qualification": "",
+      "role": "verified_farmer",
+      "preferred_language": "en",
+      "farming_type": "Conventional",
+      "_id": "afa6c50a-62e1-4533-80f5-c9d2200df7f4",
+      "createdAt": "2026-08-17T03:23:28.284Z",
+      "updatedAt": "2026-08-17T03:23:28.284Z"
+    },
+    {
+      "email": "test_npss_1786937257579@example.com",
+      "password": "$2b$10$DCYe/4bJpM1.WfosjKQgj.DV1kA98en9ufgfWOGTom41L8avd/FHu",
+      "name": "Test Farmer",
+      "age": null,
+      "mobile_number": "",
+      "land_size": "",
+      "experience_years": "",
+      "estimated_revenue": "",
+      "has_degree": false,
+      "education_qualification": "",
+      "role": "verified_farmer",
+      "preferred_language": "en",
+      "farming_type": "Conventional",
+      "_id": "16356e8b-dbe6-4069-9595-e445cb092c2a",
+      "createdAt": "2026-08-17T03:27:39.465Z",
+      "updatedAt": "2026-08-17T03:27:39.465Z"
+    },
+    {
+      "email": "test_tasks_1786937262982@example.com",
+      "password": "$2b$10$CYtQHTjT1/zwWSiaBpxXZuYjWa6kGvBJIUCMtLTVjsZAXKYoSrO/y",
+      "name": "Suresh Patel",
+      "age": null,
+      "mobile_number": "",
+      "land_size": "",
+      "experience_years": "",
+      "estimated_revenue": "",
+      "has_degree": false,
+      "education_qualification": "",
+      "role": "verified_farmer",
+      "preferred_language": "en",
+      "farming_type": "Conventional",
+      "_id": "1096fe32-1812-458b-b1a9-de18b0183998",
+      "createdAt": "2026-08-17T03:27:44.159Z",
+      "updatedAt": "2026-08-17T03:27:44.159Z"
     }
   ],
   "farms": [
@@ -240,9 +348,231 @@
       "userId": "93031551-69c1-4038-9224-697d8a7c334d",
       "createdAt": "2026-08-15T20:28:31.235Z",
       "updatedAt": "2026-08-15T20:28:31.235Z"
+    },
+    {
+      "farm_name": "NPSS Chilli Farm",
+      "state": "Arunachal Pradesh",
+      "area": "2 acres",
+      "terrain_type": "plain",
+      "water_source": "borewell",
+      "crop_type": "Chilli",
+      "sowing_date": null,
+      "latitude": 27.5,
+      "longitude": 93.8,
+      "_id": "mem_22_mswnyjvp",
+      "userId": "41712414-d181-44f8-80f3-fe034e0a9f89",
+      "createdAt": "2026-08-17T03:17:56.389Z",
+      "updatedAt": "2026-08-17T03:17:56.389Z"
+    },
+    {
+      "farm_name": "NPSS Chilli Farm",
+      "state": "Arunachal Pradesh",
+      "district": "Lower Subansiri",
+      "area": "2 acres",
+      "unit": "Acres",
+      "terrain_type": "plain",
+      "water_source": "borewell",
+      "crop_type": "Chilli",
+      "crop_variety": "",
+      "soil_type": "",
+      "sowing_date": null,
+      "latitude": 27.5,
+      "longitude": 93.8,
+      "location": {
+        "lat": 27.5,
+        "lon": 93.8,
+        "state": "Arunachal Pradesh",
+        "district": "Lower Subansiri"
+      },
+      "_id": "mem_25_mswo55hj",
+      "userId": "37a63eef-b4da-4c3c-a699-0bdaf93ff30d",
+      "createdAt": "2026-08-17T03:23:04.327Z",
+      "updatedAt": "2026-08-17T03:23:04.327Z"
+    },
+    {
+      "farm_name": "Shree Krishna Farm - Sector 1",
+      "state": "Punjab",
+      "district": "Ludhiana",
+      "area": 3,
+      "unit": "Acres",
+      "terrain_type": "",
+      "water_source": "drip irrigation",
+      "crop_type": "Wheat",
+      "crop_variety": "HD-2967",
+      "soil_type": "Alluvial Loam",
+      "sowing_date": "2026-07-20",
+      "latitude": 30.901,
+      "longitude": 75.8573,
+      "location": null,
+      "_id": "mem_28_mswo5o1k",
+      "userId": "afa6c50a-62e1-4533-80f5-c9d2200df7f4",
+      "createdAt": "2026-08-17T03:23:28.376Z",
+      "updatedAt": "2026-08-17T03:23:28.376Z"
+    },
+    {
+      "farm_name": "NPSS Chilli Farm",
+      "state": "Arunachal Pradesh",
+      "district": "Lower Subansiri",
+      "area": "2 acres",
+      "unit": "Acres",
+      "terrain_type": "plain",
+      "water_source": "borewell",
+      "crop_type": "Chilli",
+      "crop_variety": "",
+      "soil_type": "",
+      "sowing_date": null,
+      "latitude": 27.5,
+      "longitude": 93.8,
+      "location": {
+        "lat": 27.5,
+        "lon": 93.8,
+        "state": "Arunachal Pradesh",
+        "district": "Lower Subansiri"
+      },
+      "_id": "mem_30_mswob21q",
+      "userId": "16356e8b-dbe6-4069-9595-e445cb092c2a",
+      "createdAt": "2026-08-17T03:27:39.806Z",
+      "updatedAt": "2026-08-17T03:27:39.806Z"
+    },
+    {
+      "farm_name": "Shree Krishna Farm - Sector 1",
+      "state": "Punjab",
+      "district": "Ludhiana",
+      "area": 3,
+      "unit": "Acres",
+      "terrain_type": "",
+      "water_source": "drip irrigation",
+      "crop_type": "Wheat",
+      "crop_variety": "HD-2967",
+      "soil_type": "Alluvial Loam",
+      "sowing_date": "2026-07-20",
+      "latitude": 30.901,
+      "longitude": 75.8573,
+      "location": null,
+      "_id": "mem_33_mswob5pr",
+      "userId": "1096fe32-1812-458b-b1a9-de18b0183998",
+      "createdAt": "2026-08-17T03:27:44.559Z",
+      "updatedAt": "2026-08-17T03:27:44.559Z"
     }
   ],
-  "images": [],
+  "images": [
+    {
+      "farm_id": "mem_25_mswo55hj",
+      "image_url": "/uploads/1786936984673-524326991.jpg",
+      "image_type": "leaf",
+      "_id": "mem_26_mswo55yy",
+      "createdAt": "2026-08-17T03:23:04.954Z",
+      "updatedAt": "2026-08-17T03:23:06.781Z",
+      "analysis_result": {
+        "crop_identified": "Chilli",
+        "disease_name": "Visual Symptom Analysis Pending Lab Confirmation",
+        "scientific_name": "N/A",
+        "causal_agent": "Undetermined",
+        "confidence": 0.4,
+        "severity": "Moderate",
+        "severity_percentage": "Unknown",
+        "symptoms_observed": [
+          "Visual symptoms require closer inspection under natural daylight"
+        ],
+        "symptom_locations": "Canopy foliage",
+        "affected_parts": [
+          "leaf"
+        ],
+        "spread_risk": "Medium",
+        "overall_assessment": "Visual evidence is insufficient to confirm a pathogen without laboratory testing or higher resolution photography. Please take a clear, close-up photo in good daylight or consult your local Krishi Vigyan Kendra.",
+        "additional_evidence_needed": "Check leaf undersides for fungal mycelium or bacterial streaming. Collect a physical sample for KVK diagnostic lab.",
+        "ipm_immediate": "Avoid overhead irrigation. Ensure optimal field aeration and drainage.",
+        "ipm_organic": "Apply prophylactic Neem oil (1500 ppm) @ 5 ml/L of water.",
+        "ipm_chemical": {
+          "active_ingredient": "Copper Oxychloride 50% WP (Prophylactic broad-spectrum)",
+          "concentration": "50% WP",
+          "dosage": "2.5 g/L of water (500 g/acre in 200 L water)",
+          "application_method": "Foliar spray",
+          "frequency": "Once if symptoms spread",
+          "phi_days": "7-10 days",
+          "precaution": "Wear protective gloves and mask during spray. Avoid spraying in rain or strong wind."
+        },
+        "immediate_action": "Isolate affected plants and observe spread over 48 hours",
+        "prevention": [
+          "Ensure balanced NPK fertilization avoiding excess nitrogen",
+          "Maintain proper field spacing and weed sanitation",
+          "Use certified disease-free seed for next season"
+        ],
+        "recommendations": [
+          "Take a close-up photo of the affected leaf in bright daylight",
+          "Inspect the underside of leaves for spores or insect pests",
+          "Consult your block Agriculture Extension Officer if symptoms worsen"
+        ],
+        "yield_impact": "Minimal if managed proactively",
+        "npss_reference_images": [],
+        "npss_regional_reports": {
+          "count": 0,
+          "district": "Lower Subansiri",
+          "state": "Arunachal Pradesh",
+          "pest": "Visual Symptoms"
+        }
+      },
+      "confidence_score": 0.4
+    },
+    {
+      "farm_id": "mem_30_mswob21q",
+      "image_url": "/uploads/1786937260146-411873262.jpg",
+      "image_type": "leaf",
+      "_id": "mem_31_mswob2xt",
+      "createdAt": "2026-08-17T03:27:40.961Z",
+      "updatedAt": "2026-08-17T03:27:42.813Z",
+      "analysis_result": {
+        "crop_identified": "Chilli",
+        "disease_name": "Visual Symptom Analysis Pending Lab Confirmation",
+        "scientific_name": "N/A",
+        "causal_agent": "Undetermined",
+        "confidence": 0.4,
+        "severity": "Moderate",
+        "severity_percentage": "Unknown",
+        "symptoms_observed": [
+          "Visual symptoms require closer inspection under natural daylight"
+        ],
+        "symptom_locations": "Canopy foliage",
+        "affected_parts": [
+          "leaf"
+        ],
+        "spread_risk": "Medium",
+        "overall_assessment": "Visual evidence is insufficient to confirm a pathogen without laboratory testing or higher resolution photography. Please take a clear, close-up photo in good daylight or consult your local Krishi Vigyan Kendra.",
+        "additional_evidence_needed": "Check leaf undersides for fungal mycelium or bacterial streaming. Collect a physical sample for KVK diagnostic lab.",
+        "ipm_immediate": "Avoid overhead irrigation. Ensure optimal field aeration and drainage.",
+        "ipm_organic": "Apply prophylactic Neem oil (1500 ppm) @ 5 ml/L of water.",
+        "ipm_chemical": {
+          "active_ingredient": "Copper Oxychloride 50% WP (Prophylactic broad-spectrum)",
+          "concentration": "50% WP",
+          "dosage": "2.5 g/L of water (500 g/acre in 200 L water)",
+          "application_method": "Foliar spray",
+          "frequency": "Once if symptoms spread",
+          "phi_days": "7-10 days",
+          "precaution": "Wear protective gloves and mask during spray. Avoid spraying in rain or strong wind."
+        },
+        "immediate_action": "Isolate affected plants and observe spread over 48 hours",
+        "prevention": [
+          "Ensure balanced NPK fertilization avoiding excess nitrogen",
+          "Maintain proper field spacing and weed sanitation",
+          "Use certified disease-free seed for next season"
+        ],
+        "recommendations": [
+          "Take a close-up photo of the affected leaf in bright daylight",
+          "Inspect the underside of leaves for spores or insect pests",
+          "Consult your block Agriculture Extension Officer if symptoms worsen"
+        ],
+        "yield_impact": "Minimal if managed proactively",
+        "npss_reference_images": [],
+        "npss_regional_reports": {
+          "count": 0,
+          "district": "Lower Subansiri",
+          "state": "Arunachal Pradesh",
+          "pest": "Visual Symptoms"
+        }
+      },
+      "confidence_score": 0.4
+    }
+  ],
   "advisories": [
     {
       "farm_id": "mem_5_msun5aft",
@@ -273,7 +603,7 @@
     }
   ],
   "notifications": [],
-  "_nextId": 21,
+  "_nextId": 34,
   "chatSessions": [
     {
       "_id": "sess_msw0n5l2",

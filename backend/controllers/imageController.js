@@ -39,33 +39,37 @@ exports.uploadImage = async (req, res) => {
         const fileBuffer = fs.readFileSync(req.file.path);
         const fileName = req.file.filename;
 
-        console.log(`\n--- SUPABASE STORAGE UPLOAD ---`);
-        console.log(`Starting upload for: ${fileName}`);
+        console.log(`\n--- STORAGE UPLOAD ---`);
+        console.log(`Processing upload for: ${fileName}`);
 
         const supabase = getSupabase();
+        let image_url = `/uploads/${fileName}`;
 
-        // Attempt to upload to Supabase Storage
-        const { data: uploadData, error: storageError } = await supabase.storage
-            .from('farm_images')
-            .upload(fileName, fileBuffer, {
-                contentType: req.file.mimetype,
-                upsert: true
-            });
+        // Attempt to upload to Supabase Storage with resilient fallback
+        try {
+            if (supabase && supabase.storage) {
+                const { data: uploadData, error: storageError } = await supabase.storage
+                    .from('farm_images')
+                    .upload(fileName, fileBuffer, {
+                        contentType: req.file.mimetype,
+                        upsert: true
+                    });
 
-        if (storageError) {
-            console.error('❌ Supabase Storage Error:', storageError.message);
-            throw new Error(`Cloud storage upload failed: ${storageError.message}. Make sure you created a public bucket named 'farm_images' in your Supabase dashboard.`);
+                if (storageError) {
+                    console.warn('⚠️ Supabase Storage warning (falling back to local file):', storageError.message);
+                } else if (uploadData?.path) {
+                    const { data: publicUrlData } = supabase.storage
+                        .from('farm_images')
+                        .getPublicUrl(uploadData.path);
+                    if (publicUrlData?.publicUrl) {
+                        image_url = publicUrlData.publicUrl;
+                        console.log(`✅ Supabase Cloud Storage Public URL:`, image_url);
+                    }
+                }
+            }
+        } catch (storageErr) {
+            console.warn('⚠️ Supabase Storage exception (falling back to local file):', storageErr.message);
         }
-
-        console.log(`✅ Upload successful:`, uploadData.path);
-
-        const { data: publicUrlData } = supabase.storage
-            .from('farm_images')
-            .getPublicUrl(uploadData.path);
-
-        const image_url = publicUrlData.publicUrl;
-
-        console.log(`Public URL generated:`, image_url);
 
         const { data: image, error } = await supabase
             .from('images')
@@ -107,12 +111,13 @@ exports.analyzeImage = async (req, res) => {
 
         let imagePath = image.image_url;
 
-        // If it's still a local path from older test data, resolve it, otherwise use the URL directly
+        // If it's a local/relative URL, resolve to absolute filesystem path
         if (!imagePath.startsWith('http')) {
-            imagePath = path.join(__dirname, '..', imagePath);
+            const cleanPath = imagePath.replace(/^\/?uploads\//, '');
+            imagePath = path.join(__dirname, '..', 'uploads', cleanPath);
         }
 
-        console.log(`\n--- TRIGGERING GEMINI ANALYSIS ---`);
+        console.log(`\n--- TRIGGERING AI VISION ANALYSIS ---`);
         console.log(`Analyzing image: ${imagePath}`);
 
         const analysisResult = await analyzeImageWithAI(imagePath, image.image_type, farm);

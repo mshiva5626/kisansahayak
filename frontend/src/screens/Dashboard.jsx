@@ -3,7 +3,7 @@ import BottomNavbar from '../components/BottomNavbar';
 import SideDrawerMenu from '../components/SideDrawerMenu';
 import DashboardSkeleton from '../components/DashboardSkeleton';
 import LocationModal from '../components/LocationModal';
-import { weatherAPI, farmAPI, mandiAPI } from '../api';
+import { weatherAPI, farmAPI, mandiAPI, aiAPI } from '../api';
 
 const Dashboard = ({ 
     onProfileClick, 
@@ -15,6 +15,7 @@ const Dashboard = ({
     onSchemesClick, 
     onMandiPricesClick, 
     onSoilTestClick, 
+    onTodayFocusClick,
     onNavigate, 
     userProfile, 
     selectedFarmId,
@@ -24,40 +25,51 @@ const Dashboard = ({
     const [weather, setWeather] = useState(null);
     const [farm, setFarm] = useState(null);
     const [mandiSummary, setMandiSummary] = useState({ price: 2580, crop: 'Wheat', trend: 'hike', change: 70 });
+    const [dailyTasksData, setDailyTasksData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isTasksLoading, setIsTasksLoading] = useState(false);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
     const activeState = userLocation?.state || userProfile?.state || 'Madhya Pradesh';
     const activeDistrict = userLocation?.district || userProfile?.district || 'Indore';
+    const activeLanguage = userProfile?.preferred_language || localStorage.getItem('kisan_lang') || 'en';
 
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
             try {
                 let farmCrop = 'Wheat';
+                let lat = userLocation?.latitude;
+                let lon = userLocation?.longitude;
+
                 if (selectedFarmId) {
-                    const { data } = await farmAPI.getFarmById(selectedFarmId);
-                    setFarm(data.farm);
-                    farmCrop = data.farm?.crop_type || 'Wheat';
-
-                    // Only fetch weather if farm has coordinates
-                    const lat = userLocation?.latitude || data.farm.latitude || data.farm.location?.lat;
-                    const lon = userLocation?.longitude || data.farm.longitude || data.farm.location?.lon;
-
-                    if (lat && lon) {
-                        try {
-                            const { data: weatherData } = await weatherAPI.getWeatherByFarm(selectedFarmId);
-                            setWeather({
-                                temp: Math.round(weatherData.temperature ?? weatherData.temp),
-                                condition: weatherData.condition || 'Unknown',
-                                humidity: weatherData.humidity,
-                                wind_speed: weatherData.wind_speed,
-                                forecast: weatherData.forecast || []
-                            });
-                        } catch (e) {
-                            console.error('Weather fetch failed:', e);
+                    try {
+                        const { data } = await farmAPI.getFarmById(selectedFarmId);
+                        if (data?.farm) {
+                            setFarm(data.farm);
+                            farmCrop = data.farm?.crop_type || 'Wheat';
+                            lat = data.farm.latitude || data.farm.location?.lat || lat;
+                            lon = data.farm.longitude || data.farm.location?.lon || lon;
                         }
+                    } catch (fErr) {
+                        console.warn('Farm load warning:', fErr.message);
+                    }
+                }
+
+                // Weather fetch with graceful fallback to location coordinates
+                if (lat && lon) {
+                    try {
+                        const { data: weatherData } = await weatherAPI.getWeather(lat, lon);
+                        setWeather({
+                            temp: Math.round(weatherData.temperature ?? weatherData.temp ?? 28),
+                            condition: weatherData.condition || 'Clear Sky',
+                            humidity: weatherData.humidity || 65,
+                            wind_speed: weatherData.wind_speed || 12,
+                            forecast: weatherData.forecast || []
+                        });
+                    } catch (e) {
+                        console.error('Weather fetch failed:', e);
                     }
                 }
 
@@ -77,6 +89,19 @@ const Dashboard = ({
                     console.warn('Dashboard mandi fetch warning:', mErr);
                 }
 
+                // Fetch today's AI daily operations & field checks
+                try {
+                    setIsTasksLoading(true);
+                    const { data: taskRes } = await aiAPI.getDailyTasks(selectedFarmId || 'default', activeLanguage);
+                    if (taskRes?.data) {
+                        setDailyTasksData(taskRes.data);
+                    }
+                } catch (tErr) {
+                    console.warn('Dashboard tasks fetch warning:', tErr);
+                } finally {
+                    setIsTasksLoading(false);
+                }
+
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
             } finally {
@@ -84,7 +109,42 @@ const Dashboard = ({
             }
         };
         fetchData();
-    }, [selectedFarmId, activeState, activeDistrict, userLocation]);
+    }, [selectedFarmId, activeState, activeDistrict, userLocation, activeLanguage]);
+
+    // Quick Task Completion Toggle directly from Dashboard
+    const handleQuickTaskToggle = async (taskId, currentCompleted) => {
+        const newCompleted = !currentCompleted;
+        setDailyTasksData(prev => {
+            if (!prev || !prev.tasks) return prev;
+            return {
+                ...prev,
+                tasks: prev.tasks.map(t => t.id === taskId ? { ...t, completed: newCompleted, dismissed: false } : t)
+            };
+        });
+
+        try {
+            await aiAPI.updateTaskStatus(selectedFarmId || 'default', taskId, { completed: newCompleted, dismissed: false });
+        } catch (err) {
+            console.warn('Failed to update task state:', err);
+        }
+    };
+
+    // Quick Task Dismiss directly from Dashboard
+    const handleQuickTaskDismiss = async (taskId) => {
+        setDailyTasksData(prev => {
+            if (!prev || !prev.tasks) return prev;
+            return {
+                ...prev,
+                tasks: prev.tasks.map(t => t.id === taskId ? { ...t, dismissed: true, completed: false } : t)
+            };
+        });
+
+        try {
+            await aiAPI.updateTaskStatus(selectedFarmId || 'default', taskId, { dismissed: true, completed: false });
+        } catch (err) {
+            console.warn('Failed to dismiss task:', err);
+        }
+    };
 
     // Build conditional advisory text
     const getAdvisoryText = () => {
@@ -256,12 +316,19 @@ const Dashboard = ({
                                     <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Weather</span>
                                 </button>
                                 
-                                <button onClick={onAICopilotClick} className="flex flex-col items-center gap-2 group tactile-btn">
-                                    <div className="h-13 w-13 rounded-2xl bg-blue-100 dark:bg-blue-950/40 border border-blue-200/20 flex items-center justify-center transition-all group-active:scale-95 relative shadow-md">
+                                <button onClick={onTodayFocusClick || (() => onNavigate('priority-tasks'))} className="flex flex-col items-center gap-2 group tactile-btn">
+                                    <div className="h-13 w-13 rounded-2xl bg-emerald-100 dark:bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-center transition-all group-active:scale-95 relative shadow-md">
                                         <span className="absolute -top-1 -right-1 flex h-3 w-3">
                                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0ED054] opacity-75"></span>
                                             <span className="relative inline-flex rounded-full h-3 w-3 bg-[#0ED054]"></span>
                                         </span>
+                                        <span className="material-symbols-outlined text-emerald-600 dark:text-[#0ED054] text-[26px]">task_alt</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Daily Checks</span>
+                                </button>
+
+                                <button onClick={onAICopilotClick} className="flex flex-col items-center gap-2 group tactile-btn">
+                                    <div className="h-13 w-13 rounded-2xl bg-blue-100 dark:bg-blue-950/40 border border-blue-200/20 flex items-center justify-center transition-all group-active:scale-95 relative shadow-md">
                                         <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[26px]">smart_toy</span>
                                     </div>
                                     <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Copilot</span>
@@ -301,67 +368,143 @@ const Dashboard = ({
                                     </div>
                                     <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Market</span>
                                 </button>
-                                
+
                                 <button onClick={onSoilTestClick} className="flex flex-col items-center gap-2 group tactile-btn">
                                     <div className="h-13 w-13 rounded-2xl bg-green-100 dark:bg-green-950/40 border border-green-200/20 flex items-center justify-center transition-all group-active:scale-95 shadow-md">
                                         <span className="material-symbols-outlined text-green-600 dark:text-green-400 text-[26px]">science</span>
                                     </div>
                                     <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Soil Test</span>
                                 </button>
-
-                                <button onClick={() => onNavigate('ami-insights')} className="flex flex-col items-center gap-2 group tactile-btn">
-                                    <div className="h-13 w-13 rounded-2xl bg-[#0ED054]/10 dark:bg-[#0ED054]/20 border border-[#0ED054]/20 flex items-center justify-center transition-all group-active:scale-95 shadow-md">
-                                        <span className="material-symbols-outlined text-emerald-600 dark:text-[#0ED054] text-[26px]">account_balance</span>
-                                    </div>
-                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">AIF Funds</span>
-                                </button>
                             </div>
                         </div>
 
-                        {/* Warning-tinted Glass Advisory Alert */}
+                        {/* Interactive AI Daily Operations & Checks Tasks Bar */}
                         <div className="mb-6">
-                            <h2 className="text-lg font-extrabold text-gray-900 dark:text-white mb-3 px-1">Alerts & Advisory</h2>
-                            
-                            <div className="flex flex-col gap-3">
-                                {weather && weather.forecast && weather.forecast.length > 0 && weather.forecast[0].precipitation > 0 ? (
-                                    <div className="krishi-glass dark:bg-red-950/15 border border-l-4 border-l-red-500 border-white/20 dark:border-white/5 p-4 rounded-2xl shadow-lg flex gap-4 items-start active:scale-[0.99] transition-transform duration-200 cursor-pointer">
-                                        <div className="h-12 w-12 rounded-xl bg-red-100 dark:bg-red-900/35 flex-shrink-0 flex items-center justify-center text-red-600 dark:text-red-400 shadow-sm">
-                                            <span className="material-symbols-outlined">thunderstorm</span>
+                            <div className="flex items-center justify-between mb-3 px-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-[#0ED054] animate-pulse"></span>
+                                    <h2 className="text-lg font-extrabold text-gray-900 dark:text-white">Daily Checks & Tasks</h2>
+                                </div>
+                                <button 
+                                    onClick={() => onNavigate('priority-tasks')} 
+                                    className="text-[11px] font-bold text-[#0ED054] hover:underline flex items-center gap-0.5 cursor-pointer"
+                                >
+                                    <span>View All</span>
+                                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                                </button>
+                            </div>
+
+                            {/* Daily Operations Card */}
+                            <div className="krishi-glass border border-emerald-500/20 dark:border-white/10 rounded-3xl p-4 shadow-xl">
+                                {/* Header Info */}
+                                <div className="flex items-center justify-between mb-3">
+                                    <div>
+                                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
+                                            {dailyTasksData?.crop || farm?.crop_type || 'Crop'} Field Intelligence
+                                        </span>
+                                        <h3 className="text-sm font-black text-gray-900 dark:text-white leading-tight">
+                                            {dailyTasksData?.growth_stage || 'Active Field Operations'}
+                                        </h3>
+                                    </div>
+
+                                    {dailyTasksData?.tasks && (
+                                        <div className="text-right">
+                                            <span className="text-xs font-black text-[#0ED054]">
+                                                {dailyTasksData.tasks.filter(t => !t.dismissed && t.completed).length} / {dailyTasksData.tasks.filter(t => !t.dismissed).length}
+                                            </span>
+                                            <span className="text-[10px] text-gray-400 block">Done</span>
                                         </div>
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start">
-                                                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Heavy Rain Alert</h3>
-                                                <span className="text-[10px] text-red-500 dark:text-red-400 font-extrabold uppercase">Now</span>
-                                            </div>
-                                            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-medium">Precipitation expected in your region. Secure open seeds and postpone irrigation plans.</p>
-                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Quick Tasks Interactive Checklist */}
+                                {isTasksLoading ? (
+                                    <div className="py-4 flex items-center justify-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                                        <span className="text-xs text-gray-400">Loading daily checks...</span>
+                                    </div>
+                                ) : (dailyTasksData?.tasks || []).filter(t => !t.dismissed).length === 0 ? (
+                                    <div className="py-3 text-center text-xs text-gray-400">
+                                        All tasks completed for today! Great job.
                                     </div>
                                 ) : (
-                                    <div className="krishi-glass dark:bg-blue-950/10 border border-l-4 border-l-[#0ED054] border-white/20 dark:border-white/5 p-4 rounded-2xl shadow-lg flex gap-4 items-start active:scale-[0.99] transition-transform duration-200 cursor-pointer">
-                                        <div className="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex-shrink-0 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm">
-                                            <span className="material-symbols-outlined">wb_sunny</span>
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start">
-                                                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Optimal Weather</h3>
-                                                <span className="text-[10px] text-[#0ED054] font-extrabold uppercase">Active</span>
-                                            </div>
-                                            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-medium">Optimal clear skies. Ideal conditions for normal crop field operations and spraying.</p>
-                                        </div>
+                                    <div className="flex flex-col gap-2.5">
+                                        {(dailyTasksData?.tasks || [])
+                                            .filter(t => !t.dismissed)
+                                            .slice(0, 3)
+                                            .map((task) => (
+                                                <div 
+                                                    key={task.id}
+                                                    className={`flex items-start justify-between p-2.5 rounded-2xl border transition-all ${
+                                                        task.completed 
+                                                            ? 'bg-emerald-500/10 border-emerald-500/30 opacity-75' 
+                                                            : 'bg-white/40 dark:bg-white/5 border-gray-100 dark:border-white/5 hover:border-emerald-500/30'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-start gap-2.5 flex-1 pr-2">
+                                                        {/* Tick (✓) Checkbox */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleQuickTaskToggle(task.id, task.completed);
+                                                            }}
+                                                            className={`mt-0.5 w-5 h-5 rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+                                                                task.completed
+                                                                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                                                                    : 'border-2 border-gray-300 dark:border-gray-600 hover:border-emerald-500 text-transparent'
+                                                            }`}
+                                                            title={task.completed ? 'Mark pending' : 'Mark completed'}
+                                                        >
+                                                            <span className="material-symbols-outlined text-sm font-bold">check</span>
+                                                        </button>
+
+                                                        <div className="overflow-hidden">
+                                                            <p className={`text-xs font-bold leading-tight ${
+                                                                task.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'
+                                                            }`}>
+                                                                {task.title}
+                                                            </p>
+                                                            {task.timing && (
+                                                                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-0.5 mt-0.5">
+                                                                    <span className="material-symbols-outlined text-[11px]">schedule</span>
+                                                                    {task.timing}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Cross (✗) Dismiss Button */}
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleQuickTaskDismiss(task.id);
+                                                        }}
+                                                        className="text-gray-400 hover:text-rose-500 p-1 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0"
+                                                        title="Skip task"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">close</span>
+                                                    </button>
+                                                </div>
+                                            ))}
                                     </div>
                                 )}
 
-                                <div onClick={onAICopilotClick} className="krishi-glass dark:bg-emerald-950/10 border border-l-4 border-l-[#0ED054] border-white/20 dark:border-white/5 p-4 rounded-2xl shadow-lg flex gap-4 items-start active:scale-[0.99] transition-transform duration-200 cursor-pointer">
-                                    <div className="h-12 w-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex-shrink-0 flex items-center justify-center text-emerald-600 dark:text-[#0ED054] shadow-sm">
-                                        <span className="material-symbols-outlined">psychiatry</span>
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="flex justify-between items-start">
-                                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">AI Recommendation</h3>
-                                            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-extrabold uppercase">Copilot</span>
-                                        </div>
-                                        <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-medium">{getAdvisoryText()}</p>
-                                    </div>
+                                {/* Bottom Survey / Full Checklist CTA */}
+                                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-white/5 flex items-center justify-between gap-2">
+                                    <button
+                                        onClick={() => onNavigate('priority-tasks')}
+                                        className="flex-1 py-2 px-3 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-bold text-[11px] rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer"
+                                    >
+                                        <span className="material-symbols-outlined text-sm">quiz</span>
+                                        <span>Take Daily AI Survey</span>
+                                    </button>
+                                    <button
+                                        onClick={() => onNavigate('priority-tasks')}
+                                        className="py-2 px-3 bg-emerald-500 text-slate-950 font-bold text-[11px] rounded-xl shadow-md hover:bg-emerald-400 transition-all flex items-center justify-center gap-1 cursor-pointer"
+                                    >
+                                        <span>View Checklist</span>
+                                        <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>

@@ -36,7 +36,8 @@ router.get('/', protect, async (req, res) => {
 // Get weather for a specific farm (by farm ID)
 router.get('/farm/:farmId', protect, async (req, res) => {
     try {
-        const farm = await getFarm(req.params.farmId, req.user._id);
+        const userId = req.user._id || req.user.id;
+        const farm = await getFarm(req.params.farmId, userId);
         if (!farm) {
             return res.status(404).json({ message: 'Farm not found' });
         }

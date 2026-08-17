@@ -1,34 +1,50 @@
-import React, { useState, useRef } from 'react';
-import { imageAPI } from '../api';
+import React, { useState, useRef, useEffect } from 'react';
+import { imageAPI, farmAPI } from '../api';
 
 const CropScannerViewfinder = ({ onBack, onCapture, selectedFarmId }) => {
     const [isScanning, setIsScanning] = useState(false);
     const [error, setError] = useState(null);
+    const [effectiveFarmId, setEffectiveFarmId] = useState(selectedFarmId || null);
     const fileInputRef = useRef(null);
+
+    useEffect(() => {
+        if (selectedFarmId) {
+            setEffectiveFarmId(selectedFarmId);
+        } else {
+            // Auto-fetch first available user farm
+            farmAPI.getFarms()
+                .then(res => {
+                    if (res?.data?.farms?.length > 0) {
+                        setEffectiveFarmId(res.data.farms[0].id || res.data.farms[0]._id);
+                    } else {
+                        setEffectiveFarmId('default_field');
+                    }
+                })
+                .catch(() => setEffectiveFarmId('default_field'));
+        }
+    }, [selectedFarmId]);
 
     const handleFileSelect = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (!selectedFarmId) {
-            setError('Please select a farm first before scanning crops.');
-            return;
-        }
-
         setIsScanning(true);
         setError(null);
 
         try {
+            const activeFarm = effectiveFarmId || 'default_field';
+
             // Step 1: Upload image
             const formData = new FormData();
             formData.append('image', file);
-            formData.append('farm_id', selectedFarmId);
+            formData.append('farm_id', activeFarm);
             formData.append('image_type', 'leaf');
 
             const { data: uploadData } = await imageAPI.uploadImage(formData);
 
             // Step 2: Analyze the uploaded image with AI
-            const { data: analysisData } = await imageAPI.analyzeImage(uploadData.image._id);
+            const imageIdentifier = uploadData.image._id || uploadData.image.id;
+            const { data: analysisData } = await imageAPI.analyzeImage(imageIdentifier);
 
             // Pass complete analysis result to parent
             onCapture({
@@ -139,14 +155,6 @@ const CropScannerViewfinder = ({ onBack, onCapture, selectedFarmId }) => {
                 </div>
             )}
 
-            {/* No Farm Warning */}
-            {!selectedFarmId && (
-                <div className="absolute top-28 left-4 right-4 z-30 bg-yellow-500/90 backdrop-blur-md text-black px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-                    <span className="material-symbols-outlined text-lg">warning</span>
-                    <span>Select a farm first to use crop scanner</span>
-                </div>
-            )}
-
             {/* Footer Controls */}
             <footer className="absolute bottom-0 left-0 right-0 z-20 pb-10 pt-16 px-8 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col items-center">
 
@@ -156,8 +164,9 @@ const CropScannerViewfinder = ({ onBack, onCapture, selectedFarmId }) => {
                     {/* Gallery Button */}
                     <button
                         onClick={triggerFileInput}
-                        disabled={isScanning || !selectedFarmId}
-                        className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-white hover:bg-white/10 transition-colors active:scale-95 disabled:opacity-50"
+                        disabled={isScanning}
+                        className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-white hover:bg-white/10 transition-colors active:scale-95 disabled:opacity-50 cursor-pointer"
+                        title="Upload plant photo from gallery"
                     >
                         <span className="material-symbols-outlined text-xl mb-0.5">photo_library</span>
                     </button>
@@ -167,8 +176,9 @@ const CropScannerViewfinder = ({ onBack, onCapture, selectedFarmId }) => {
                         <div className={`absolute inset-0 rounded-full border-2 ${isScanning ? 'border-orange-500 animate-spin' : 'border-[#13ec6d]'} opacity-50 scale-110`}></div>
                         <button
                             onClick={triggerFileInput}
-                            disabled={isScanning || !selectedFarmId}
-                            className={`w-[72px] h-[72px] rounded-full border-4 ${isScanning ? 'border-orange-500' : 'border-white'} flex items-center justify-center active:scale-95 transition-transform bg-black/20 backdrop-blur-sm disabled:opacity-50`}
+                            disabled={isScanning}
+                            className={`w-[72px] h-[72px] rounded-full border-4 ${isScanning ? 'border-orange-500' : 'border-white'} flex items-center justify-center active:scale-95 transition-transform bg-black/20 backdrop-blur-sm disabled:opacity-50 cursor-pointer`}
+                            title="Capture crop symptom photo"
                         >
                             <div className={`w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.3)] ${isScanning ? 'bg-orange-500' : ''}`}>
                                 {isScanning && <span className="material-symbols-outlined text-white text-2xl animate-spin">sync</span>}
@@ -177,14 +187,18 @@ const CropScannerViewfinder = ({ onBack, onCapture, selectedFarmId }) => {
                     </div>
 
                     {/* Tips Button */}
-                    <button className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-white hover:bg-white/10 transition-colors active:scale-95">
+                    <button 
+                        onClick={() => alert('Position affected leaf or crop stem centrally inside the green frame with bright natural lighting.')}
+                        className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-white hover:bg-white/10 transition-colors active:scale-95 cursor-pointer"
+                        title="Scanning tips"
+                    >
                         <span className="material-symbols-outlined text-xl mb-0.5">lightbulb</span>
                     </button>
 
                 </div>
 
                 <div className="mt-8 text-center px-4">
-                    <p className="text-gray-400 text-xs">Ensure good lighting and a clear background for best AI analysis results.</p>
+                    <p className="text-gray-400 text-xs">Ensure good lighting and clear crop view for instant AI diagnostic analysis.</p>
                 </div>
             </footer>
         </div>

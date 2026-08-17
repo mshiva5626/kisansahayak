@@ -3,9 +3,9 @@ import React from 'react';
 const BottomNavbar = ({ activeTab, onNavigate }) => {
     const navItems = [
         { id: 'dashboard', icon: 'home', label: 'Home' },
-        { id: 'schemes', icon: 'assignment', label: 'Schemes' },
+        { id: 'priority-tasks', icon: 'task_alt', label: 'Tasks' },
         { id: 'farm-wizard', icon: 'add', label: 'Add', isCenter: true },
-        { id: 'farm-list', icon: 'agriculture', label: 'Farms' },
+        { id: 'schemes', icon: 'assignment', label: 'Schemes' },
         { id: 'account-info', icon: 'person', label: 'Profile' }
     ];
 

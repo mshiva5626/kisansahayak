@@ -334,6 +334,16 @@ function App() {
               onBack={() => navigateTo('dashboard')}
               onNavigate={navigateTo}
               selectedFarmId={selectedFarmId}
+              userLocation={userLocation}
+            />
+          )}
+          {currentScreen === 'priority-tasks' && (
+            <TodayPriorityTasks
+              onBack={() => navigateTo('dashboard')}
+              onNavigate={navigateTo}
+              selectedFarmId={selectedFarmId}
+              userProfile={userProfile}
+              userLocation={userLocation}
             />
           )}
           {currentScreen === 'farm-center' && (
@@ -434,6 +444,7 @@ function App() {
               onBack={() => navigateTo('dashboard')}
               onCapture={handleScanCapture}
               selectedFarmId={selectedFarmId}
+              userLocation={userLocation}
             />
           )}
           {currentScreen === 'mandi-prices' && (

@@ -3,6 +3,12 @@ const { getAIAdvisory } = require('../services/aiService');
 const { getWeather } = require('../services/weatherService');
 const { getChatbotResponse } = require('../services/chatbotService');
 const { ChatSessionStore } = require('../memoryStore');
+const { 
+    generateFieldSurvey, 
+    generateDailyTasks, 
+    updateTaskStatus: updateTaskStatusService, 
+    getOrGenerateTodayTasks 
+} = require('../services/dailyTasksService');
 
 // Helper: get schemes for state
 async function getSchemesForState(state) {
@@ -336,3 +342,78 @@ exports.deleteSession = async (req, res) => {
         res.status(500).json({ message: 'Failed to delete chat session' });
     }
 };
+
+// --- Daily Operations & Field Checks AI Controllers ---
+
+// 1. Get custom field survey diagnostic questions tailored to farm
+exports.getFieldSurvey = async (req, res) => {
+    try {
+        const userId = req.user._id || req.user.id;
+        const { farmId } = req.params;
+        const language = req.query.lang || req.user.preferred_language || 'en';
+
+        const farm = farmId && farmId !== 'default' ? await getFarm(farmId, userId) : null;
+        const user = await getUser(userId);
+
+        const survey = await generateFieldSurvey(farm, user, language);
+        res.status(200).json({ success: true, survey });
+    } catch (error) {
+        console.error('Field survey generation error:', error.message);
+        res.status(500).json({ message: 'Failed to generate field survey' });
+    }
+};
+
+// 2. Get today's daily operations & field checks
+exports.getDailyTasks = async (req, res) => {
+    try {
+        const userId = req.user._id || req.user.id;
+        const { farmId } = req.params;
+        const language = req.query.lang || req.user.preferred_language || 'en';
+
+        const farm = farmId && farmId !== 'default' ? await getFarm(farmId, userId) : null;
+        const user = await getUser(userId);
+
+        const taskData = await getOrGenerateTodayTasks(farm, user, language);
+        res.status(200).json({ success: true, data: taskData });
+    } catch (error) {
+        console.error('Get daily tasks error:', error.message);
+        res.status(500).json({ message: 'Failed to fetch daily tasks' });
+    }
+};
+
+// 3. Submit survey answers & regenerate customized daily tasks
+exports.submitSurveyAndGetTasks = async (req, res) => {
+    try {
+        const userId = req.user._id || req.user.id;
+        const { farmId } = req.params;
+        const { responses = [], language = 'en' } = req.body;
+
+        const farm = farmId && farmId !== 'default' ? await getFarm(farmId, userId) : null;
+        const user = await getUser(userId);
+
+        const taskData = await generateDailyTasks(farm, responses, user, language);
+        res.status(200).json({ success: true, data: taskData });
+    } catch (error) {
+        console.error('Submit survey & tasks error:', error.message);
+        res.status(500).json({ message: 'Failed to process survey and generate tasks' });
+    }
+};
+
+// 4. Update task completion/dismissal status (Tick/Cross)
+exports.updateTaskStatus = async (req, res) => {
+    try {
+        const { farmId, taskId } = req.params;
+        const { completed, dismissed } = req.body;
+
+        const result = updateTaskStatusService(farmId || 'default_farm', taskId, { completed, dismissed });
+        if (!result.success) {
+            return res.status(404).json({ message: result.message || 'Task not found' });
+        }
+
+        res.status(200).json({ success: true, task: result.task, allTasks: result.allTasks });
+    } catch (error) {
+        console.error('Update task status error:', error.message);
+        res.status(500).json({ message: 'Failed to update task status' });
+    }
+};
+

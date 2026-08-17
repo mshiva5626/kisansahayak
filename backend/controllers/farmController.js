@@ -10,13 +10,18 @@ exports.createFarm = async (req, res) => {
             user_id: userId,
             farm_name: req.body.farm_name || req.body.name,
             state: req.body.state || '',
+            district: req.body.district || (req.body.location && req.body.location.district) || '',
             area: req.body.area || '',
+            unit: req.body.unit || 'Acres',
             terrain_type: (req.body.terrain_type || req.body.terrain || '').toLowerCase(),
             water_source: (req.body.water_source || req.body.waterSource || '').toLowerCase(),
             crop_type: req.body.crop_type || req.body.crop || '',
+            crop_variety: req.body.crop_variety || req.body.variety || '',
+            soil_type: req.body.soil_type || req.body.soilType || '',
             sowing_date: req.body.sowing_date || req.body.sowingDate || null,
             latitude: req.body.latitude || (req.body.location && req.body.location.lat) || null,
-            longitude: req.body.longitude || (req.body.location && req.body.location.lon) || null
+            longitude: req.body.longitude || (req.body.location && req.body.location.lon) || null,
+            location: req.body.location || null
         };
 
         const { data: farm, error } = await supabase
@@ -85,7 +90,7 @@ exports.updateFarm = async (req, res) => {
         const supabase = getSupabase();
         const userId = req.user._id || req.user.id;
 
-        const fields = ['farm_name', 'state', 'area', 'terrain_type', 'water_source', 'crop_type', 'sowing_date', 'latitude', 'longitude'];
+        const fields = ['farm_name', 'state', 'district', 'area', 'unit', 'terrain_type', 'water_source', 'crop_type', 'crop_variety', 'soil_type', 'sowing_date', 'latitude', 'longitude', 'location'];
         const updates = {};
 
         fields.forEach(field => {
