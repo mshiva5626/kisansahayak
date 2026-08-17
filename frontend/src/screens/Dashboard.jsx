@@ -214,11 +214,6 @@ const Dashboard = ({
                                 </div>
                                 <span className="material-icons text-xs text-[#0ED054]">expand_more</span>
                             </button>
-
-                            <div className="flex items-center space-x-1.5 bg-white/10 px-2.5 py-1 rounded-full text-[10px] text-emerald-400 font-bold border border-emerald-500/20">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#0ED054] animate-ping"></span>
-                                <span>Agmarknet Verified</span>
-                            </div>
                         </div>
 
                         {/* Interactive 3D Stats Deck */}
