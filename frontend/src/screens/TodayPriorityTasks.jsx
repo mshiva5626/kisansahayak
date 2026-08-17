@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import BottomNavbar from '../components/BottomNavbar';
-import { aiAPI } from '../api';
+import { aiAPI, farmAPI } from '../api';
 
 const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile }) => {
     const [tasksData, setTasksData] = useState(null);
@@ -14,6 +14,11 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
     const [surveyAnswers, setSurveyAnswers] = useState({});
     const [isSubmittingSurvey, setIsSubmittingSurvey] = useState(false);
     const [isGeneratingSurvey, setIsGeneratingSurvey] = useState(false);
+
+    // Sowing Date Adjustment State
+    const [isSowingModalOpen, setIsSowingModalOpen] = useState(false);
+    const [customSowingDate, setCustomSowingDate] = useState(new Date().toISOString().split('T')[0]);
+    const [isUpdatingSowingDate, setIsUpdatingSowingDate] = useState(false);
 
     const farmId = selectedFarmId || 'default';
     const activeLanguage = userProfile?.preferred_language || localStorage.getItem('kisan_lang') || 'en';
@@ -38,6 +43,26 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
     useEffect(() => {
         loadDailyTasks();
     }, [loadDailyTasks]);
+
+    // Handle Quick Sowing Date Update
+    const handleSetSowingDate = async (newDateStr) => {
+        setIsUpdatingSowingDate(true);
+        try {
+            if (farmId && farmId !== 'default') {
+                await farmAPI.updateFarm(farmId, { sowing_date: newDateStr });
+            }
+            setIsSowingModalOpen(false);
+            // Refresh tasks immediately
+            await loadDailyTasks();
+        } catch (err) {
+            console.error('Failed to update sowing date:', err);
+            // If offline / demo mode, reload tasks anyway
+            await loadDailyTasks();
+            setIsSowingModalOpen(false);
+        } finally {
+            setIsUpdatingSowingDate(false);
+        }
+    };
 
     // 2. Handle Task Toggle (Tick / Completed)
     const handleToggleTask = async (taskId, currentCompleted) => {
@@ -214,11 +239,33 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                         </div>
 
                         <h2 className="text-lg font-black text-white relative z-10 leading-tight mb-1">
-                            {tasksData?.growth_stage || 'Active Vegetative Growth'}
+                            {tasksData?.growth_stage || 'Active Growth Operations'}
                         </h2>
 
+                        {/* Sowing Date & Age Indicator */}
+                        <div className="flex items-center justify-between bg-black/30 rounded-2xl p-2.5 my-2 border border-emerald-500/20 relative z-10">
+                            <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-emerald-400 text-lg">calendar_today</span>
+                                <div>
+                                    <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider block">
+                                        Crop Age / Sowing
+                                    </span>
+                                    <span className="text-xs font-black text-white">
+                                        {tasksData?.das === 0 ? 'Planted Today (Day 0)' : tasksData?.das ? `${tasksData.das} Days After Sowing (DAS)` : 'Stage Tracked'}
+                                    </span>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsSowingModalOpen(true)}
+                                className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[11px] font-bold px-2.5 py-1 rounded-xl border border-emerald-500/30 flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+                            >
+                                <span className="material-symbols-outlined text-xs">edit_calendar</span>
+                                <span>Change Age</span>
+                            </button>
+                        </div>
+
                         <p className="text-xs text-emerald-100/90 relative z-10 leading-relaxed mb-3">
-                            {tasksData?.weather_headline || 'Favorable morning conditions. Complete field inspections before peak afternoon sun.'}
+                            {tasksData?.weather_headline || 'Favorable morning conditions. Complete stage-accurate checks.'}
                         </p>
 
                         {/* Interactive Survey Trigger Pill */}
@@ -474,9 +521,131 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                     </div>
                 )}
 
+                {/* Sowing Date Adjustment Modal */}
+                {isSowingModalOpen && (
+                    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-4 animate-fade-in">
+                        <div className="bg-[#072412] border border-emerald-500/30 rounded-3xl w-full max-w-md p-5 flex flex-col gap-4 text-white shadow-2xl animate-fade-in-up">
+                            
+                            <div className="flex items-center justify-between border-b border-emerald-500/20 pb-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-emerald-400 text-xl">event_available</span>
+                                    <div>
+                                        <h3 className="text-base font-black text-white">Adjust Crop Sowing Date</h3>
+                                        <p className="text-[11px] text-emerald-300">Sets the exact Days After Sowing (DAS) for precise daily checks</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setIsSowingModalOpen(false)}
+                                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer"
+                                >
+                                    <span className="material-symbols-outlined text-lg">close</span>
+                                </button>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <span className="text-xs font-bold text-gray-300">Quick Stage Presets:</span>
+                                
+                                <button
+                                    onClick={() => {
+                                        const today = new Date().toISOString().split('T')[0];
+                                        handleSetSowingDate(today);
+                                    }}
+                                    disabled={isUpdatingSowingDate}
+                                    className="p-3 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 flex items-center justify-between text-left transition-all active:scale-[0.98] cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-2xl">🌱</span>
+                                        <div>
+                                            <span className="text-sm font-black text-emerald-300 block">Planted Today (Day 0)</span>
+                                            <span className="text-[10px] text-gray-300">Seedbed depth, moisture seal & bird protection</span>
+                                        </div>
+                                    </div>
+                                    <span className="material-symbols-outlined text-emerald-400 text-sm">arrow_forward</span>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        const d = new Date();
+                                        d.setDate(d.getDate() - 3);
+                                        handleSetSowingDate(d.toISOString().split('T')[0]);
+                                    }}
+                                    disabled={isUpdatingSowingDate}
+                                    className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between text-left transition-all active:scale-[0.98] cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-2xl">🌿</span>
+                                        <div>
+                                            <span className="text-sm font-bold text-white block">3 Days Ago (Germination)</span>
+                                            <span className="text-[10px] text-gray-400">Subterranean radicle check & crust softening</span>
+                                        </div>
+                                    </div>
+                                    <span className="material-symbols-outlined text-gray-400 text-sm">arrow_forward</span>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        const d = new Date();
+                                        d.setDate(d.getDate() - 8);
+                                        handleSetSowingDate(d.toISOString().split('T')[0]);
+                                    }}
+                                    disabled={isUpdatingSowingDate}
+                                    className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between text-left transition-all active:scale-[0.98] cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-2xl">🌾</span>
+                                        <div>
+                                            <span className="text-sm font-bold text-white block">8 Days Ago (Seedling Stand)</span>
+                                            <span className="text-[10px] text-gray-400">Emergence uniformity & damping-off inspection</span>
+                                        </div>
+                                    </div>
+                                    <span className="material-symbols-outlined text-gray-400 text-sm">arrow_forward</span>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        const d = new Date();
+                                        d.setDate(d.getDate() - 30);
+                                        handleSetSowingDate(d.toISOString().split('T')[0]);
+                                    }}
+                                    disabled={isUpdatingSowingDate}
+                                    className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between text-left transition-all active:scale-[0.98] cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-2xl">🌳</span>
+                                        <div>
+                                            <span className="text-sm font-bold text-white block">30 Days Ago (Vegetative Canopy)</span>
+                                            <span className="text-[10px] text-gray-400">Canopy scouting, top dressing & weed sanitation</span>
+                                        </div>
+                                    </div>
+                                    <span className="material-symbols-outlined text-gray-400 text-sm">arrow_forward</span>
+                                </button>
+                            </div>
+
+                            <div className="pt-3 border-t border-emerald-500/20 flex flex-col gap-2">
+                                <label className="text-xs font-bold text-gray-300">Or Pick Exact Sowing Date:</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="date"
+                                        value={customSowingDate}
+                                        onChange={(e) => setCustomSowingDate(e.target.value)}
+                                        className="flex-1 bg-black/40 border border-emerald-500/30 rounded-xl px-3 py-2 text-white text-xs"
+                                    />
+                                    <button
+                                        onClick={() => handleSetSowingDate(customSowingDate)}
+                                        disabled={isUpdatingSowingDate}
+                                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl cursor-pointer"
+                                    >
+                                        Apply
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Bottom Navigation */}
                 <BottomNavbar
-                    activeTab="dashboard"
+                    activeTab="priority-tasks"
                     onNavigate={onNavigate}
                 />
             </div>
