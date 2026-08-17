@@ -279,7 +279,7 @@ const ProfileSettings = ({ onBack, onSave, onNavigate, userProfile, setUserProfi
                     <span className="material-icons-outlined text-base">logout</span>
                     Sign Out Securely
                 </button>
-                <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 font-mono mb-4">Kisan Sahayak v2.5.0</p>
+                <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 font-mono mb-4">Kissan Sahayak v2.5.0</p>
             </main>
 
             {/* Bottom Navigation */}

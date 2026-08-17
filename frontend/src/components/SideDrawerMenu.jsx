@@ -117,7 +117,7 @@ const SideDrawerMenu = ({ isOpen, onClose, userProfile, onNavigate }) => {
                         <span className="material-symbols-outlined text-lg">logout</span>
                         Log Out
                     </button>
-                    <p className="text-center text-[10px] text-[#5c8a5c] mt-4 font-bold tracking-widest uppercase">Kisan Sahayak v2.0</p>
+                    <p className="text-center text-[10px] text-[#5c8a5c] mt-4 font-bold tracking-widest uppercase">Kissan Sahayak v2.0</p>
                 </div>
             </div>
         </>

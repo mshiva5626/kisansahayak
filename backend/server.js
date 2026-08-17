@@ -65,7 +65,7 @@ app.use('/api/ami', amiRoutes);
 app.get('/', (req, res) => {
     res.json({
         status: 'running',
-        message: 'Kisan Sahayak - Evidence-Grounded Agricultural AI Copilot Backend API',
+        message: 'Kissan Sahayak - Evidence-Grounded Agricultural AI Copilot Backend API',
         version: '3.0.0',
         model_architecture: {
             provider: process.env.MODEL_PROVIDER || 'openrouter',
@@ -103,7 +103,7 @@ app.use((err, req, res, next) => {
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`\n🌾 Kisan Sahayak Agricultural AI Copilot running on port ${PORT}`);
+    console.log(`\n🌾 Kissan Sahayak Agricultural AI Copilot running on port ${PORT}`);
     console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
     console.log(`🏠 Health Check:  http://localhost:${PORT}/\n`);
 });

@@ -77,7 +77,7 @@ const analyzeSoilImage = async (imageBase64, farmContext) => {
         }
 
         parsed.date = dateStr;
-        parsed.modelUsed = "Kisan Sahayak Soil Diagnostics";
+        parsed.modelUsed = "Kissan Sahayak Soil Diagnostics";
         return parsed;
 
     } catch (err) {

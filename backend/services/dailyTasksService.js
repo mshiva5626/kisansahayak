@@ -275,7 +275,7 @@ async function generateDailyTasks(farm, surveyAnswers = [], userProfile = {}, la
         ? `FARMER'S RECENT FIELD SURVEY RESPONSES:\n${surveyAnswers.map((a, idx) => `Q${idx + 1}: ${a.question || ''} -> Answer: ${a.selectedOption || a.answer || 'N/A'}`).join('\n')}`
         : 'FARMER HAS NOT COMPLETED TODAY\'S SURVEY YET (Generate standard evidence-based daily operational checks for this exact stage & weather).';
 
-    const prompt = `You are a Senior Agronomist and Extension Officer at Kisan Sahayak.
+    const prompt = `You are a Senior Agronomist and Extension Officer at Kissan Sahayak.
 Generate today's (${dateStr}) customized DAILY OPERATIONS & FIELD CHECKS for this farm.
 
 FARM METADATA:

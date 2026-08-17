@@ -16,7 +16,7 @@ export const LANGUAGES = [
 export const TRANSLATIONS = {
     en: {
         // App Branding
-        appName: 'KISAN SAHAYAK',
+        appName: 'KISSAN SAHAYAK',
         appTagline: 'AI Agricultural Copilot',
         powering: 'Powering Intelligent Farm Operations',
         changeLanguage: 'Language',
@@ -121,7 +121,7 @@ export const TRANSLATIONS = {
 
         // Step 3 Completion
         step3Header: 'Registration Complete!',
-        step3Desc: 'Congratulations! Your Kisan Sahayak agricultural profile is verified.',
+        step3Desc: 'Congratulations! Your Kissan Sahayak agricultural profile is verified.',
         farmerNameLabel: 'Farmer Name',
         contactLabel: 'Contact',
         landLabel: 'Land Holding',

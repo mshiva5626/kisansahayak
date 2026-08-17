@@ -152,7 +152,7 @@ const AccountInformation = ({ onBack, onNavigate, userProfile, onLogout }) => {
                         Sign Out Account
                     </button>
                 </div>
-                <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 font-mono pb-2">App Version 2.5.0 • Kisan Sahayak Secure</p>
+                <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 font-mono pb-2">App Version 2.5.0 • Kissan Sahayak Secure</p>
             </main>
 
             {/* Bottom Navigation */}

@@ -7,7 +7,7 @@
 
 const { generateAgriculturalCompletion } = require('../config/aiConfig');
 
-const fertilizerSystemPrompt = `You are a Senior Agronomist and Nutrient Management Specialist on the Kisan Sahayak platform.
+const fertilizerSystemPrompt = `You are a Senior Agronomist and Nutrient Management Specialist on the Kissan Sahayak platform.
 
 MANDATORY RULES:
 1. OFFICIAL GOI-SUBSIDIZED FERTILIZER MRP PRICES (Nutrient Based Subsidy - NBS):

@@ -364,7 +364,7 @@ async function generateVisionAnalysis({ prompt, base64Image, mimeType = 'image/j
                     'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json',
                     'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:5173',
-                    'X-Title': 'Kisan Sahayak Crop Scanner'
+                    'X-Title': 'Kissan Sahayak Crop Scanner'
                 },
                 body: JSON.stringify({
                     model,

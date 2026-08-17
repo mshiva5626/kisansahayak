@@ -121,7 +121,7 @@ const SoilHealthReport = ({ onBack, onNavigate, userProfile, selectedFarmId }) =
                         <div className="flex flex-col">
                             <h1 className="text-xl font-black tracking-tight text-white mb-0.5">Soil Health Report</h1>
                             <p className="text-emerald-450 text-xs font-bold tracking-wide">
-                                Kisan Sahayak ID: #{userProfile ? (userProfile._id || userProfile.id).substring(0, 7).toUpperCase() : 'KS-9821'}
+                                Kissan Sahayak ID: #{userProfile ? (userProfile._id || userProfile.id).substring(0, 7).toUpperCase() : 'KS-9821'}
                             </p>
                         </div>
                     </div>

@@ -183,7 +183,7 @@ const Dashboard = ({
                                     <span className="material-symbols-outlined text-[#0ED054] text-[24px]">menu</span>
                                 </div>
                                 <div>
-                                    <h1 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">Kisan Sahayak</h1>
+                                    <h1 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">Kissan Sahayak</h1>
                                     <p className="text-[10px] text-[#0ED054] font-bold tracking-widest uppercase">Smart Farming</p>
                                 </div>
                             </div>

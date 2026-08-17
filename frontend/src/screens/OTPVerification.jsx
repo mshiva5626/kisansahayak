@@ -119,7 +119,7 @@ const OTPVerification = ({ onVerify, onBack, phoneNumber }) => {
 
                     <div className="flex items-center justify-center gap-1.5 mt-6 mb-2 opacity-60">
                         <span className="material-icons text-xs text-slate-400">gpp_good</span>
-                        <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Secured by Kisan Sahayak</span>
+                        <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Secured by Kissan Sahayak</span>
                     </div>
                 </div>
             </main>

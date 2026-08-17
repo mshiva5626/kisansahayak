@@ -1,6 +1,6 @@
 {
-    "name": "Kisan Sahayak",
-    "short_name": "KisanApp",
+    "name": "Kissan Sahayak",
+    "short_name": "KissanApp",
     "description": "AI Copilot for Intelligent Farm Operations - Weather, Mandi Prices, Crop Analysis & Soil Testing",
     "start_url": "/",
     "display": "standalone",
