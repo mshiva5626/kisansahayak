@@ -221,41 +221,41 @@ const Dashboard = ({
                             {/* Weather Stats Card */}
                             <div 
                                 onClick={onWeatherClick}
-                                className="krishi-glass dark:bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card"
+                                className="bg-black/35 hover:bg-black/45 active:scale-95 backdrop-blur-xl border border-white/20 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card shadow-lg transition-all"
                             >
-                                <span className="text-xl font-black text-white">{weather ? `${weather.temp}°C` : '—'}</span>
-                                <span className="text-[10px] text-gray-300 font-bold flex items-center gap-1 mt-1">
-                                    <span className="material-symbols-outlined text-[13px] text-[#0ED054]">
+                                <span className="text-xl font-black text-white tracking-tight">{weather ? `${weather.temp}°C` : '—'}</span>
+                                <span className="text-[10px] text-emerald-200 font-bold flex items-center gap-1 mt-1 truncate max-w-full">
+                                    <span className="material-symbols-outlined text-[13px] text-[#0ED054] shrink-0">
                                         {weather?.condition?.toLowerCase().includes('rain') ? 'grain' : 'wb_sunny'}
                                     </span>
-                                    {weather ? weather.condition : 'Weather'}
+                                    <span className="truncate">{weather ? weather.condition : 'Weather'}</span>
                                 </span>
                             </div>
 
                             {/* Mandi Wealth Card (Live & Grounded) */}
                             <div 
                                 onClick={onMandiPricesClick}
-                                className="krishi-glass dark:bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card relative"
+                                className="bg-black/35 hover:bg-black/45 active:scale-95 backdrop-blur-xl border border-white/20 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card relative shadow-lg transition-all"
                             >
                                 <div className="flex items-center space-x-1">
-                                    <span className="text-lg font-black text-[#EAB308]">₹{mandiSummary.price.toLocaleString('en-IN')}</span>
+                                    <span className="text-lg font-black text-[#FACC15]">₹{mandiSummary.price.toLocaleString('en-IN')}</span>
                                     <span className={`text-[10px] font-black ${mandiSummary.trend === 'hike' ? 'text-emerald-400' : mandiSummary.trend === 'lower' ? 'text-rose-400' : 'text-slate-400'}`}>
                                         {mandiSummary.trend === 'hike' ? '▲' : mandiSummary.trend === 'lower' ? '▼' : '●'}
                                     </span>
                                 </div>
-                                <span className="text-[10px] text-gray-300 font-bold flex items-center gap-0.5 mt-1 truncate w-full justify-center">
-                                    <span className="material-symbols-outlined text-[13px] text-[#EAB308]">storefront</span>
-                                    {mandiSummary.crop}
+                                <span className="text-[10px] text-emerald-200 font-bold flex items-center gap-0.5 mt-1 truncate w-full justify-center">
+                                    <span className="material-symbols-outlined text-[13px] text-[#FACC15] shrink-0">storefront</span>
+                                    <span className="truncate">{mandiSummary.crop}</span>
                                 </span>
                             </div>
 
                             {/* Farm Switcher Card */}
                             <div 
                                 onClick={onFarmSwitcherClick}
-                                className="krishi-glass dark:bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card"
+                                className="bg-black/35 hover:bg-black/45 active:scale-95 backdrop-blur-xl border border-white/20 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card shadow-lg transition-all"
                             >
-                                <span className="text-xl font-black text-[#0ED054] max-w-[80px] truncate">{farm?.farm_name || 'My Farm'}</span>
-                                <span className="text-[10px] text-gray-300 font-bold flex items-center gap-0.5 mt-1 justify-center">
+                                <span className="text-lg font-black text-[#0ED054] max-w-[85px] truncate">{farm?.farm_name || 'My Farm'}</span>
+                                <span className="text-[10px] text-emerald-200 font-bold flex items-center gap-0.5 mt-1 justify-center">
                                     <span className="material-symbols-outlined text-[13px] text-[#0ED054]">swap_horiz</span>
                                     Switch
                                 </span>
