@@ -327,64 +327,129 @@ async function callGoogleGemini({ model, systemInstruction, messages, temperatur
 }
 
 /**
- * Vision Multimodal Adapter
+ * Vision Multimodal Adapter with Automatic Model Fallback Pool
  */
 async function generateVisionAnalysis({ prompt, base64Image, mimeType = 'image/jpeg', temperature = 0.2 }) {
     const apiKey = process.env.CROP_ANALYSIS_API_KEY || process.env.OPENROUTER_API_KEY;
-    const model = MODEL_CONFIG.visionModelName;
     
-    console.log(`\n[Vision AI] Dispatching image analysis to ${model}...`);
-    
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60000); // 60s for vision
-    
-    try {
-        const response = await fetch(MODEL_CONFIG.openRouterUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-                'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:5173',
-                'X-Title': 'Kisan Sahayak Crop Scanner'
-            },
-            body: JSON.stringify({
-                model,
-                messages: [
+    // Candidate vision models on OpenRouter (ordered by reliability and precision)
+    const visionModels = [
+        MODEL_CONFIG.visionModelName || 'google/gemini-2.0-flash-exp:free',
+        'meta-llama/llama-3.2-11b-vision-instruct:free',
+        'qwen/qwen-2.5-vl-72b-instruct:free',
+        'google/gemini-2.0-flash-lite-preview-02-05:free',
+        'nvidia/nemotron-nano-12b-v2-vl:free'
+    ];
+
+    // Remove duplicates
+    const uniqueModels = [...new Set(visionModels.filter(Boolean))];
+
+    // Prepare image payload url
+    let imageUrlString = base64Image;
+    if (!imageUrlString.startsWith('data:') && !imageUrlString.startsWith('http://') && !imageUrlString.startsWith('https://')) {
+        imageUrlString = `data:${mimeType};base64,${base64Image}`;
+    }
+
+    let lastError = null;
+
+    for (const model of uniqueModels) {
+        console.log(`\n[Vision AI] Dispatching image analysis to model: ${model}...`);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 45000); // 45s per model attempt
+
+        try {
+            const response = await fetch(MODEL_CONFIG.openRouterUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:5173',
+                    'X-Title': 'Kisan Sahayak Crop Scanner'
+                },
+                body: JSON.stringify({
+                    model,
+                    messages: [
+                        {
+                            role: 'user',
+                            content: [
+                                { type: 'text', text: prompt },
+                                {
+                                    type: 'image_url',
+                                    image_url: {
+                                        url: imageUrlString
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    temperature,
+                    max_tokens: 3000
+                }),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeout);
+
+            if (!response.ok) {
+                const errText = await response.text();
+                console.warn(`⚠️ [Vision AI] Model ${model} HTTP ${response.status}: ${errText.substring(0, 150)}`);
+                lastError = new Error(`Vision API HTTP ${response.status}: ${errText.substring(0, 150)}`);
+                continue; // Try next model in fallback pool
+            }
+
+            const data = await response.json();
+            let content = data.choices?.[0]?.message?.content || '';
+            content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+            
+            if (content && content.length > 20) {
+                console.log(`✅ [Vision AI] Diagnostic response received successfully from ${model}`);
+                return content;
+            }
+        } catch (err) {
+            clearTimeout(timeout);
+            console.warn(`⚠️ [Vision AI] Model ${model} error: ${err.message}. Trying next candidate...`);
+            lastError = err;
+        }
+    }
+
+    // Direct Google Gemini SDK Fallback (if GEMINI_API_KEY is available)
+    if (process.env.GEMINI_API_KEY) {
+        try {
+            console.log(`\n[Vision AI] Attempting Direct Google Gemini Vision SDK fallback...`);
+            const { GoogleGenAI } = require('@google/genai');
+            const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+            
+            // Extract raw base64 data
+            let pureBase64 = base64Image.replace(/^data:[A-Za-z-+\/]+;base64,/, '');
+            
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.0-flash',
+                contents: [
                     {
                         role: 'user',
-                        content: [
-                            { type: 'text', text: prompt },
+                        parts: [
+                            { text: prompt },
                             {
-                                type: 'image_url',
-                                image_url: {
-                                    url: base64Image.startsWith('data:') ? base64Image : `data:${mimeType};base64,${base64Image}`
+                                inlineData: {
+                                    mimeType: mimeType,
+                                    data: pureBase64
                                 }
                             }
                         ]
                     }
-                ],
-                temperature,
-                max_tokens: 3000
-            }),
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeout);
-        
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`Vision API HTTP ${response.status}: ${errText.substring(0, 300)}`);
+                ]
+            });
+
+            if (response.text) {
+                console.log(`✅ [Vision AI] Direct Gemini SDK analysis succeeded.`);
+                return response.text;
+            }
+        } catch (geminiErr) {
+            console.warn(`⚠️ [Vision AI] Direct Gemini SDK error: ${geminiErr.message}`);
         }
-        
-        const data = await response.json();
-        let content = data.choices?.[0]?.message?.content || '';
-        content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-        return content;
-        
-    } catch (err) {
-        clearTimeout(timeout);
-        throw err;
     }
+
+    throw lastError || new Error("All Vision AI models in the fallback pool failed to process image.");
 }
 
 module.exports = {

@@ -447,6 +447,13 @@ function App() {
               userLocation={userLocation}
             />
           )}
+          {currentScreen === 'scan-results' && (
+            <CropAnalysisResults
+              onBack={() => navigateTo('scanner')}
+              onViewTreatment={() => navigateTo('ai-chat')}
+              scanResult={scanResult}
+            />
+          )}
           {currentScreen === 'mandi-prices' && (
             <LiveMarketPrices
               onBack={() => navigateTo('dashboard')}

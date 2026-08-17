@@ -316,6 +316,24 @@
       "_id": "1096fe32-1812-458b-b1a9-de18b0183998",
       "createdAt": "2026-08-17T03:27:44.159Z",
       "updatedAt": "2026-08-17T03:27:44.159Z"
+    },
+    {
+      "email": "test_npss_1786938407483@example.com",
+      "password": "$2b$10$JhweDNp2wedXtJx0Q0JPie3kVwhSNcaUUdgPDjwgoI9iZJ4607iAa",
+      "name": "Test Farmer",
+      "age": null,
+      "mobile_number": "",
+      "land_size": "",
+      "experience_years": "",
+      "estimated_revenue": "",
+      "has_degree": false,
+      "education_qualification": "",
+      "role": "verified_farmer",
+      "preferred_language": "en",
+      "farming_type": "Conventional",
+      "_id": "803f2281-760f-4aa3-b8bf-777ce5799056",
+      "createdAt": "2026-08-17T03:46:50.087Z",
+      "updatedAt": "2026-08-17T03:46:50.087Z"
     }
   ],
   "farms": [
@@ -453,6 +471,31 @@
       "userId": "1096fe32-1812-458b-b1a9-de18b0183998",
       "createdAt": "2026-08-17T03:27:44.559Z",
       "updatedAt": "2026-08-17T03:27:44.559Z"
+    },
+    {
+      "farm_name": "NPSS Chilli Farm",
+      "state": "Arunachal Pradesh",
+      "district": "Lower Subansiri",
+      "area": "2 acres",
+      "unit": "Acres",
+      "terrain_type": "plain",
+      "water_source": "borewell",
+      "crop_type": "Chilli",
+      "crop_variety": "",
+      "soil_type": "",
+      "sowing_date": null,
+      "latitude": 27.5,
+      "longitude": 93.8,
+      "location": {
+        "lat": 27.5,
+        "lon": 93.8,
+        "state": "Arunachal Pradesh",
+        "district": "Lower Subansiri"
+      },
+      "_id": "mem_35_mswozpvf",
+      "userId": "803f2281-760f-4aa3-b8bf-777ce5799056",
+      "createdAt": "2026-08-17T03:46:50.427Z",
+      "updatedAt": "2026-08-17T03:46:50.427Z"
     }
   ],
   "images": [
@@ -571,6 +614,64 @@
         }
       },
       "confidence_score": 0.4
+    },
+    {
+      "farm_id": "mem_35_mswozpvf",
+      "image_url": "/uploads/1786938410810-691166207.jpg",
+      "image_type": "leaf",
+      "_id": "mem_36_mswozqgq",
+      "createdAt": "2026-08-17T03:46:51.194Z",
+      "updatedAt": "2026-08-17T03:46:53.095Z",
+      "analysis_result": {
+        "crop_identified": "Chilli",
+        "disease_name": "Visual Symptom Analysis Pending Lab Confirmation",
+        "scientific_name": "N/A",
+        "causal_agent": "Undetermined",
+        "confidence": 0.4,
+        "severity": "Moderate",
+        "severity_percentage": "Unknown",
+        "symptoms_observed": [
+          "Visual symptoms require closer inspection under natural daylight"
+        ],
+        "symptom_locations": "Canopy foliage",
+        "affected_parts": [
+          "leaf"
+        ],
+        "spread_risk": "Medium",
+        "overall_assessment": "Visual evidence is insufficient to confirm a pathogen without laboratory testing or higher resolution photography. Please take a clear, close-up photo in good daylight or consult your local Krishi Vigyan Kendra.",
+        "additional_evidence_needed": "Check leaf undersides for fungal mycelium or bacterial streaming. Collect a physical sample for KVK diagnostic lab.",
+        "ipm_immediate": "Avoid overhead irrigation. Ensure optimal field aeration and drainage.",
+        "ipm_organic": "Apply prophylactic Neem oil (1500 ppm) @ 5 ml/L of water.",
+        "ipm_chemical": {
+          "active_ingredient": "Copper Oxychloride 50% WP (Prophylactic broad-spectrum)",
+          "concentration": "50% WP",
+          "dosage": "2.5 g/L of water (500 g/acre in 200 L water)",
+          "application_method": "Foliar spray",
+          "frequency": "Once if symptoms spread",
+          "phi_days": "7-10 days",
+          "precaution": "Wear protective gloves and mask during spray. Avoid spraying in rain or strong wind."
+        },
+        "immediate_action": "Isolate affected plants and observe spread over 48 hours",
+        "prevention": [
+          "Ensure balanced NPK fertilization avoiding excess nitrogen",
+          "Maintain proper field spacing and weed sanitation",
+          "Use certified disease-free seed for next season"
+        ],
+        "recommendations": [
+          "Take a close-up photo of the affected leaf in bright daylight",
+          "Inspect the underside of leaves for spores or insect pests",
+          "Consult your block Agriculture Extension Officer if symptoms worsen"
+        ],
+        "yield_impact": "Minimal if managed proactively",
+        "npss_reference_images": [],
+        "npss_regional_reports": {
+          "count": 0,
+          "district": "Lower Subansiri",
+          "state": "Arunachal Pradesh",
+          "pest": "Visual Symptoms"
+        }
+      },
+      "confidence_score": 0.4
     }
   ],
   "advisories": [
@@ -603,7 +704,7 @@
     }
   ],
   "notifications": [],
-  "_nextId": 34,
+  "_nextId": 37,
   "chatSessions": [
     {
       "_id": "sess_msw0n5l2",
