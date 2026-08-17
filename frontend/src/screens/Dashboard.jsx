@@ -509,59 +509,217 @@ const Dashboard = ({
                             </div>
                         </div>
 
-                        {/* Live Mandi Trends */}
+                        {/* Seasonal Price Spikes & Peak Selling Signals */}
                         <div className="mb-8">
                             <div className="flex items-center justify-between mb-3 px-1">
-                                <h2 className="text-lg font-extrabold text-gray-900 dark:text-white">Live Market Trends</h2>
-                                <span className="text-[9px] font-extrabold text-[#0ED054] bg-[#0ED054]/10 border border-[#0ED054]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">Live</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-amber-500 text-xl">trending_up</span>
+                                    <div>
+                                        <h2 className="text-lg font-extrabold text-gray-900 dark:text-white leading-tight">Seasonal Price Spikes</h2>
+                                        <p className="text-[10px] text-gray-400">Peak price forecast & best time to sell</p>
+                                    </div>
+                                </div>
+                                <span className="text-[9px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+                                    <span>AI Forecast</span>
+                                </span>
                             </div>
                             
                             <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-3">
-                                <div onClick={onMandiPricesClick} className="min-w-[145px] krishi-glass dark:bg-white/5 border border-white/10 p-4 rounded-2xl shadow-md flex flex-col gap-2 hover:shadow-lg active:scale-95 transition-all cursor-pointer">
-                                    <div className="flex items-center justify-between">
-                                        <div className="h-8 w-8 rounded-xl bg-yellow-100 dark:bg-yellow-950/40 flex items-center justify-center">
-                                            <span className="material-symbols-outlined text-yellow-700 dark:text-yellow-400 text-lg">spa</span>
-                                        </div>
-                                        <span className="text-[10px] font-bold text-green-600 dark:text-[#0ED054] bg-green-500/10 px-1.5 py-0.5 rounded flex items-center">
-                                            <span className="material-symbols-outlined text-[10px] mr-0.5">trending_up</span> 2%
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <p className="text-[11px] font-bold text-gray-400 dark:text-gray-500">Wheat</p>
-                                        <p className="text-base font-extrabold text-gray-900 dark:text-white">₹2,450</p>
-                                    </div>
-                                </div>
                                 
-                                <div onClick={onMandiPricesClick} className="min-w-[145px] krishi-glass dark:bg-white/5 border border-white/10 p-4 rounded-2xl shadow-md flex flex-col gap-2 hover:shadow-lg active:scale-95 transition-all cursor-pointer">
-                                    <div className="flex items-center justify-between">
-                                        <div className="h-8 w-8 rounded-xl bg-red-100 dark:bg-red-950/40 flex items-center justify-center">
-                                            <span className="material-symbols-outlined text-red-700 dark:text-red-400 text-lg">nutrition</span>
-                                        </div>
-                                        <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded flex items-center">
-                                            <span className="material-symbols-outlined text-[10px] mr-0.5">trending_down</span> 0.5%
-                                        </span>
-                                    </div>
+                                {/* Card 1: Onion (Hold & Store - Festive Spike) */}
+                                <div 
+                                    onClick={onMandiPricesClick} 
+                                    className="min-w-[210px] max-w-[220px] bg-gradient-to-br from-amber-500/10 via-white/5 to-transparent dark:bg-[#0c1f13] border border-amber-500/30 p-4 rounded-3xl shadow-lg flex flex-col justify-between hover:shadow-xl active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+
                                     <div>
-                                        <p className="text-[11px] font-bold text-gray-400 dark:text-gray-500">Tomato</p>
-                                        <p className="text-base font-extrabold text-gray-900 dark:text-white">₹1,200</p>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
+                                                <span>🟡 HOLD & STORE</span>
+                                            </span>
+                                            <span className="text-[10px] font-extrabold text-emerald-600 dark:text-[#0ED054] flex items-center">
+                                                <span className="material-symbols-outlined text-xs mr-0.5">trending_up</span> +28%
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="h-8 w-8 rounded-xl bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center text-lg shadow-sm">
+                                                🧅
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm font-black text-gray-900 dark:text-white leading-none">Onion (Nashik Red)</h3>
+                                                <span className="text-[10px] text-gray-400">Festive Arrival Dip</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="my-2.5 p-2 bg-black/20 rounded-2xl border border-white/5">
+                                            <div className="flex justify-between items-baseline text-xs">
+                                                <span className="text-gray-400 text-[10px]">Current:</span>
+                                                <span className="font-bold text-gray-800 dark:text-gray-200">₹2,100 / qtl</span>
+                                            </div>
+                                            <div className="flex justify-between items-baseline text-xs">
+                                                <span className="text-amber-500 text-[10px] font-bold">Projected Peak:</span>
+                                                <span className="font-black text-amber-500">₹2,690 / qtl</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px]">
+                                        <span className="text-gray-400">Peak Window: <strong className="text-white">Oct Festive</strong></span>
+                                        <span className="material-symbols-outlined text-amber-400 text-sm">arrow_forward</span>
                                     </div>
                                 </div>
-                                
-                                <div onClick={onMandiPricesClick} className="min-w-[145px] krishi-glass dark:bg-white/5 border border-white/10 p-4 rounded-2xl shadow-md flex flex-col gap-2 hover:shadow-lg active:scale-95 transition-all cursor-pointer">
-                                    <div className="flex items-center justify-between">
-                                        <div className="h-8 w-8 rounded-xl bg-orange-100 dark:bg-orange-950/40 flex items-center justify-center">
-                                            <span className="material-symbols-outlined text-orange-700 dark:text-orange-400 text-lg">grain</span>
-                                        </div>
-                                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 bg-gray-500/10 px-1.5 py-0.5 rounded flex items-center">
-                                            <span className="material-symbols-outlined text-[10px] mr-0.5">remove</span> 0%
-                                        </span>
-                                    </div>
+
+                                {/* Card 2: Mustard (Sell Now - Peak Rate) */}
+                                <div 
+                                    onClick={onMandiPricesClick} 
+                                    className="min-w-[210px] max-w-[220px] bg-gradient-to-br from-emerald-500/10 via-white/5 to-transparent dark:bg-[#0c1f13] border border-emerald-500/30 p-4 rounded-3xl shadow-lg flex flex-col justify-between hover:shadow-xl active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+
                                     <div>
-                                        <p className="text-[11px] font-bold text-gray-400 dark:text-gray-500">Corn</p>
-                                        <p className="text-base font-extrabold text-gray-900 dark:text-white">₹1,890</p>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                                                <span>🟢 SELL NOW</span>
+                                            </span>
+                                            <span className="text-[10px] font-extrabold text-emerald-600 dark:text-[#0ED054] flex items-center">
+                                                <span className="material-symbols-outlined text-xs mr-0.5">trending_up</span> +22%
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="h-8 w-8 rounded-xl bg-yellow-100 dark:bg-yellow-950/50 flex items-center justify-center text-lg shadow-sm">
+                                                🌻
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm font-black text-gray-900 dark:text-white leading-none">Mustard / Sarson</h3>
+                                                <span className="text-[10px] text-gray-400">High Crushing Demand</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="my-2.5 p-2 bg-black/20 rounded-2xl border border-white/5">
+                                            <div className="flex justify-between items-baseline text-xs">
+                                                <span className="text-gray-400 text-[10px]">Current Rate:</span>
+                                                <span className="font-black text-emerald-600 dark:text-[#0ED054]">₹5,850 / qtl</span>
+                                            </div>
+                                            <div className="flex justify-between items-baseline text-xs">
+                                                <span className="text-gray-400 text-[10px]">Govt MSP:</span>
+                                                <span className="text-gray-300">₹5,650 / qtl</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px]">
+                                        <span className="text-gray-400">Peak Window: <strong className="text-white">Active Now</strong></span>
+                                        <span className="material-symbols-outlined text-emerald-400 text-sm">arrow_forward</span>
                                     </div>
                                 </div>
+
+                                {/* Card 3: Cotton (Accumulate / Hold) */}
+                                <div 
+                                    onClick={onMandiPricesClick} 
+                                    className="min-w-[210px] max-w-[220px] bg-gradient-to-br from-indigo-500/10 via-white/5 to-transparent dark:bg-[#0c1f13] border border-indigo-500/30 p-4 rounded-3xl shadow-lg flex flex-col justify-between hover:shadow-xl active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
+
+                                    <div>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/30 flex items-center gap-1">
+                                                <span>🔵 HOLD / ACCUMULATE</span>
+                                            </span>
+                                            <span className="text-[10px] font-extrabold text-emerald-600 dark:text-[#0ED054] flex items-center">
+                                                <span className="material-symbols-outlined text-xs mr-0.5">trending_up</span> +18%
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="h-8 w-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/50 flex items-center justify-center text-lg shadow-sm">
+                                                ☁️
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm font-black text-gray-900 dark:text-white leading-none">Cotton (Medium Staple)</h3>
+                                                <span className="text-[10px] text-gray-400">Mill Forward Contracts</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="my-2.5 p-2 bg-black/20 rounded-2xl border border-white/5">
+                                            <div className="flex justify-between items-baseline text-xs">
+                                                <span className="text-gray-400 text-[10px]">Current:</span>
+                                                <span className="font-bold text-gray-800 dark:text-gray-200">₹7,200 / qtl</span>
+                                            </div>
+                                            <div className="flex justify-between items-baseline text-xs">
+                                                <span className="text-indigo-400 text-[10px] font-bold">Projected Peak:</span>
+                                                <span className="font-black text-indigo-400">₹8,500 / qtl</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px]">
+                                        <span className="text-gray-400">Peak Window: <strong className="text-white">Nov Export Window</strong></span>
+                                        <span className="material-symbols-outlined text-indigo-400 text-sm">arrow_forward</span>
+                                    </div>
+                                </div>
+
+                                {/* Card 4: Wheat (Steady Above MSP) */}
+                                <div 
+                                    onClick={onMandiPricesClick} 
+                                    className="min-w-[210px] max-w-[220px] bg-gradient-to-br from-yellow-500/10 via-white/5 to-transparent dark:bg-[#0c1f13] border border-yellow-500/30 p-4 rounded-3xl shadow-lg flex flex-col justify-between hover:shadow-xl active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 w-20 h-20 bg-yellow-500/10 rounded-full blur-xl pointer-events-none"></div>
+
+                                    <div>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-[9px] font-black uppercase tracking-wider bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 px-2 py-0.5 rounded-full border border-yellow-500/30 flex items-center gap-1">
+                                                <span>🟢 STEADY BULLISH</span>
+                                            </span>
+                                            <span className="text-[10px] font-extrabold text-emerald-600 dark:text-[#0ED054] flex items-center">
+                                                <span className="material-symbols-outlined text-xs mr-0.5">trending_up</span> +15%
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="h-8 w-8 rounded-xl bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center text-lg shadow-sm">
+                                                🌾
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm font-black text-gray-900 dark:text-white leading-none">Wheat (HD-2967)</h3>
+                                                <span className="text-[10px] text-gray-400">Flour Mill Procurement</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="my-2.5 p-2 bg-black/20 rounded-2xl border border-white/5">
+                                            <div className="flex justify-between items-baseline text-xs">
+                                                <span className="text-gray-400 text-[10px]">Current Rate:</span>
+                                                <span className="font-black text-emerald-600 dark:text-[#0ED054]">₹2,620 / qtl</span>
+                                            </div>
+                                            <div className="flex justify-between items-baseline text-xs">
+                                                <span className="text-gray-400 text-[10px]">Govt MSP:</span>
+                                                <span className="text-gray-300">₹2,275 / qtl</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px]">
+                                        <span className="text-gray-400">Peak Window: <strong className="text-white">Next 30 Days</strong></span>
+                                        <span className="material-symbols-outlined text-yellow-400 text-sm">arrow_forward</span>
+                                    </div>
+                                </div>
+
                             </div>
+
+                            {/* Storage & Warehouse Guidance Pill */}
+                            <button
+                                onClick={() => onNavigate('ami-insights')}
+                                className="w-full mt-2 p-3 bg-gradient-to-r from-[#072412] to-[#0c3d1f] hover:from-[#0c3d1f] hover:to-[#12582d] border border-emerald-500/20 rounded-2xl flex items-center justify-between text-xs text-white shadow-md active:scale-[0.99] transition-all cursor-pointer"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-emerald-400 text-base">warehouse</span>
+                                    <span className="font-bold text-gray-200">Need storage for peak prices? Find 255+ Subsidized Mandi Warehouses</span>
+                                </div>
+                                <span className="material-symbols-outlined text-emerald-400 text-base">arrow_forward</span>
+                            </button>
                         </div>
                     </main>
 
