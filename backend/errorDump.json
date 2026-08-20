@@ -1,0 +1,24 @@
+{
+  "message": "Input validation failed: [\n  {\n    \"expected\": \"object\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"chatGenerationParams\"\n    ],\n    \"message\": \"Invalid input: expected object, received undefined\"\n  }\n]",
+  "stack": "SDKValidationError: Input validation failed: [\n  {\n    \"expected\": \"object\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"chatGenerationParams\"\n    ],\n    \"message\": \"Invalid input: expected object, received undefined\"\n  }\n]\n    at safeParse (file:///C:/Users/mshiv/Downloads/take%202/backend/node_modules/@openrouter/sdk/esm/lib/schemas.js:34:20)\n    at $do (file:///C:/Users/mshiv/Downloads/take%202/backend/node_modules/@openrouter/sdk/esm/funcs/chatSend.js:18:20)\n    at chatSend (file:///C:/Users/mshiv/Downloads/take%202/backend/node_modules/@openrouter/sdk/esm/funcs/chatSend.js:15:27)\n    at Chat.send (file:///C:/Users/mshiv/Downloads/take%202/backend/node_modules/@openrouter/sdk/esm/sdk/chat.js:10:28)\n    at test (C:\\Users\\mshiv\\Downloads\\take 2\\backend\\testChatbotRaw.js:14:46)\n    at Object.<anonymous> (C:\\Users\\mshiv\\Downloads\\take 2\\backend\\testChatbotRaw.js:33:1)\n    at Module._compile (node:internal/modules/cjs/loader:1804:14)\n    at Object..js (node:internal/modules/cjs/loader:1936:10)\n    at Module.load (node:internal/modules/cjs/loader:1525:32)\n    at Module._load (node:internal/modules/cjs/loader:1327:12)",
+  "full": {
+    "name": "SDKValidationError",
+    "cause": {
+      "name": "ZodError",
+      "message": "[\n  {\n    \"expected\": \"object\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"chatGenerationParams\"\n    ],\n    \"message\": \"Invalid input: expected object, received undefined\"\n  }\n]"
+    },
+    "rawValue": {
+      "chatRequest": {
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ],
+        "stream": true
+      }
+    },
+    "rawMessage": "Input validation failed"
+  }
+}

@@ -672,6 +672,87 @@
         }
       },
       "confidence_score": 0.4
+    },
+    {
+      "farm_id": "mem_5_msun5aft",
+      "image_url": "https://fcnvihbpuxhkwjvxdrim.supabase.co/storage/v1/object/public/farm_images/1786945556197-594136197.jpg",
+      "image_type": "leaf",
+      "_id": "mem_38_mswt8wuo",
+      "createdAt": "2026-08-17T05:45:57.840Z",
+      "updatedAt": "2026-08-17T05:46:31.732Z",
+      "analysis_result": {
+        "crop_identified": "brinjal",
+        "disease_name": "Early Blight",
+        "scientific_name": "Alternaria solani",
+        "causal_agent": "Fungal",
+        "confidence": 0.85,
+        "confidence_reasoning": "Distinct target-like lesions with concentric rings and dark margins are characteristic of Alternaria solani. The presence of chlorotic halos and necrotic tissue further supports this diagnosis.",
+        "severity": "Moderate",
+        "severity_percentage": "30%",
+        "symptoms_observed": [
+          "Target-like lesions with dark brown margins and yellow halos on upper leaf surfaces",
+          "Necrotic tissue within lesions, especially on older leaves",
+          "Chlorotic spots and streaks along leaf veins"
+        ],
+        "symptom_locations": "Upper leaf surfaces, margins, and along veins",
+        "color_patterns": "Dark brown lesions with yellow chlorotic halos and necrotic centers",
+        "texture_analysis": "Dry, papery necrotic tissue within lesions; no sporulation visible",
+        "affected_parts": [
+          "leaf"
+        ],
+        "spread_risk": "Medium",
+        "overall_assessment": "Early Blight is a common fungal disease in brinjal, characterized by target-like lesions. The current severity is moderate, affecting 30% of leaf area. Immediate action is required to prevent further spread and yield loss.",
+        "environmental_triggers": "High humidity, warm temperatures, and prolonged leaf wetness favor Alternaria growth.",
+        "similar_diseases": [
+          {
+            "name": "Late Blight",
+            "scientific_name": "Phytophthora infestans",
+            "why_ruled_out": "Late Blight typically shows water-soaked lesions and white sporulation, which are absent here."
+          },
+          {
+            "name": "Bacterial Leaf Spot",
+            "scientific_name": "Xanthomonas campestris",
+            "why_ruled_out": "Bacterial spots are usually smaller, water-soaked, and have a yellow halo, unlike the target-like lesions observed."
+          },
+          {
+            "name": "Nutrient Deficiency",
+            "scientific_name": "N/A",
+            "why_ruled_out": "Nutrient deficiencies typically show uniform chlorosis or interveinal chlorosis, not discrete lesions."
+          }
+        ],
+        "additional_evidence_needed": "Collect leaf samples for lab confirmation, check for sporulation under magnification, and monitor for fruit symptoms.",
+        "ipm_immediate": "Remove and destroy infected leaves to reduce inoculum load.",
+        "ipm_organic": "Apply Trichoderma viride @ 5g/L soil drench to enhance root health and suppress fungal growth.",
+        "ipm_chemical": {
+          "active_ingredient": "Azoxystrobin",
+          "concentration": "25% WP",
+          "dosage": "100g per acre",
+          "application_method": "Foliar spray",
+          "frequency": "Every 10 days",
+          "phi_days": "7 days",
+          "precaution": "Use protective clothing, mask, and spray in the morning to avoid rain wash-off."
+        },
+        "immediate_action": "Remove and destroy infected leaves immediately to reduce disease spread.",
+        "prevention": [
+          "Use disease-free seeds and practice crop rotation with non-host crops.",
+          "Maintain proper plant spacing for improved air circulation.",
+          "Avoid overhead irrigation to reduce leaf wetness."
+        ],
+        "recommendations": [
+          "Apply foliar sprays of Azoxystrobin every 10 days during high humidity periods.",
+          "Monitor plants weekly for early signs of disease.",
+          "Improve soil health with organic amendments to enhance plant resistance."
+        ],
+        "yield_impact": "If untreated, Early Blight can reduce yield by 20-30% within 2 weeks due to defoliation and reduced photosynthesis.",
+        "npss_reference_images": [],
+        "npss_regional_reports": {
+          "count": 0,
+          "district": "Regional",
+          "state": "Odisha",
+          "pest": "Early Blight"
+        }
+      },
+      "confidence_score": 0.85
     }
   ],
   "advisories": [
@@ -701,11 +782,113 @@
       "_id": "mem_20_msw0q9tz",
       "createdAt": "2026-08-16T16:27:38.951Z",
       "updatedAt": "2026-08-16T16:27:38.951Z"
+    },
+    {
+      "farm_id": "mem_37_mswt4m17",
+      "advisory_text": "I'm ready to analyze your Soil Health Card, but I need the actual test report or lab results to proceed. 📄\n\n**Please paste or upload the Soil Health Card / Lab Analysis with the following values (if available):**\n- pH, EC (dS/m)\n- Organic Carbon (%)\n- Available N (kg/ha)\n- Available P₂O₅ (kg/ha)\n- Available K₂O (kg/ha)\n- Micronutrient levels (Zn, B, Fe, etc.)\n\n**Once provided, I’ll instantly:**\n1. Evaluate each parameter against ICAR/Indian Standard thresholds\n2. Calculate precise NPK fertilizer doses in kg/acre and bag quantities (Urea, DAP, MOP, SSP)\n3. Generate a basal + top-dressing schedule\n4. Include chemical safety, dilution rates, and water volume specs\n\n*If you’ve already shared this, please re-upload or confirm, and I’ll re-run the analysis immediately.*",
+      "weather_snapshot": null,
+      "query": "🧪 Analyze Soil Health Card & NPK",
+      "_id": "mem_37_mswt6oa8",
+      "createdAt": "2026-08-17T05:44:13.424Z",
+      "updatedAt": "2026-08-17T05:44:13.424Z"
     }
   ],
   "notifications": [],
-  "_nextId": 37,
+  "_nextId": 39,
   "chatSessions": [
+    {
+      "_id": "sess_mswt5m5m",
+      "sessionId": "sess_mswt5m5m",
+      "userId": "7559ec9a-c7cf-4def-b75d-803df0486131",
+      "farmId": "mem_37_mswt4m17",
+      "title": "Namaste, M.! I have loaded your **Wheat** far",
+      "messages": [
+        {
+          "role": "assistant",
+          "content": "Namaste, M.! I have loaded your **Wheat** farm data from **Odisha**. You can ask questions, upload lab test reports, or share crop photos for instant analysis."
+        },
+        {
+          "role": "user",
+          "content": "🧪 Analyze Soil Health Card & NPK"
+        },
+        {
+          "role": "assistant",
+          "content": "AI copilot service temporarily unavailable. Please try again."
+        },
+        {
+          "role": "user",
+          "content": "🧪 Analyze Soil Health Card & NPK"
+        },
+        {
+          "id": 1786945452982,
+          "text": "I'm ready to analyze your Soil Health Card, but I need the actual test report or lab results to proceed. 📄\n\n**Please paste or upload the Soil Health Card / Lab Analysis with the following values (if available):**\n- pH, EC (dS/m)\n- Organic Carbon (%)\n- Available N (kg/ha)\n- Available P₂O₅ (kg/ha)\n- Available K₂O (kg/ha)\n- Micronutrient levels (Zn, B, Fe, etc.)\n\n**Once provided, I’ll instantly:**\n1. Evaluate each parameter against ICAR/Indian Standard thresholds\n2. Calculate precise NPK fertilizer doses in kg/acre and bag quantities (Urea, DAP, MOP, SSP)\n3. Generate a basal + top-dressing schedule\n4. Include chemical safety, dilution rates, and water volume specs\n\n*If you’ve already shared this, please re-upload or confirm, and I’ll re-run the analysis immediately.*",
+          "isAI": true,
+          "sources": [
+            {
+              "id": "icar-general",
+              "title": "ICAR Package of Practices for Wheat",
+              "org": "Indian Council of Agricultural Research (ICAR)",
+              "type": "Agronomic Research Benchmark",
+              "detail": "Standard agronomic crop management, seed rates, fertilizer splits, and IPM protocols."
+            },
+            {
+              "id": "cibrc-dppqs",
+              "title": "CIBRC Registered Agrochemical Safety & Dilution Directory",
+              "org": "Central Insecticides Board & Registration Committee, Directorate of PPQ&S",
+              "type": "Chemical & Regulatory Safety Standard",
+              "detail": "Statutory dilution volumes (200 L water/acre), active ingredient specifications, and environmental safety limits."
+            },
+            {
+              "id": "agmarknet-dmi",
+              "title": "Agmarknet APMC Mandi Benchmark Rates",
+              "org": "Directorate of Marketing & Inspection (DMI) & e-NAM, Ministry of Agriculture",
+              "type": "Official Market Prices",
+              "detail": "Verified modal price for Wheat: ₹2,434/q in Rayagada Main APMC Mandi Yard APMC."
+            },
+            {
+              "id": "shc-dacfw",
+              "title": "National Soil Health Card Metric Norms",
+              "org": "Department of Agriculture & Farmers Welfare (DAC&FW), Govt of India",
+              "type": "Soil Testing Standard",
+              "detail": "Standard diagnostic thresholds for pH, EC, Organic Carbon %, Available N-P-K, and Zinc deficiency correction."
+            }
+          ],
+          "time": "11:14 am"
+        }
+      ],
+      "sources": [
+        {
+          "id": "icar-general",
+          "title": "ICAR Package of Practices for Wheat",
+          "org": "Indian Council of Agricultural Research (ICAR)",
+          "type": "Agronomic Research Benchmark",
+          "detail": "Standard agronomic crop management, seed rates, fertilizer splits, and IPM protocols."
+        },
+        {
+          "id": "cibrc-dppqs",
+          "title": "CIBRC Registered Agrochemical Safety & Dilution Directory",
+          "org": "Central Insecticides Board & Registration Committee, Directorate of PPQ&S",
+          "type": "Chemical & Regulatory Safety Standard",
+          "detail": "Statutory dilution volumes (200 L water/acre), active ingredient specifications, and environmental safety limits."
+        },
+        {
+          "id": "agmarknet-dmi",
+          "title": "Agmarknet APMC Mandi Benchmark Rates",
+          "org": "Directorate of Marketing & Inspection (DMI) & e-NAM, Ministry of Agriculture",
+          "type": "Official Market Prices",
+          "detail": "Verified modal price for Wheat: ₹2,434/q in Rayagada Main APMC Mandi Yard APMC."
+        },
+        {
+          "id": "shc-dacfw",
+          "title": "National Soil Health Card Metric Norms",
+          "org": "Department of Agriculture & Farmers Welfare (DAC&FW), Govt of India",
+          "type": "Soil Testing Standard",
+          "detail": "Standard diagnostic thresholds for pH, EC, Organic Carbon %, Available N-P-K, and Zinc deficiency correction."
+        }
+      ],
+      "createdAt": "2026-08-17T05:44:13.302Z",
+      "updatedAt": "2026-08-17T05:44:13.302Z"
+    },
     {
       "_id": "sess_msw0n5l2",
       "sessionId": "sess_msw0n5l2",

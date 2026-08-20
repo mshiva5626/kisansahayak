@@ -344,9 +344,16 @@ async function generateVisionAnalysis({ prompt, base64Image, mimeType = 'image/j
     // Remove duplicates
     const uniqueModels = [...new Set(visionModels.filter(Boolean))];
 
-    // Prepare image payload url
-    let imageUrlString = base64Image;
-    if (!imageUrlString.startsWith('data:') && !imageUrlString.startsWith('http://') && !imageUrlString.startsWith('https://')) {
+    // Prepare image payload — guard against double-wrapping an already-prefixed data URL
+    let imageUrlString;
+    if (base64Image.startsWith('http://') || base64Image.startsWith('https://')) {
+        // Remote URL — pass directly as image_url
+        imageUrlString = base64Image;
+    } else if (base64Image.startsWith('data:')) {
+        // Already a valid data URL — use as-is (no double-encoding)
+        imageUrlString = base64Image;
+    } else {
+        // Raw base64 — wrap with data URL prefix
         imageUrlString = `data:${mimeType};base64,${base64Image}`;
     }
 

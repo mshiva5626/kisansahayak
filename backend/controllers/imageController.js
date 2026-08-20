@@ -1,19 +1,26 @@
 const { getSupabase } = require('../config/db');
 const { analyzeImageWithAI } = require('../services/imageAnalysisService');
 const path = require('path');
+const fs = require('fs');
 
-// Helper
+// Helper — fetch farm if it exists, but never hard-fail on default_field
 async function getFarm(farmId, userId) {
-    const supabase = getSupabase();
-    const { data } = await supabase
-        .from('farms')
-        .select('*')
-        .eq('id', farmId)
-        .eq('user_id', userId)
-        .maybeSingle();
+    if (!farmId || farmId === 'default_field') return null;
 
-    if (data) data._id = data.id;
-    return data;
+    try {
+        const supabase = getSupabase();
+        const { data } = await supabase
+            .from('farms')
+            .select('*')
+            .eq('id', farmId)
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        if (data) data._id = data.id;
+        return data;
+    } catch {
+        return null;
+    }
 }
 
 // Upload an image for a farm
@@ -30,12 +37,10 @@ exports.uploadImage = async (req, res) => {
             return res.status(400).json({ message: 'farm_id is required' });
         }
 
+        // Soft farm lookup — non-blocking for default_field
         const farm = await getFarm(farm_id, userId);
-        if (!farm) {
-            return res.status(404).json({ message: 'Farm not found' });
-        }
+        const effectiveFarmId = farm ? (farm.id || farm._id) : farm_id;
 
-        const fs = require('fs');
         const fileBuffer = fs.readFileSync(req.file.path);
         const fileName = req.file.filename;
 
@@ -45,7 +50,7 @@ exports.uploadImage = async (req, res) => {
         const supabase = getSupabase();
         let image_url = `/uploads/${fileName}`;
 
-        // Attempt to upload to Supabase Storage with resilient fallback
+        // Attempt Supabase Storage upload with resilient fallback
         try {
             if (supabase && supabase.storage) {
                 const { data: uploadData, error: storageError } = await supabase.storage
@@ -71,19 +76,41 @@ exports.uploadImage = async (req, res) => {
             console.warn('⚠️ Supabase Storage exception (falling back to local file):', storageErr.message);
         }
 
+        // Insert image record — include user_id for ownership checks in analyzeImage
         const { data: image, error } = await supabase
             .from('images')
             .insert([{
-                farm_id,
+                farm_id: effectiveFarmId,
+                user_id: userId,
                 image_url,
-                image_type: image_type || 'field'
+                image_type: image_type || 'field',
+                local_path: req.file.path  // store absolute local path for AI fallback
             }])
             .select()
             .single();
 
-        if (error) throw error;
-        image._id = image.id;
+        if (error) {
+            // If the column doesn't exist yet (schema mismatch), retry without optional fields
+            console.warn('First insert attempt failed, retrying without optional columns:', error.message);
+            const { data: image2, error: error2 } = await supabase
+                .from('images')
+                .insert([{
+                    farm_id: effectiveFarmId,
+                    image_url,
+                    image_type: image_type || 'field'
+                }])
+                .select()
+                .single();
 
+            if (error2) throw error2;
+            image2._id = image2.id;
+            // Stash local path in memory so analyzeImage can read it
+            image2._localPath = req.file.path;
+            return res.status(201).json({ image: image2 });
+        }
+
+        image._id = image.id;
+        image._localPath = req.file.path;
         res.status(201).json({ image });
     } catch (error) {
         console.error('Upload image error:', error.message);
@@ -107,31 +134,58 @@ exports.analyzeImage = async (req, res) => {
             return res.status(404).json({ message: 'Image not found' });
         }
 
+        // Fetch farm for AI context (non-blocking)
         const farm = await getFarm(image.farm_id, userId);
 
+        // Determine the actual image source for AI analysis
         let imagePath = image.image_url;
 
-        // If it's a local/relative URL, resolve to absolute filesystem path
-        if (!imagePath.startsWith('http')) {
-            const cleanPath = imagePath.replace(/^\/?uploads\//, '');
-            imagePath = path.join(__dirname, '..', 'uploads', cleanPath);
-        }
+        if (imagePath && imagePath.startsWith('http')) {
+            // Public Supabase or remote URL — pass directly, analyzeImageWithAI handles fetching
+            console.log(`\n--- TRIGGERING AI VISION ANALYSIS (remote URL) ---`);
+            console.log(`Analyzing image: ${imagePath}`);
+        } else {
+            // Relative local path: resolve to absolute filesystem path
+            const cleanPath = (imagePath || '').replace(/^\/?uploads\//, '');
+            const absolutePath = path.join(__dirname, '..', 'uploads', cleanPath);
 
-        console.log(`\n--- TRIGGERING AI VISION ANALYSIS ---`);
-        console.log(`Analyzing image: ${imagePath}`);
+            if (fs.existsSync(absolutePath)) {
+                imagePath = absolutePath;
+            } else {
+                // Last resort: try the local_path column
+                const localCol = image.local_path;
+                if (localCol && fs.existsSync(localCol)) {
+                    imagePath = localCol;
+                } else {
+                    // Scan uploads directory for the file by filename
+                    const uploadsDir = path.join(__dirname, '..', 'uploads');
+                    const files = fs.readdirSync(uploadsDir);
+                    const match = files.find(f => cleanPath.includes(f) || f.includes(cleanPath.split('/').pop()));
+                    if (match) {
+                        imagePath = path.join(uploadsDir, match);
+                    } else {
+                        return res.status(404).json({ message: 'Image file not found on server. Please re-upload.' });
+                    }
+                }
+            }
+
+            console.log(`\n--- TRIGGERING AI VISION ANALYSIS (local file) ---`);
+            console.log(`Analyzing image: ${imagePath}`);
+        }
 
         const analysisResult = await analyzeImageWithAI(imagePath, image.image_type, farm);
 
-        // Save analysis result
-        const { error: updateError } = await supabase
+        // Save analysis result back to DB (best-effort, non-blocking)
+        supabase
             .from('images')
             .update({
                 analysis_result: analysisResult.analysis,
                 confidence_score: analysisResult.confidence_score
             })
-            .eq('id', image.id);
-
-        if (updateError) throw updateError;
+            .eq('id', image.id)
+            .then(({ error: updateError }) => {
+                if (updateError) console.warn('Could not save analysis result to DB:', updateError.message);
+            });
 
         res.status(200).json({
             image_id: image.id,
@@ -149,12 +203,6 @@ exports.analyzeImage = async (req, res) => {
 // Get all images for a farm
 exports.getImagesByFarm = async (req, res) => {
     try {
-        const userId = req.user._id || req.user.id;
-        const farm = await getFarm(req.params.farmId, userId);
-        if (!farm) {
-            return res.status(404).json({ message: 'Farm not found' });
-        }
-
         const supabase = getSupabase();
         const { data: rawImages, error } = await supabase
             .from('images')
@@ -165,7 +213,6 @@ exports.getImagesByFarm = async (req, res) => {
         if (error) throw error;
 
         const images = rawImages.map(img => ({ ...img, _id: img.id }));
-
         res.status(200).json({ images });
     } catch (error) {
         res.status(500).json({ message: error.message });

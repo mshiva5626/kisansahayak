@@ -43,24 +43,79 @@ Return ONLY a valid JSON object matching this schema:
 }`;
 };
 
+/**
+ * Resilient JSON parser for AI soil responses
+ */
 const parseResponse = (responseText) => {
+    if (!responseText) throw new Error("Empty soil analysis response");
+
     let cleaned = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-        throw new Error("No JSON object found in soil analysis response");
+
+    // Try strict JSON object extraction first
+    const startIdx = cleaned.indexOf('{');
+    const endIdx = cleaned.lastIndexOf('}');
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+        try {
+            return JSON.parse(cleaned.substring(startIdx, endIdx + 1));
+        } catch (e) {
+            console.warn('[Soil AI] Strict JSON parse failed, attempting regex match:', e.message);
+        }
     }
-    return JSON.parse(jsonMatch[0]);
+
+    // Regex fallback
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+        try {
+            return JSON.parse(jsonMatch[0]);
+        } catch (e) {
+            console.warn('[Soil AI] Regex JSON parse also failed:', e.message);
+        }
+    }
+
+    throw new Error("No valid JSON object found in soil analysis response");
 };
+
+/**
+ * Extract pure base64 data and mime type from a data URL or raw base64 string.
+ * Returns { pureBase64, mimeType }
+ */
+function extractBase64Parts(imageInput) {
+    if (!imageInput) throw new Error("No image data provided");
+
+    // Already a data URL: data:image/jpeg;base64,/9j/4AAQ...
+    if (imageInput.startsWith('data:')) {
+        const matches = imageInput.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/s);
+        if (matches) {
+            return { pureBase64: matches[2], mimeType: matches[1] };
+        }
+        // Malformed data URL — strip prefix best-effort
+        const stripped = imageInput.replace(/^data:[^,]+,/, '');
+        return { pureBase64: stripped, mimeType: 'image/jpeg' };
+    }
+
+    // Raw base64 string (no prefix)
+    return { pureBase64: imageInput, mimeType: 'image/jpeg' };
+}
 
 const analyzeSoilImage = async (imageBase64, farmContext) => {
     const prompt = buildSoilPrompt(farmContext);
     const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
+    // Fix: extract pure base64 and correct mime type — prevents double-encoding bug
+    let pureBase64, mimeType;
+    try {
+        ({ pureBase64, mimeType } = extractBase64Parts(imageBase64));
+    } catch (extractErr) {
+        console.error('[Soil AI] Failed to extract base64:', extractErr.message);
+        pureBase64 = imageBase64;
+        mimeType = 'image/jpeg';
+    }
+
     try {
         const rawResponse = await generateVisionAnalysis({
             prompt,
-            base64Image: imageBase64,
-            mimeType: 'image/jpeg',
+            base64Image: pureBase64,
+            mimeType,
             temperature: 0.2
         });
 
