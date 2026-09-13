@@ -25,6 +25,10 @@ import LiveMarketPrices from './screens/LiveMarketPrices';
 import SoilHealthReport from './screens/SoilHealthReport';
 import FertilizerMarketplace from './screens/FertilizerMarketplace';
 import AMIInsightCenter from './screens/AMIInsightCenter';
+import IoTDevicePairing from './screens/IoTDevicePairing';
+import IoTSensorSettings from './screens/IoTSensorSettings';
+import IoTESP32Guide from './screens/IoTESP32Guide';
+import { IoTProvider } from './context/IoTContext';
 
 import { authAPI } from './api';
 import { supabase, signInWithGoogle } from './supabaseClient';
@@ -232,6 +236,7 @@ function App() {
   };
 
   return (
+    <IoTProvider>
     <div className="min-h-[100dvh] bg-slate-900 md:bg-gray-800 dark:bg-black flex justify-center items-center">
       <div className="w-full max-w-md h-[100dvh] md:h-[90dvh] md:max-h-[850px] md:rounded-[2.5rem] bg-background-light dark:bg-background-dark overflow-hidden relative shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] flex flex-col transform translate-x-0">
         <div className="flex-1 w-full h-full overflow-y-auto no-scrollbar relative flex flex-col">
@@ -293,6 +298,7 @@ function App() {
               onMandiPricesClick={() => navigateTo('mandi-prices')}
               onSoilTestClick={() => navigateTo('soil-test')}
               onNavigate={navigateTo}
+              onIoTPairClick={() => navigateTo('iot-pairing')}
               userProfile={userProfile}
               selectedFarmId={selectedFarmId}
               userLocation={userLocation}
@@ -478,9 +484,28 @@ function App() {
               userProfile={userProfile}
             />
           )}
+          {currentScreen === 'iot-pairing' && (
+            <IoTDevicePairing
+              onBack={() => navigateTo('dashboard')}
+              onNavigate={navigateTo}
+              selectedFarmId={selectedFarmId}
+            />
+          )}
+          {currentScreen === 'iot-settings' && (
+            <IoTSensorSettings
+              onBack={() => navigateTo('dashboard')}
+              onNavigate={navigateTo}
+            />
+          )}
+          {currentScreen === 'iot-guide' && (
+            <IoTESP32Guide
+              onBack={() => navigateTo('iot-settings')}
+            />
+          )}
         </div>
       </div>
     </div>
+    </IoTProvider>
   );
 }
 

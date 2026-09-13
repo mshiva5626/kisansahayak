@@ -4,6 +4,7 @@ import SideDrawerMenu from '../components/SideDrawerMenu';
 import DashboardSkeleton from '../components/DashboardSkeleton';
 import LocationModal from '../components/LocationModal';
 import SeasonalPriceIntelligence from '../components/SeasonalPriceIntelligence';
+import DashboardMoistureCard from '../components/DashboardMoistureCard';
 import { weatherAPI, farmAPI, mandiAPI, aiAPI } from '../api';
 
 const Dashboard = ({ 
@@ -21,7 +22,8 @@ const Dashboard = ({
     userProfile, 
     selectedFarmId,
     userLocation,
-    onLocationChange
+    onLocationChange,
+    onIoTPairClick
 }) => {
     const [weather, setWeather] = useState(null);
     const [farm, setFarm] = useState(null);
@@ -189,6 +191,18 @@ const Dashboard = ({
                                 </div>
                             </div>
                             <div className="flex items-center gap-2.5">
+                                {/* IoT Bluetooth Pair button */}
+                                <button
+                                    onClick={onIoTPairClick || (() => onNavigate('iot-pairing'))}
+                                    className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/20 active:scale-95 transition-all relative shadow-md"
+                                    title="Add IoT Sensor"
+                                >
+                                    <span className="material-symbols-outlined text-[#0ED054] text-[21px]">bluetooth</span>
+                                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#0ED054] flex items-center justify-center shadow-md">
+                                        <span className="material-symbols-outlined text-black text-[11px] font-black">add</span>
+                                    </span>
+                                </button>
+
                                 <button onClick={onNotificationClick} className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/20 active:scale-95 transition-all relative shadow-md">
                                     <span className="material-symbols-outlined text-white text-[22px]">notifications</span>
                                     <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-red-500 border-2 border-[#0c4726] animate-ping"></span>
@@ -373,6 +387,12 @@ const Dashboard = ({
                                 </button>
                             </div>
                         </div>
+
+                        {/* ── Live IoT Soil Moisture Card ── */}
+                        <DashboardMoistureCard
+                            selectedFarmId={selectedFarmId}
+                            onNavigate={onNavigate}
+                        />
 
                         {/* Interactive AI Daily Operations & Checks Tasks Bar */}
                         <div className="mb-6">

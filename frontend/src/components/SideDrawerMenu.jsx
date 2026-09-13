@@ -82,6 +82,14 @@ const SideDrawerMenu = ({ isOpen, onClose, userProfile, onNavigate }) => {
                                 <span className="font-medium text-sm tracking-wide">Govt Schemes</span>
                                 <div className="ml-auto w-2 h-2 rounded-full bg-[#13ec6d] shadow-[0_0_5px_rgba(19,236,109,0.5)]"></div>
                             </button>
+                            <button
+                                onClick={() => { onNavigate('iot-settings'); onClose(); }}
+                                className="w-full hover:bg-white/5 text-gray-300 hover:text-white px-4 py-3 rounded-xl flex items-center gap-4 transition-all"
+                            >
+                                <span className="material-symbols-outlined rounded-lg text-lg text-emerald-400">sensors</span>
+                                <span className="font-medium text-sm tracking-wide">IoT Sensors</span>
+                                <span className="ml-auto bg-emerald-500/15 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">NEW</span>
+                            </button>
                         </nav>
                     </div>
 
