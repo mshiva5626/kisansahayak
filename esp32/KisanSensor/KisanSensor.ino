@@ -1,18 +1,37 @@
 /*
  * ==============================================================================
- *  KisanSahayak - ESP32 Smart Agriculture IoT Soil Moisture Sensor
+ *  🌾 KisanSahayak - ESP32 Smart Agriculture IoT Soil Moisture Sensor Firmware
  * ==============================================================================
- *  Description:
- *    Streams real-time soil moisture (0-100%) and battery level over Bluetooth Low
- *    Energy (BLE) to the KisanSahayak web app via Web Bluetooth API.
- *    Also supports WiFi provisioning over BLE — the app sends WiFi SSID & password
- *    via writable BLE characteristics and the ESP32 connects to WiFi and persists
- *    credentials in NVS (Non-Volatile Storage) for automatic reconnect on reboot.
- * 
+ *  Features:
+ *   1. Web Bluetooth (BLE) live soil moisture & battery streaming via NimBLE.
+ *   2. CP Plus-Style WiFi Provisioning:
+ *      - App sends WiFi SSID & password via BLE characteristics.
+ *      - ESP32 connects to 2.4GHz WiFi & persists credentials in NVS flash.
+ *      - Auto-reconnects to saved WiFi on boot.
+ *   3. Visual Pairing Mode & Status LED:
+ *      - Blinking (2Hz): Device is in Pairing Mode (advertising, waiting for app).
+ *      - Solid ON: Paired & connected to KisanSahayak app.
+ *      - Fast Strobe: WiFi connecting in progress.
+ *   4. High-Precision Soil Moisture Calibration:
+ *      - 30-sample trimmed mean (rejects noise spikes from WiFi/BLE bursts).
+ *      - Interactive Serial Calibration: Press 'd' for Dry Air, 'w' for Water.
+ *      - Permanent NVS storage for calibration: Calibrate once, saved forever!
+ *      - Proper ADC configuration: 12-bit, 11dB attenuation on ADC1 (GPIO 34).
+ *
+ *  Hardware Connections:
+ *   - Capacitive Moisture Sensor VCC  -> ESP32 3.3V (or VIN/5V for v1.2 clones)
+ *   - Capacitive Moisture Sensor GND  -> ESP32 GND
+ *   - Capacitive Moisture Sensor AOUT -> ESP32 GPIO 34 (ADC1 Channel 6)
+ *   - Built-in Status LED             -> ESP32 GPIO 2
+ *   - Battery Divider (Optional)      -> ESP32 GPIO 35 (100k + 100k divider)
+ *
  *  Required Library (Install via Arduino IDE Library Manager):
- *    - "NimBLE-Arduino" by h2zero (v1.4.x or higher)
- * 
- *  Board: "ESP32 Dev Module" (or any standard ESP32 board)
+ *   - "NimBLE-Arduino" by h2zero (v1.4.x or higher)
+ *
+ *  Board Settings:
+ *   - Board: "ESP32 Dev Module"
+ *   - Flash Size: 4MB (32Mb)
+ *   - Upload Speed: 115200 or 921600
  * ==============================================================================
  */
 
@@ -40,21 +59,18 @@
 
 // ─── Hardware Pins ───────────────────────────────────────────────────────────
 #define MOISTURE_PIN       34    // ADC1_CH6 (Capacitive sensor AOUT pin)
-#define LED_PIN             2    // Onboard Blue LED (indicates BLE connection)
-#define BATTERY_PIN        35    // Optional ADC for battery voltage divider
+#define LED_PIN             2    // Onboard Blue LED (indicates BLE pairing/status)
+#define BATTERY_PIN        35    // ADC1_CH7 (Optional 100k+100k battery divider)
 
-// ─── Sensor Calibration Values ───────────────────────────────────────────────
-// Step 1: Open Serial Monitor at 115200 baud.
-// Step 2: Read raw ADC in dry air → set DRY_VALUE.
-// Step 3: Read raw ADC dipped in water → set WET_VALUE.
-#define DRY_VALUE        3500    // Raw ADC reading in dry air (0% moisture)
-#define WET_VALUE         900    // Raw ADC reading in water (100% moisture)
+// ─── Calibration Defaults (Overridden by NVS if saved) ───────────────────────
+#define DEFAULT_DRY_VAL  3200    // Raw ADC reading in dry air (0% moisture)
+#define DEFAULT_WET_VAL  1100    // Raw ADC reading submerged in water (100% moisture)
 
-// ─── Settings ────────────────────────────────────────────────────────────────
-#define READ_INTERVAL_MS 2000    // Read & stream interval (2 seconds)
-#define WIFI_CONNECT_TIMEOUT_MS 15000  // 15 second WiFi connection timeout
+// ─── Timing Settings ─────────────────────────────────────────────────────────
+#define READ_INTERVAL_MS        2000   // Send moisture reading every 2s
+#define WIFI_CONNECT_TIMEOUT_MS 15000  // 15s WiFi timeout
 
-// ─── Global State ────────────────────────────────────────────────────────────
+// ─── Global State & Pointers ─────────────────────────────────────────────────
 NimBLEServer*          pServer         = nullptr;
 NimBLECharacteristic*  pMoistureChar   = nullptr;
 NimBLECharacteristic*  pBatteryChar    = nullptr;
@@ -62,32 +78,82 @@ NimBLECharacteristic*  pNameChar       = nullptr;
 NimBLECharacteristic*  pWifiSsidChar   = nullptr;
 NimBLECharacteristic*  pWifiPassChar   = nullptr;
 NimBLECharacteristic*  pWifiStatusChar = nullptr;
-bool                   deviceConnected = false;
-unsigned long          lastReadTime    = 0;
+
+bool                   deviceConnected  = false;
+unsigned long          lastReadTime     = 0;
+unsigned long          lastLedToggleTime = 0;
+bool                   ledState         = false;
+
+// Calibration variables (Loaded from NVS)
+Preferences            nvs;
+int                    dryValue         = DEFAULT_DRY_VAL;
+int                    wetValue         = DEFAULT_WET_VAL;
 
 // WiFi provisioning state
-Preferences            preferences;
-String                 pendingSsid     = "";
-String                 pendingPass     = "";
+String                 pendingSsid      = "";
+String                 pendingPass      = "";
 bool                   wifiConnectRequested = false;
 uint8_t                currentWifiStatus    = WIFI_STATUS_IDLE;
 
-// ─── WiFi Helper: Update status and notify app ──────────────────────────────
-void setWifiStatus(uint8_t status) {
-    currentWifiStatus = status;
-    pWifiStatusChar->setValue(&status, 1);
-    if (deviceConnected) {
-        pWifiStatusChar->notify();
+// ─── Forward Declarations ────────────────────────────────────────────────────
+uint8_t readFilteredMoisture(int &outRaw);
+uint8_t readBatteryPercent();
+void setWifiStatus(uint8_t status);
+void attemptWifiConnect(const String& ssid, const String& pass);
+void autoConnectSavedWifi();
+void loadCalibration();
+void saveCalibration(int dry, int wet);
+void handleSerialCommands();
+
+// ─── Calibration NVS Helper ──────────────────────────────────────────────────
+void loadCalibration() {
+    nvs.begin("kisan_cal", true); // read-only
+    dryValue = nvs.getInt("dry", DEFAULT_DRY_VAL);
+    wetValue = nvs.getInt("wet", DEFAULT_WET_VAL);
+    nvs.end();
+
+    // Sanity check
+    if (dryValue <= wetValue || dryValue > 4095 || wetValue < 0) {
+        dryValue = DEFAULT_DRY_VAL;
+        wetValue = DEFAULT_WET_VAL;
     }
-    Serial.printf("[WIFI] Status changed → %d (%s)\n", status,
-        status == 0 ? "IDLE" :
-        status == 1 ? "CONNECTING" :
-        status == 2 ? "CONNECTED" : "FAILED");
+
+    Serial.println("\n[CALIBRATION] Loaded from NVS Flash:");
+    Serial.printf("  • Dry Air Value (0%%) : %4d\n", dryValue);
+    Serial.printf("  • Water Value (100%%)  : %4d\n", wetValue);
+    Serial.println("  (Type 'd' for Dry, 'w' for Wet in Serial Monitor to calibrate anytime)\n");
 }
 
-// ─── WiFi Helper: Attempt connection with timeout ───────────────────────────
+void saveCalibration(int dry, int wet) {
+    nvs.begin("kisan_cal", false); // read-write
+    nvs.putInt("dry", dry);
+    nvs.putInt("wet", wet);
+    nvs.end();
+    dryValue = dry;
+    wetValue = wet;
+    Serial.printf("\n[CALIBRATION] ✅ Saved to NVS: DRY=%d, WET=%d\n\n", dry, wet);
+}
+
+// ─── WiFi Status Helper ──────────────────────────────────────────────────────
+void setWifiStatus(uint8_t status) {
+    currentWifiStatus = status;
+    if (pWifiStatusChar) {
+        pWifiStatusChar->setValue(&status, 1);
+        if (deviceConnected) {
+            pWifiStatusChar->notify();
+        }
+    }
+    const char* statusStr = (status == WIFI_STATUS_IDLE) ? "IDLE" :
+                            (status == WIFI_STATUS_CONNECTING) ? "CONNECTING" :
+                            (status == WIFI_STATUS_CONNECTED) ? "CONNECTED" : "FAILED";
+    Serial.printf("[WIFI] Status → %d (%s)\n", status, statusStr);
+}
+
+// ─── WiFi Connect Routine ────────────────────────────────────────────────────
 void attemptWifiConnect(const String& ssid, const String& pass) {
-    Serial.printf("[WIFI] Connecting to SSID: '%s'...\n", ssid.c_str());
+    if (ssid.length() == 0) return;
+
+    Serial.printf("[WIFI] Attempting connection to SSID: '%s'...\n", ssid.c_str());
     setWifiStatus(WIFI_STATUS_CONNECTING);
 
     WiFi.disconnect(true);
@@ -98,107 +164,196 @@ void attemptWifiConnect(const String& ssid, const String& pass) {
     unsigned long startMs = millis();
     while (WiFi.status() != WL_CONNECTED && (millis() - startMs) < WIFI_CONNECT_TIMEOUT_MS) {
         delay(250);
+        digitalWrite(LED_PIN, !digitalRead(LED_PIN)); // Fast strobe while connecting
         Serial.print(".");
     }
     Serial.println();
 
     if (WiFi.status() == WL_CONNECTED) {
-        Serial.printf("[WIFI] ✅ Connected! IP: %s\n", WiFi.localIP().toString().c_str());
+        Serial.println("[WIFI] ✅ Connected successfully!");
+        Serial.printf("[WIFI] IP Address : %s\n", WiFi.localIP().toString().c_str());
+        Serial.printf("[WIFI] Signal RSSI: %d dBm\n", WiFi.RSSI());
         setWifiStatus(WIFI_STATUS_CONNECTED);
 
-        // Persist credentials to NVS for auto-reconnect on reboot
-        preferences.begin("wifi", false);
-        preferences.putString("ssid", ssid);
-        preferences.putString("pass", pass);
-        preferences.end();
-        Serial.println("[WIFI] Credentials saved to NVS.");
+        // Persist to NVS for auto-reconnect on next boot
+        nvs.begin("kisan_wifi", false);
+        nvs.putString("ssid", ssid);
+        nvs.putString("pass", pass);
+        nvs.end();
+        Serial.println("[WIFI] Saved credentials to permanent NVS storage.\n");
+
+        // Return LED to steady ON if BLE connected, or OFF if waiting
+        digitalWrite(LED_PIN, deviceConnected ? HIGH : LOW);
     } else {
-        Serial.printf("[WIFI] ❌ Connection failed (status: %d)\n", WiFi.status());
+        Serial.printf("[WIFI] ❌ Connection failed (reason code: %d)\n", WiFi.status());
         setWifiStatus(WIFI_STATUS_FAILED);
+        digitalWrite(LED_PIN, deviceConnected ? HIGH : LOW);
     }
 }
 
-// ─── WiFi Helper: Load saved credentials and auto-connect on boot ───────────
+// ─── Auto-connect Saved WiFi on Boot ─────────────────────────────────────────
 void autoConnectSavedWifi() {
-    preferences.begin("wifi", true); // read-only
-    String savedSsid = preferences.getString("ssid", "");
-    String savedPass = preferences.getString("pass", "");
-    preferences.end();
+    nvs.begin("kisan_wifi", true);
+    String savedSsid = nvs.getString("ssid", "");
+    String savedPass = nvs.getString("pass", "");
+    nvs.end();
 
     if (savedSsid.length() > 0) {
-        Serial.printf("[WIFI] Found saved SSID: '%s'. Auto-connecting...\n", savedSsid.c_str());
-        attemptWifiConnect(savedSsid, savedPass);
+        Serial.printf("[WIFI] Found saved WiFi '%s' in memory. Connecting in background...\n", savedSsid.c_str());
+        WiFi.mode(WIFI_STA);
+        WiFi.begin(savedSsid.c_str(), savedPass.c_str());
+        
+        // Quick 5s initial check
+        unsigned long startMs = millis();
+        while (WiFi.status() != WL_CONNECTED && (millis() - startMs) < 5000) {
+            delay(150);
+            Serial.print(".");
+        }
+        Serial.println();
+
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.printf("[WIFI] ✅ Auto-connected! IP: %s\n\n", WiFi.localIP().toString().c_str());
+            currentWifiStatus = WIFI_STATUS_CONNECTED;
+        } else {
+            Serial.println("[WIFI] Auto-connect timed out. Waiting for BLE provisioning.\n");
+            currentWifiStatus = WIFI_STATUS_IDLE;
+        }
     } else {
-        Serial.println("[WIFI] No saved WiFi credentials. Waiting for provisioning via BLE.");
+        Serial.println("[WIFI] No saved WiFi credentials. Device is ready for BLE provisioning.\n");
+        currentWifiStatus = WIFI_STATUS_IDLE;
     }
 }
 
-// ─── BLE Connection Callbacks ────────────────────────────────────────────────
+// ─── BLE Callbacks ───────────────────────────────────────────────────────────
 class ServerCallbacks : public NimBLEServerCallbacks {
     void onConnect(NimBLEServer* pS) override {
         deviceConnected = true;
-        digitalWrite(LED_PIN, HIGH);  // Solid LED when app connects
-        Serial.println("\n[BLE] ✅ Smartphone/Browser paired and connected!");
+        digitalWrite(LED_PIN, HIGH);  // Solid ON indicates paired and connected
+        Serial.println("\n[BLE] 🟢 App connected via Web Bluetooth!");
     }
 
     void onDisconnect(NimBLEServer* pS) override {
         deviceConnected = false;
-        digitalWrite(LED_PIN, LOW);   // LED off when disconnected
-        Serial.println("\n[BLE] ⚠️ Client disconnected. Restarting BLE advertising...");
+        digitalWrite(LED_PIN, LOW);   // Switch back to pairing mode blink
+        Serial.println("\n[BLE] 🟠 App disconnected. Restarting Pairing Mode (Advertising)...");
         NimBLEDevice::startAdvertising();
     }
 };
 
-// ─── BLE Write Callbacks for WiFi Provisioning ──────────────────────────────
 class WifiSsidCallbacks : public NimBLECharacteristicCallbacks {
     void onWrite(NimBLECharacteristic* pChar) override {
         pendingSsid = pChar->getValue().c_str();
-        Serial.printf("[BLE] Received WiFi SSID: '%s'\n", pendingSsid.c_str());
+        Serial.printf("[BLE-PROV] Received WiFi SSID: '%s'\n", pendingSsid.c_str());
     }
 };
 
 class WifiPassCallbacks : public NimBLECharacteristicCallbacks {
     void onWrite(NimBLECharacteristic* pChar) override {
         pendingPass = pChar->getValue().c_str();
-        Serial.printf("[BLE] Received WiFi Password (length: %d)\n", pendingPass.length());
-        // When password is written, trigger WiFi connection
+        Serial.printf("[BLE-PROV] Received WiFi Password (%d chars). Starting connection...\n", pendingPass.length());
         if (pendingSsid.length() > 0) {
             wifiConnectRequested = true;
         }
     }
 };
 
-// ─── Read Filtered Soil Moisture (%) ─────────────────────────────────────────
-uint8_t readMoisturePercent() {
-    long rawSum = 0;
-    const int numSamples = 10;
-    
-    // Multi-sample smoothing to eliminate analog noise
-    for (int i = 0; i < numSamples; i++) {
-        rawSum += analogRead(MOISTURE_PIN);
-        delay(5);
-    }
-    int rawAvg = rawSum / numSamples;
+// ─── Accurate Soil Moisture Filtering (Trimmed Mean) ─────────────────────────
+// Reads 30 samples, sorts them, discards lowest 5 and highest 5 outliers to
+// eliminate RF bursts from BLE/WiFi, then averages the remaining 20 samples.
+uint8_t readFilteredMoisture(int &outRaw) {
+    const int SAMPLES = 30;
+    int buffer[SAMPLES];
 
-    // Map calibrated dry/wet ADC to percentage
-    int percent = map(rawAvg, DRY_VALUE, WET_VALUE, 0, 100);
+    for (int i = 0; i < SAMPLES; i++) {
+        buffer[i] = analogRead(MOISTURE_PIN);
+        delay(3);
+    }
+
+    // Simple insertion sort
+    for (int i = 1; i < SAMPLES; i++) {
+        int key = buffer[i];
+        int j = i - 1;
+        while (j >= 0 && buffer[j] > key) {
+            buffer[j + 1] = buffer[j];
+            j--;
+        }
+        buffer[j + 1] = key;
+    }
+
+    // Trimmed mean: sum middle 20 samples (index 5 to 24)
+    long sum = 0;
+    const int TRIM = 5;
+    for (int i = TRIM; i < SAMPLES - TRIM; i++) {
+        sum += buffer[i];
+    }
+    outRaw = sum / (SAMPLES - (2 * TRIM));
+
+    // Capacitive sensor outputs HIGH voltage when DRY, LOW voltage when WET
+    // Map raw ADC between calibrated DRY (0%) and WET (100%)
+    int percent = map(outRaw, dryValue, wetValue, 0, 100);
     percent = constrain(percent, 0, 100);
 
-    Serial.printf("[SENSOR] Raw ADC: %4d | Moisture: %3d%%\n", rawAvg, percent);
     return (uint8_t)percent;
 }
 
-// ─── Read Battery Level (%) ──────────────────────────────────────────────────
+// ─── Battery Level Estimation (%) ────────────────────────────────────────────
 uint8_t readBatteryPercent() {
-    // Optional: Voltage divider (two 100k resistors between LiPo + and GND)
     int raw = analogRead(BATTERY_PIN);
+    // 3.3V reference, 12-bit ADC (4095), 100k/100k voltage divider (2.0x factor)
     float pinVoltage = (raw / 4095.0f) * 3.3f;
-    float batteryVoltage = pinVoltage * 2.0f; // Multiplied by divider factor
+    float batteryVoltage = pinVoltage * 2.0f;
 
-    // Estimate 3.2V (empty) to 4.2V (full LiPo)
+    // Standard 3.7V LiPo curve: 3.2V (0%) to 4.2V (100%)
     int percent = (int)((batteryVoltage - 3.2f) / (4.2f - 3.2f) * 100.0f);
     percent = constrain(percent, 0, 100);
     return (uint8_t)percent;
+}
+
+// ─── Interactive Serial Monitor Calibration Console ──────────────────────────
+void handleSerialCommands() {
+    if (!Serial.available()) return;
+    char cmd = Serial.read();
+
+    // Consume any newline/carriage return characters
+    while (Serial.available()) {
+        char next = Serial.peek();
+        if (next == '\n' || next == '\r' || next == ' ') Serial.read();
+        else break;
+    }
+
+    int currentRaw = 0;
+    readFilteredMoisture(currentRaw);
+
+    if (cmd == 'd' || cmd == 'D') {
+        saveCalibration(currentRaw, wetValue);
+        Serial.printf("[CALIBRATION] >> Set DRY Air (0%%) to: %d ADC\n", currentRaw);
+    } 
+    else if (cmd == 'w' || cmd == 'W') {
+        saveCalibration(dryValue, currentRaw);
+        Serial.printf("[CALIBRATION] >> Set WET Water (100%%) to: %d ADC\n", currentRaw);
+    } 
+    else if (cmd == 'c' || cmd == 'C') {
+        Serial.println("\n╔════════════════════════════════════════════╗");
+        Serial.println("║        🌾 KisanSensor Calibration          ║");
+        Serial.println("╠════════════════════════════════════════════╣");
+        Serial.printf ("║  Current Raw ADC : %4d                   ║\n", currentRaw);
+        Serial.printf ("║  Calibrated DRY  : %4d (0%%)               ║\n", dryValue);
+        Serial.printf ("║  Calibrated WET  : %4d (100%%)             ║\n", wetValue);
+        Serial.printf ("║  Moisture Output : %3d%%                   ║\n", map(constrain(currentRaw, min(dryValue, wetValue), max(dryValue, wetValue)), dryValue, wetValue, 0, 100));
+        Serial.println("╚════════════════════════════════════════════╝\n");
+    }
+    else if (cmd == 'r' || cmd == 'R') {
+        saveCalibration(DEFAULT_DRY_VAL, DEFAULT_WET_VAL);
+        Serial.println("[CALIBRATION] >> Reset calibration to factory defaults!\n");
+    }
+    else if (cmd == 'h' || cmd == 'H' || cmd == '?') {
+        Serial.println("\n=== Available Serial Commands ===");
+        Serial.println("  'd' - Set current reading as DRY (in open air)");
+        Serial.println("  'w' - Set current reading as WET (dipped in water)");
+        Serial.println("  'c' - Print calibration summary");
+        Serial.println("  'r' - Reset calibration to defaults");
+        Serial.println("  'h' - Help menu\n");
+    }
 }
 
 // ─── Setup ───────────────────────────────────────────────────────────────────
@@ -206,116 +361,148 @@ void setup() {
     Serial.begin(115200);
     delay(500);
 
-    Serial.println("\n=============================================");
-    Serial.println("   🌾 KisanSahayak ESP32 IoT Soil Sensor     ");
-    Serial.println("   📡 BLE + WiFi Provisioning Enabled         ");
-    Serial.println("=============================================");
+    Serial.println("\n");
+    Serial.println("*************************************************************");
+    Serial.println("    🌾 KisanSahayak Smart Agriculture IoT Soil Sensor       ");
+    Serial.println("    📡 Dual Mode: Web Bluetooth (BLE) + WiFi Provisioning    ");
+    Serial.println("*************************************************************\n");
 
+    // Configure ADC for high accuracy
+    analogReadResolution(12);               // 12-bit (0 - 4095)
+    analogSetAttenuation(ADC_11db);         // Measure up to ~3.3V
+    pinMode(MOISTURE_PIN, INPUT);           // GPIO 34 (ADC1)
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LOW);
-    pinMode(MOISTURE_PIN, INPUT);
 
-    // Initial LED Blink sequence
+    // Boot LED test
     for (int i = 0; i < 3; i++) {
-        digitalWrite(LED_PIN, HIGH); delay(120);
-        digitalWrite(LED_PIN, LOW);  delay(120);
+        digitalWrite(LED_PIN, HIGH); delay(100);
+        digitalWrite(LED_PIN, LOW);  delay(100);
     }
 
-    // Try auto-connecting to saved WiFi first (non-blocking to BLE init)
+    // Load calibration from NVS
+    loadCalibration();
+
+    // Auto-connect to WiFi if already provisioned
     autoConnectSavedWifi();
 
     // 1. Initialize NimBLE
     NimBLEDevice::init(DEVICE_NAME);
-    NimBLEDevice::setPower(ESP_PWR_LVL_P9); // Maximum +9dBm transmission range
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9); // Maximum +9dBm RF output for farm range
 
-    // 2. Create Server & Hook Callbacks
+    // 2. Setup Server & Callbacks
     pServer = NimBLEDevice::createServer();
     pServer->setCallbacks(new ServerCallbacks());
 
-    // 3. Create Custom KisanSahayak Service
+    // 3. Create KisanSahayak Service
     NimBLEService* pService = pServer->createService(SERVICE_UUID);
 
-    // Characteristic: Moisture (Read + Notify)
+    // Moisture Characteristic (Read + Notify)
     pMoistureChar = pService->createCharacteristic(
         MOISTURE_CHAR_UUID,
         NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
     );
 
-    // Characteristic: Battery (Read)
+    // Battery Characteristic (Read)
     pBatteryChar = pService->createCharacteristic(
         BATTERY_CHAR_UUID,
         NIMBLE_PROPERTY::READ
     );
 
-    // Characteristic: Device Name
+    // Device Name Characteristic (Read)
     pNameChar = pService->createCharacteristic(
         DEVICE_NAME_UUID,
         NIMBLE_PROPERTY::READ
     );
     pNameChar->setValue(DEVICE_NAME);
 
-    // Characteristic: WiFi SSID (Write — app sends SSID here)
+    // WiFi SSID Provisioning (Write)
     pWifiSsidChar = pService->createCharacteristic(
         WIFI_SSID_CHAR_UUID,
         NIMBLE_PROPERTY::WRITE
     );
     pWifiSsidChar->setCallbacks(new WifiSsidCallbacks());
 
-    // Characteristic: WiFi Password (Write — app sends password here)
+    // WiFi Password Provisioning (Write)
     pWifiPassChar = pService->createCharacteristic(
         WIFI_PASS_CHAR_UUID,
         NIMBLE_PROPERTY::WRITE
     );
     pWifiPassChar->setCallbacks(new WifiPassCallbacks());
 
-    // Characteristic: WiFi Status (Read + Notify — ESP32 reports status to app)
+    // WiFi Status (Read + Notify)
     pWifiStatusChar = pService->createCharacteristic(
         WIFI_STATUS_CHAR_UUID,
         NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
     );
-    uint8_t initStatus = (WiFi.status() == WL_CONNECTED) ? WIFI_STATUS_CONNECTED : WIFI_STATUS_IDLE;
-    pWifiStatusChar->setValue(&initStatus, 1);
+    pWifiStatusChar->setValue(&currentWifiStatus, 1);
 
-    // 4. Start Service
+    // 4. Start BLE Service
     pService->start();
 
-    // 5. Start Advertising
+    // 5. Start BLE Advertising (Pairing Mode)
     NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(SERVICE_UUID);
     pAdvertising->setScanResponse(true);
     pAdvertising->setName(DEVICE_NAME);
     NimBLEDevice::startAdvertising();
 
-    Serial.println("[INIT] BLE advertising started successfully.");
-    Serial.printf("[INIT] Broadcast Name: '%s'\n", DEVICE_NAME);
-    Serial.println("[INIT] Ready to pair in KisanSahayak Dashboard / IoT Pairing screen.\n");
+    Serial.println("[PAIRING MODE] 🔵 BLE Advertising active as 'KisanSensor'");
+    Serial.println("[PAIRING MODE] Blue LED is blinking (waiting for phone/app connection)");
+    Serial.println("[PAIRING MODE] Open KisanSahayak Dashboard → Tap Bluetooth(+) to pair.\n");
 }
 
 // ─── Loop ────────────────────────────────────────────────────────────────────
 void loop() {
     unsigned long currentMillis = millis();
 
-    // Handle WiFi connection request from BLE write
+    // Check for interactive calibration commands in Serial Monitor
+    handleSerialCommands();
+
+    // Visual LED Pairing Mode:
+    // If not connected to app, blink LED at 2Hz (250ms interval) to indicate Pairing Mode.
+    // If connected to app, LED stays solid HIGH.
+    if (!deviceConnected) {
+        if (currentMillis - lastLedToggleTime >= 250) {
+            lastLedToggleTime = currentMillis;
+            ledState = !ledState;
+            digitalWrite(LED_PIN, ledState ? HIGH : LOW);
+        }
+    }
+
+    // Process WiFi provisioning request received over BLE
     if (wifiConnectRequested) {
         wifiConnectRequested = false;
         attemptWifiConnect(pendingSsid, pendingPass);
     }
 
+    // Read sensor and stream data
     if (currentMillis - lastReadTime >= READ_INTERVAL_MS) {
         lastReadTime = currentMillis;
 
-        uint8_t moisture = readMoisturePercent();
+        int rawADC = 0;
+        uint8_t moisture = readFilteredMoisture(rawADC);
         uint8_t battery  = readBatteryPercent();
 
-        // Update BLE characteristic values
+        // Update BLE characteristics
         pMoistureChar->setValue(&moisture, 1);
         pBatteryChar->setValue(&battery, 1);
 
-        // Push real-time notification to web browser if connected
+        // Notify connected phone/browser
         if (deviceConnected) {
             pMoistureChar->notify();
         }
+
+        // Telemetry logging
+        float voltage = (rawADC / 4095.0f) * 3.3f;
+        Serial.printf("[SENSOR] Raw ADC: %4d (%4.2fV) | Moisture: %3d%% | BLE: %s | WiFi: %s\n",
+            rawADC, 
+            voltage, 
+            moisture,
+            deviceConnected ? "CONNECTED" : "PAIRING...",
+            (WiFi.status() == WL_CONNECTED) ? WiFi.localIP().toString().c_str() : "DISCONNECTED"
+        );
     }
 
-    delay(10); // Yield to FreeRTOS scheduler
+    delay(10); // FreeRTOS yield
 }

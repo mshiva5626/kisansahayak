@@ -1,79 +1,100 @@
-# KisanSahayak ESP32 IoT Soil Moisture Sensor
+# 🌾 KisanSahayak ESP32 Smart IoT Soil Moisture Sensor
 
-This folder contains the complete Arduino firmware to turn any standard **ESP32** board into a **KisanSensor** smart soil moisture sensor that pairs directly with the KisanSahayak web app over **Web Bluetooth (BLE)**.
-
----
-
-## 1. Hardware Requirements
-
-| Component | Recommended Model | Approx Cost |
-|---|---|---|
-| **Microcontroller** | ESP32 Dev Module (ESP-WROOM-32, 30 or 38 pin) | ~₹250 - ₹350 |
-| **Soil Sensor** | Capacitive Soil Moisture Sensor v1.2 or v2.0 | ~₹80 - ₹120 |
-| **Power Source** | Micro-USB / USB-C 5V power adapter or 3.7V Li-ion battery | ~₹100 |
-| **Jumper Wires** | Female-to-Female jumper wires (3 wires) | ~₹20 |
-
-> ⚠️ **Important**: Use a **Capacitive** soil moisture sensor (corrosion resistant), not the cheap resistive two-pronged probe sensors which corrode in moist soil within days.
+This directory contains the production firmware for standard **ESP32** boards to integrate with the **KisanSahayak** web application.
 
 ---
 
-## 2. Wiring Diagram
+## ⚡ Features
+
+1. **Web Bluetooth (BLE) Streaming**:
+   - Uses ultra-lightweight **NimBLE** stack.
+   - Real-time soil moisture percentage (0-100%) and battery level notifications.
+   - Long-range transmission (+9 dBm power level).
+
+2. **Visual Pairing Mode**:
+   - **Blinking LED (2 Hz)**: Device is actively advertising and in **Pairing Mode** (waiting for phone/laptop connection).
+   - **Solid Blue LED**: Sensor is successfully paired and actively streaming data.
+   - **Fast Strobe**: WiFi connection in progress.
+
+3. **CP Plus-Style WiFi Provisioning**:
+   - Insert WiFi SSID & password directly from the KisanSahayak web app over Bluetooth.
+   - Connects to 2.4 GHz WiFi network and stores credentials in **NVS Flash**.
+   - Auto-reconnects to WiFi on every boot.
+
+4. **High-Precision Sensor Calibration**:
+   - **30-sample trimmed-mean filter**: Discards top 5 and bottom 5 outliers to eliminate RF interference spikes from WiFi/BLE transmissions.
+   - **Interactive Serial Calibration**: Calibrate dry air (0%) and submerged water (100%) by typing single letters (`'d'` and `'w'`) in the Serial Monitor.
+   - **NVS Persistent Storage**: Calibration is saved to Flash memory. No need to re-compile or re-flash!
+
+---
+
+## 🔌 Hardware Wiring
 
 ```
-Capacitive Soil Sensor          ESP32 Pin
-─────────────────────          ─────────
-VCC  (Red wire)         ───►    3.3V
-GND  (Black wire)       ───►    GND
-AOUT (Yellow/Blue wire) ───►    GPIO 34 (ADC1 Channel 6)
+Capacitive Soil Moisture Sensor         ESP32 Dev Board
+───────────────────────────────         ───────────────
+VCC  (Red wire)                 ───►    3.3V  (or VIN / 5V if clone sensor)
+GND  (Black wire)               ───►    GND
+AOUT (Yellow / Blue wire)       ───►    GPIO 34 (ADC1 Channel 6)
+
+Status Indicator:
+Onboard Blue LED                ───►    GPIO 2 (Built-in on ESP32)
+
+Optional Battery Monitor:
+100kΩ + 100kΩ divider from LiPo ───►    GPIO 35 (ADC1 Channel 7)
 ```
 
-- **LED indicator**: Built-in Blue LED on **GPIO 2** automatically turns ON when the web app connects, and blinks on boot.
+> ⚠️ **CRITICAL HARDWARE NOTES**:
+> 1. **Always use ADC1 pins (GPIO 32 - 39)**. Never use ADC2 pins (GPIO 0, 2, 4, 12-15, 25-27) for analog sensors because ADC2 is disabled whenever WiFi or BLE is active! GPIO 34 is ADC1 and input-only, making it the ideal choice.
+> 2. **Capacitive vs. Resistive**: Always use a capacitive sensor (corrosion-resistant white/black blade). Resistive two-prong sensors corrode within 48 hours in damp soil.
+> 3. **Sensor Power**: If your sensor readings don't change between air and water when connected to 3.3V, move VCC to the ESP32 **VIN / 5V** pin (many v1.2 clones have a faulty 3.3V regulator that outputs < 2.5V even on 5V input, safe for ESP32 ADC).
 
 ---
 
-## 3. Arduino IDE Setup
+## 🛠️ Arduino IDE Setup
 
-1. **Install ESP32 Board Support** in Arduino IDE:
-   - Go to `File` → `Preferences` → `Additional Boards Manager URLs`.
-   - Add: `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
-   - Go to `Tools` → `Board` → `Boards Manager`, search for **esp32**, and click **Install** (by Espressif Systems).
+1. **Install ESP32 Board Support**:
+   - `File` → `Preferences` → `Additional Boards Manager URLs`:
+     `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
+   - `Tools` → `Board` → `Boards Manager` → search **esp32** → Install by **Espressif Systems**.
 
-2. **Install Required BLE Library**:
-   - Go to `Sketch` → `Include Library` → `Manage Libraries...`
-   - Search for **NimBLE-Arduino** by **h2zero**
-   - Click **Install** (Version 1.4.x or later).
+2. **Install NimBLE Library**:
+   - `Sketch` → `Include Library` → `Manage Libraries...`
+   - Search for **NimBLE-Arduino** by **h2zero** (Install version 1.4.x or later).
 
 3. **Board Settings** (under `Tools` menu):
    - **Board**: `ESP32 Dev Module`
-   - **Upload Speed**: `115200`
-   - **CPU Frequency**: `240MHz (WiFi/BT)`
    - **Flash Frequency**: `80MHz`
+   - **CPU Frequency**: `240MHz (WiFi/BT)`
+   - **Upload Speed**: `115200` or `921600`
    - **Port**: Select your ESP32 COM port.
 
----
-
-## 4. Calibration
-
-Different sensors and soils vary. Calibrate once before deployment:
-
-1. Connect the ESP32 to your PC and open **Serial Monitor** at `115200` baud.
-2. **Dry Air Test**: Keep the sensor in open dry air. Note the printed `Raw ADC` number (usually ~`3400 - 3600`).
-3. **Water Test**: Dip the white sensor tip into a glass of water (do not submerge the top circuit components!). Note the `Raw ADC` number (usually ~`800 - 1200`).
-4. Update lines 29-30 in [KisanSensor.ino](file:///c:/Users/mshiv/Downloads/take%202/esp32/KisanSensor/KisanSensor.ino):
-   ```cpp
-   #define DRY_VALUE 3500 // Your air reading
-   #define WET_VALUE 900  // Your water reading
-   ```
-5. Re-upload the sketch.
+4. Open [`KisanSensor.ino`](./KisanSensor/KisanSensor.ino) and click **Upload**.
 
 ---
 
-## 5. Pairing with the App
+## 🎯 1-Minute Sensor Calibration (No Re-flashing Required!)
 
-1. Power on the ESP32 (LED blinks 3 times on boot).
-2. Open KisanSahayak in Chrome, Edge, or mobile Chrome:
-   - Tap the **Bluetooth (+)** button in the Dashboard top header, or tap **Pair KisanSensor** on the Soil Moisture card.
-   - Click **Scan & Pair Sensor**.
-   - Select **KisanSensor** in the browser BLE dialog.
-   - Assign the sensor to one of your farms.
-3. The dashboard gauge will immediately start showing live soil moisture percentages and real-time irrigation advisories!
+1. Connect the ESP32 to your computer and open **Serial Monitor** at **115200 baud**.
+2. **Step 1 - Dry Air Calibration (0% Moisture)**:
+   - Hold the sensor blade dry in the air.
+   - Type **`d`** in the Serial Monitor input bar and press **Enter**.
+   - Output: `[CALIBRATION] >> Set DRY Air (0%) to: 3250 ADC`
+3. **Step 2 - Water Calibration (100% Moisture)**:
+   - Dip the sensor blade into a glass of water up to the max line (keep top electronics dry!).
+   - Type **`w`** in the Serial Monitor and press **Enter**.
+   - Output: `[CALIBRATION] >> Set WET Water (100%) to: 1120 ADC`
+4. **Step 3 - Verify**:
+   - Type **`c`** to view your saved calibration summary.
+   - Calibration is permanently saved to ESP32 Flash and persists across reboots!
+
+---
+
+## 📱 Pairing with KisanSahayak App
+
+1. Power the ESP32 (LED will blink at 2Hz indicating **Pairing Mode**).
+2. Open KisanSahayak in **Google Chrome** or **Microsoft Edge** on your phone or PC (Web Bluetooth required).
+3. On the Dashboard, click **Pair Sensor** or tap the **Bluetooth (+)** icon in the header.
+4. Click **Scan & Pair Sensor** and select **KisanSensor** from the popup.
+5. In **Step 3 (WiFi Setup)**, enter your home/farm 2.4 GHz WiFi SSID & password to enable cloud connectivity.
+6. Assign the sensor to your farm. The onboard LED will turn solid, and live moisture readings will stream continuously to your dashboard!

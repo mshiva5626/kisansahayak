@@ -61,144 +61,138 @@ Board Settings:
         label: 'Arduino Code',
         icon: 'code',
         content: `#include <NimBLEDevice.h>
+#include <WiFi.h>
+#include <Preferences.h>
 
-// ── KisanSahayak BLE Configuration ──────────────
+// ── BLE UUIDs (Matches KisanSahayak IoTContext) ────
 #define DEVICE_NAME        "KisanSensor"
 #define SERVICE_UUID       "12345678-1234-1234-1234-123456789abc"
 #define MOISTURE_CHAR_UUID "12345678-1234-1234-1234-123456789ab1"
 #define BATTERY_CHAR_UUID  "12345678-1234-1234-1234-123456789ab2"
 #define DEVICE_NAME_UUID   "12345678-1234-1234-1234-123456789ab3"
+#define WIFI_SSID_CHAR_UUID   "12345678-1234-1234-1234-123456789ab4"
+#define WIFI_PASS_CHAR_UUID   "12345678-1234-1234-1234-123456789ab5"
+#define WIFI_STATUS_CHAR_UUID "12345678-1234-1234-1234-123456789ab6"
 
-// ── Sensor Pins ───────────────────────────────────
-#define MOISTURE_PIN  34       // ADC1 Channel 6
-#define LED_PIN        2       // Built-in LED
+#define MOISTURE_PIN  34   // ADC1 Channel 6
+#define LED_PIN        2   // Built-in Blue LED
+#define BATTERY_PIN   35   // Optional 100k+100k divider
 
-// ── Moisture Calibration ──────────────────────────
-// Measure these values with your specific sensor:
-// DRY_VALUE  = ADC reading when sensor is in dry air
-// WET_VALUE  = ADC reading when sensor is in water
-#define DRY_VALUE   3500
-#define WET_VALUE    800
+#define DEFAULT_DRY 3200
+#define DEFAULT_WET 1100
 
-// ── Read interval (ms) ────────────────────────────
-#define READ_INTERVAL 2000
+NimBLEServer*          pServer         = nullptr;
+NimBLECharacteristic*  pMoistureChar   = nullptr;
+NimBLECharacteristic*  pBatteryChar    = nullptr;
+NimBLECharacteristic*  pWifiStatusChar = nullptr;
 
-NimBLEServer*          pServer     = nullptr;
-NimBLECharacteristic*  pMoisture   = nullptr;
-NimBLECharacteristic*  pBattery    = nullptr;
-bool                   deviceConnected = false;
-unsigned long          lastReadTime    = 0;
+bool          deviceConnected   = false;
+unsigned long lastReadTime      = 0;
+unsigned long lastLedToggle     = 0;
+bool          ledState          = false;
+Preferences   nvs;
+int           dryVal = DEFAULT_DRY;
+int           wetVal = DEFAULT_WET;
 
-// ── Server Callbacks ──────────────────────────────
-class ServerCallbacks : public NimBLEServerCallbacks {
-    void onConnect(NimBLEServer* pS) {
-        deviceConnected = true;
-        digitalWrite(LED_PIN, HIGH);  // LED on = paired
-        Serial.println("[BLE] Client connected!");
+String        pendingSsid       = "";
+String        pendingPass       = "";
+bool          wifiRequested     = false;
+
+uint8_t readFilteredMoisture(int &outRaw) {
+    const int SAMPLES = 30;
+    int buffer[SAMPLES];
+    for (int i = 0; i < SAMPLES; i++) {
+        buffer[i] = analogRead(MOISTURE_PIN);
+        delay(3);
     }
-    void onDisconnect(NimBLEServer* pS) {
+    // Insertion sort
+    for (int i = 1; i < SAMPLES; i++) {
+        int key = buffer[i];
+        int j = i - 1;
+        while (j >= 0 && buffer[j] > key) { buffer[j + 1] = buffer[j]; j--; }
+        buffer[j + 1] = key;
+    }
+    // Trimmed mean (reject top & bottom 5 outliers)
+    long sum = 0;
+    for (int i = 5; i < 25; i++) sum += buffer[i];
+    outRaw = sum / 20;
+    int percent = map(outRaw, dryVal, wetVal, 0, 100);
+    return (uint8_t)constrain(percent, 0, 100);
+}
+
+class ServerCallbacks : public NimBLEServerCallbacks {
+    void onConnect(NimBLEServer* pS) override {
+        deviceConnected = true;
+        digitalWrite(LED_PIN, HIGH);
+        Serial.println("[BLE] App connected!");
+    }
+    void onDisconnect(NimBLEServer* pS) override {
         deviceConnected = false;
         digitalWrite(LED_PIN, LOW);
-        Serial.println("[BLE] Client disconnected, restarting advertising...");
+        Serial.println("[BLE] App disconnected. Pairing mode restarted.");
         NimBLEDevice::startAdvertising();
     }
 };
 
-// ── Read & map moisture ───────────────────────────
-uint8_t readMoisture() {
-    int raw = analogRead(MOISTURE_PIN);
-    // Average 5 readings to reduce noise
-    for (int i = 1; i < 5; i++) {
-        delay(10);
-        raw = (raw + analogRead(MOISTURE_PIN)) / 2;
+class WifiSsidCb : public NimBLECharacteristicCallbacks {
+    void onWrite(NimBLECharacteristic* p) override { pendingSsid = p->getValue().c_str(); }
+};
+class WifiPassCb : public NimBLECharacteristicCallbacks {
+    void onWrite(NimBLECharacteristic* p) override {
+        pendingPass = p->getValue().c_str();
+        if (pendingSsid.length() > 0) wifiRequested = true;
     }
-    int percent = map(raw, DRY_VALUE, WET_VALUE, 0, 100);
-    percent = constrain(percent, 0, 100);
-    Serial.printf("[SENSOR] Raw ADC: %d → Moisture: %d%%\\n", raw, percent);
-    return (uint8_t)percent;
-}
-
-// ── Read battery (via voltage divider on GPIO 35) ─
-uint8_t readBattery() {
-    // Simple approximation — connect battery + via
-    // 100kΩ + 100kΩ voltage divider to GPIO 35
-    // Returns 0-100%
-    int raw = analogRead(35);
-    float voltage = (raw / 4095.0) * 3.3 * 2.0;  // ×2 for divider
-    int percent = (int)((voltage - 3.2) / (4.2 - 3.2) * 100);
-    return (uint8_t)constrain(percent, 0, 100);
-}
+};
 
 void setup() {
     Serial.begin(115200);
+    analogReadResolution(12);
+    analogSetAttenuation(ADC_11db);
+    pinMode(MOISTURE_PIN, INPUT);
     pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, LOW);
-    
-    // Startup blink
-    for (int i = 0; i < 3; i++) {
-        digitalWrite(LED_PIN, HIGH); delay(150);
-        digitalWrite(LED_PIN, LOW);  delay(150);
-    }
 
-    Serial.println("[INIT] KisanSensor BLE starting...");
+    nvs.begin("kisan_cal", true);
+    dryVal = nvs.getInt("dry", DEFAULT_DRY);
+    wetVal = nvs.getInt("wet", DEFAULT_WET);
+    nvs.end();
 
-    // ── Init BLE ────────────────────────────────────
     NimBLEDevice::init(DEVICE_NAME);
-    NimBLEDevice::setPower(ESP_PWR_LVL_P9);  // Max TX power
-
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9);
     pServer = NimBLEDevice::createServer();
     pServer->setCallbacks(new ServerCallbacks());
 
-    // ── Create Service ───────────────────────────────
     NimBLEService* pService = pServer->createService(SERVICE_UUID);
-
-    // Moisture Characteristic (Notify)
-    pMoisture = pService->createCharacteristic(
-        MOISTURE_CHAR_UUID,
-        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
-    );
-
-    // Battery Characteristic (Read only)
-    pBattery = pService->createCharacteristic(
-        BATTERY_CHAR_UUID,
-        NIMBLE_PROPERTY::READ
-    );
-
-    // Device Name Characteristic (Read only)
-    NimBLECharacteristic* pName = pService->createCharacteristic(
-        DEVICE_NAME_UUID,
-        NIMBLE_PROPERTY::READ
-    );
-    pName->setValue(DEVICE_NAME);
+    pMoistureChar = pService->createCharacteristic(MOISTURE_CHAR_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+    pBatteryChar  = pService->createCharacteristic(BATTERY_CHAR_UUID, NIMBLE_PROPERTY::READ);
+    
+    auto* pSsid = pService->createCharacteristic(WIFI_SSID_CHAR_UUID, NIMBLE_PROPERTY::WRITE);
+    pSsid->setCallbacks(new WifiSsidCb());
+    auto* pPass = pService->createCharacteristic(WIFI_PASS_CHAR_UUID, NIMBLE_PROPERTY::WRITE);
+    pPass->setCallbacks(new WifiPassCb());
+    pWifiStatusChar = pService->createCharacteristic(WIFI_STATUS_CHAR_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
 
     pService->start();
-
-    // ── Advertise ────────────────────────────────────
     NimBLEAdvertising* pAdv = NimBLEDevice::getAdvertising();
     pAdv->addServiceUUID(SERVICE_UUID);
-    pAdv->setScanResponse(true);
     pAdv->setName(DEVICE_NAME);
     NimBLEDevice::startAdvertising();
-
-    Serial.println("[INIT] Advertising as 'KisanSensor' ✓");
-    Serial.println("[INIT] Waiting for app connection...");
 }
 
 void loop() {
     unsigned long now = millis();
-    if (now - lastReadTime >= READ_INTERVAL) {
+    // 2Hz blink when waiting in pairing mode
+    if (!deviceConnected && now - lastLedToggle >= 250) {
+        lastLedToggle = now;
+        ledState = !ledState;
+        digitalWrite(LED_PIN, ledState ? HIGH : LOW);
+    }
+    // Read sensor every 2 seconds
+    if (now - lastReadTime >= 2000) {
         lastReadTime = now;
-
-        uint8_t moisture = readMoisture();
-        uint8_t battery  = readBattery();
-
-        // Update characteristics
-        pMoisture->setValue(&moisture, 1);
-        pBattery->setValue(&battery, 1);
-
-        if (deviceConnected) {
-            pMoisture->notify();  // Push to app
-        }
+        int raw = 0;
+        uint8_t m = readFilteredMoisture(raw);
+        pMoistureChar->setValue(&m, 1);
+        if (deviceConnected) pMoistureChar->notify();
     }
     delay(10);
 }`
@@ -207,37 +201,32 @@ void loop() {
         id: 'calibration',
         label: 'Calibration',
         icon: 'tune',
-        content: `Moisture Sensor Calibration:
+        content: `Instant 1-Click Calibration:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+No re-compiling needed! Calibration saves to Flash.
+
 Step 1: Open Arduino IDE Serial Monitor
   Baud Rate: 115200
 
-Step 2: DRY calibration
-  • Hold sensor in dry air (or soil sample)
-  • Note the "Raw ADC" value printed
-  • Set DRY_VALUE = that number
-  Example: DRY_VALUE 3500
+Step 2: DRY Calibration (0% Moisture)
+  • Hold sensor in open dry air
+  • Type 'd' in the Serial input and press Enter
+  • ESP32 will permanently save DRY value to NVS
 
-Step 3: WET calibration
-  • Dip sensor in a glass of water
-    (sensor tip only — not electronics!)
-  • Note the "Raw ADC" value
-  • Set WET_VALUE = that number
-  Example: WET_VALUE 800
+Step 3: WET Calibration (100% Moisture)
+  • Dip sensor blade in a glass of water
+    (only the lower blade — keep circuit dry!)
+  • Type 'w' in the Serial input and press Enter
+  • ESP32 will permanently save WET value to NVS
 
-Step 4: Update your sketch
-  #define DRY_VALUE  3500
-  #define WET_VALUE   800
+Step 4: Check Calibration Status
+  • Type 'c' to view your current calibration table
+  • Type 'r' anytime to reset to factory defaults
 
-Step 5: Upload & verify
-  • Dry soil → should read ~10-25%
-  • Moist soil → should read ~40-70%
-  • Saturated soil → should read ~80-100%
-
-Tips:
-  • Capacitive sensors are more accurate than resistive
-  • Re-calibrate if you change soil type or temperature
-  • Keep sensor inserted at consistent depth (5-10cm)`
+Soil Accuracy Reference:
+  • Dry Soil:       10% - 25% (Needs irrigation)
+  • Optimal Soil:   45% - 70% (Healthy root zone)
+  • Saturated Soil: 80% - 100% (Just watered / rain)`
     },
     {
         id: 'troubleshoot',
@@ -245,37 +234,26 @@ Tips:
         icon: 'build',
         content: `Common Issues & Fixes:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Device not found in scan:
-  ✓ Power cycle the ESP32
-  ✓ Check Serial Monitor for "[INIT] Advertising..."
-  ✓ Ensure you're using Chrome/Edge (not Safari/Firefox)
-  ✓ Enable phone Bluetooth in system settings
-  ✓ Re-upload the sketch
+Blue LED Behavior:
+  • BLINKING (2Hz) = Pairing Mode (advertising, ready to pair)
+  • SOLID ON       = App connected and streaming live data
+  • FAST STROBE    = WiFi connecting in progress
 
-"Web Bluetooth not supported":
-  ✓ Use Google Chrome on Android
-  ✓ Desktop Chrome with BT hardware
-  ✓ Enable: chrome://flags/#enable-web-bluetooth
+Device not appearing in Bluetooth list:
+  ✓ Use Google Chrome or Microsoft Edge (Web Bluetooth)
+  ✓ Turn on Phone/PC Bluetooth
+  ✓ In Chrome address bar, ensure site has Bluetooth permission
+  ✓ Verify Serial Monitor says "BLE Advertising active"
 
-Moisture reads always 0% or 100%:
-  ✓ Re-calibrate DRY_VALUE and WET_VALUE
-  ✓ Ensure AOUT → GPIO 34 is connected
-  ✓ Check 3.3V power to sensor
+Moisture reading stuck at 0% or 100%:
+  ✓ Calibrate with 'd' (in air) and 'w' (in water) via Serial Monitor
+  ✓ Ensure sensor AOUT connects to GPIO 34 (ADC1)
+  ✓ If sensor voltage does not change, try powering VCC from 5V/VIN
+    (many clone v1.2 sensors need 5V to run properly)
 
-Connection drops:
-  ✓ Move phone closer to ESP32
-  ✓ Avoid WiFi interference (different channels)
-  ✓ Reduce READ_INTERVAL if overloading
-
-Battery drains fast:
-  ✓ Increase READ_INTERVAL to 10000 (10s)
-  ✓ Add deep sleep between readings
-  ✓ Use 3.7V LiPo > 2000mAh
-
-LED behavior:
-  OFF  = Advertising, waiting for app
-  FAST blink = Error state
-  SOLID ON   = App connected, streaming data`
+WiFi connection failed:
+  ✓ ESP32 only supports 2.4GHz WiFi (not 5GHz)
+  ✓ Double-check your WiFi password`
     }
 ];
 
