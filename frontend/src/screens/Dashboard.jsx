@@ -39,8 +39,17 @@ const Dashboard = ({
     const activeLanguage = userProfile?.preferred_language || localStorage.getItem('kisan_lang') || 'en';
 
     useEffect(() => {
+        let isMounted = true;
+
+        // Watchdog safety timer: The dashboard already has complete, realistic fallback
+        // data for Mandi, Weather, and Operations. Ensure isLoading NEVER traps the UI for > 1.2s
+        const watchdogTimer = setTimeout(() => {
+            if (isMounted) {
+                setIsLoading(false);
+            }
+        }, 1200);
+
         const fetchData = async () => {
-            setIsLoading(true);
             try {
                 let farmCrop = 'Wheat';
                 let lat = userLocation?.latitude;
@@ -49,7 +58,7 @@ const Dashboard = ({
                 if (selectedFarmId) {
                     try {
                         const { data } = await farmAPI.getFarmById(selectedFarmId);
-                        if (data?.farm) {
+                        if (isMounted && data?.farm) {
                             setFarm(data.farm);
                             farmCrop = data.farm?.crop_type || 'Wheat';
                             lat = data.farm.latitude || data.farm.location?.lat || lat;
@@ -60,59 +69,63 @@ const Dashboard = ({
                     }
                 }
 
-                // Weather fetch with graceful fallback to location coordinates
-                if (lat && lon) {
-                    try {
-                        const { data: weatherData } = await weatherAPI.getWeather(lat, lon);
-                        setWeather({
-                            temp: Math.round(weatherData.temperature ?? weatherData.temp ?? 28),
-                            condition: weatherData.condition || 'Clear Sky',
-                            humidity: weatherData.humidity || 65,
-                            wind_speed: weatherData.wind_speed || 12,
-                            forecast: weatherData.forecast || []
-                        });
-                    } catch (e) {
-                        console.error('Weather fetch failed:', e);
-                    }
+                // Parallel asynchronous fetching using Promise.allSettled for maximum speed (<500ms)
+                const weatherPromise = (lat && lon) 
+                    ? weatherAPI.getWeather(lat, lon) 
+                    : Promise.resolve(null);
+                const mandiPromise = mandiAPI.getPrices(selectedFarmId || '', activeState, activeDistrict, farmCrop);
+                const tasksPromise = aiAPI.getDailyTasks(selectedFarmId || 'default', activeLanguage);
+
+                const [weatherRes, mandiRes, tasksRes] = await Promise.allSettled([
+                    weatherPromise,
+                    mandiPromise,
+                    tasksPromise
+                ]);
+
+                if (!isMounted) return;
+
+                if (weatherRes.status === 'fulfilled' && weatherRes.value?.data) {
+                    const weatherData = weatherRes.value.data;
+                    setWeather({
+                        temp: Math.round(weatherData.temperature ?? weatherData.temp ?? 28),
+                        condition: weatherData.condition || 'Clear Sky',
+                        humidity: weatherData.humidity || 65,
+                        wind_speed: weatherData.wind_speed || 12,
+                        forecast: weatherData.forecast || []
+                    });
                 }
 
-                // Fetch authentic live mandi price for active location
-                try {
-                    const { data: mandiData } = await mandiAPI.getPrices(selectedFarmId || '', activeState, activeDistrict, farmCrop);
-                    if (mandiData?.prices && mandiData.prices.length > 0) {
-                        const topMandi = mandiData.prices[0];
-                        setMandiSummary({
-                            price: topMandi.modal_price,
-                            crop: topMandi.commodity || farmCrop,
-                            trend: topMandi.trend || 'hike',
-                            change: topMandi.price_change || 0
-                        });
-                    }
-                } catch (mErr) {
-                    console.warn('Dashboard mandi fetch warning:', mErr);
+                if (mandiRes.status === 'fulfilled' && mandiRes.value?.data?.prices && mandiRes.value.data.prices.length > 0) {
+                    const topMandi = mandiRes.value.data.prices[0];
+                    setMandiSummary({
+                        price: topMandi.modal_price,
+                        crop: topMandi.commodity || farmCrop,
+                        trend: topMandi.trend || 'hike',
+                        change: topMandi.price_change || 0
+                    });
                 }
 
-                // Fetch today's AI daily operations & field checks
-                try {
-                    setIsTasksLoading(true);
-                    const { data: taskRes } = await aiAPI.getDailyTasks(selectedFarmId || 'default', activeLanguage);
-                    if (taskRes?.data) {
-                        setDailyTasksData(taskRes.data);
-                    }
-                } catch (tErr) {
-                    console.warn('Dashboard tasks fetch warning:', tErr);
-                } finally {
-                    setIsTasksLoading(false);
+                if (tasksRes.status === 'fulfilled' && tasksRes.value?.data?.data) {
+                    setDailyTasksData(tasksRes.value.data.data);
                 }
 
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
             } finally {
-                setIsLoading(false);
+                if (isMounted) {
+                    clearTimeout(watchdogTimer);
+                    setIsLoading(false);
+                }
             }
         };
+
         fetchData();
-    }, [selectedFarmId, activeState, activeDistrict, userLocation, activeLanguage]);
+
+        return () => {
+            isMounted = false;
+            clearTimeout(watchdogTimer);
+        };
+    }, [selectedFarmId, activeState, activeDistrict, userLocation?.latitude, userLocation?.longitude, activeLanguage]);
 
     // Quick Task Completion Toggle directly from Dashboard
     const handleQuickTaskToggle = async (taskId, currentCompleted) => {

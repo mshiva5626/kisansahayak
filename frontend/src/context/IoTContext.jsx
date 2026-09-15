@@ -7,6 +7,19 @@ export const MOISTURE_CHAR_UUID        = '12345678-1234-1234-1234-123456789ab1';
 export const BATTERY_CHAR_UUID         = '12345678-1234-1234-1234-123456789ab2';
 export const DEVICE_NAME_CHAR_UUID     = '12345678-1234-1234-1234-123456789ab3';
 
+// WiFi provisioning BLE characteristics
+export const WIFI_SSID_CHAR_UUID       = '12345678-1234-1234-1234-123456789ab4';
+export const WIFI_PASS_CHAR_UUID       = '12345678-1234-1234-1234-123456789ab5';
+export const WIFI_STATUS_CHAR_UUID     = '12345678-1234-1234-1234-123456789ab6';
+
+// WiFi status codes (must match ESP32 firmware)
+export const WIFI_STATUS = {
+    IDLE: 0,
+    CONNECTING: 1,
+    CONNECTED: 2,
+    FAILED: 3,
+};
+
 // ─── Context ─────────────────────────────────────────────────────────────────
 const IoTContext = createContext(null);
 
@@ -40,6 +53,9 @@ export const IoTProvider = ({ children }) => {
 
     // Live sensor readings keyed by deviceId
     const [sensorReadings, setSensorReadings] = useState({});
+
+    // WiFi status keyed by deviceId
+    const [wifiStatus, setWifiStatus] = useState({});
 
     // Active BLE connections keyed by deviceId
     const bleConnections = useRef({});
@@ -158,6 +174,13 @@ export const IoTProvider = ({ children }) => {
                 ...prev,
                 [deviceId]: { ...(prev[deviceId] || {}), connected: true }
             }));
+            // Read initial WiFi status
+            try {
+                const wifiStatChar = await conn.service.getCharacteristic(WIFI_STATUS_CHAR_UUID);
+                const wifiVal = await wifiStatChar.readValue();
+                const wStatus = wifiVal.getUint8(0);
+                setWifiStatus(prev => ({ ...prev, [deviceId]: wStatus }));
+            } catch { /* WiFi status char may not exist on older firmware */ }
         } catch (err) {
             console.error('Subscribe failed:', err);
         }
@@ -244,6 +267,66 @@ export const IoTProvider = ({ children }) => {
         });
     }, [disconnectDevice]);
 
+    // ─── Send WiFi credentials to a connected device over BLE ────────────────
+    const sendWiFiCredentials = useCallback(async (deviceId, ssid, password) => {
+        const conn = bleConnections.current[deviceId];
+        if (!conn?.service) throw new Error('Device not connected');
+
+        setWifiStatus(prev => ({ ...prev, [deviceId]: WIFI_STATUS.CONNECTING }));
+
+        try {
+            // Write SSID
+            const ssidChar = await conn.service.getCharacteristic(WIFI_SSID_CHAR_UUID);
+            const ssidEncoder = new TextEncoder();
+            await ssidChar.writeValue(ssidEncoder.encode(ssid));
+
+            // Write password (triggers WiFi connection on ESP32)
+            const passChar = await conn.service.getCharacteristic(WIFI_PASS_CHAR_UUID);
+            const passEncoder = new TextEncoder();
+            await passChar.writeValue(passEncoder.encode(password));
+
+            // Subscribe to WiFi status notifications
+            const statusChar = await conn.service.getCharacteristic(WIFI_STATUS_CHAR_UUID);
+
+            return new Promise((resolve, reject) => {
+                let timeoutId;
+
+                const handleStatusChange = (e) => {
+                    const status = e.target.value.getUint8(0);
+                    setWifiStatus(prev => ({ ...prev, [deviceId]: status }));
+
+                    if (status === WIFI_STATUS.CONNECTED) {
+                        clearTimeout(timeoutId);
+                        statusChar.removeEventListener('characteristicvaluechanged', handleStatusChange);
+                        resolve({ success: true, status });
+                    } else if (status === WIFI_STATUS.FAILED) {
+                        clearTimeout(timeoutId);
+                        statusChar.removeEventListener('characteristicvaluechanged', handleStatusChange);
+                        reject(new Error('WIFI_CONNECTION_FAILED'));
+                    }
+                    // status === CONNECTING: keep waiting
+                };
+
+                statusChar.addEventListener('characteristicvaluechanged', handleStatusChange);
+                statusChar.startNotifications().catch(() => {
+                    // If notifications fail, poll instead
+                    clearTimeout(timeoutId);
+                    reject(new Error('Failed to subscribe to WiFi status notifications'));
+                });
+
+                // Timeout after 20 seconds
+                timeoutId = setTimeout(() => {
+                    statusChar.removeEventListener('characteristicvaluechanged', handleStatusChange);
+                    setWifiStatus(prev => ({ ...prev, [deviceId]: WIFI_STATUS.FAILED }));
+                    reject(new Error('WIFI_CONNECTION_TIMEOUT'));
+                }, 20000);
+            });
+        } catch (err) {
+            setWifiStatus(prev => ({ ...prev, [deviceId]: WIFI_STATUS.FAILED }));
+            throw err;
+        }
+    }, []);
+
     // ─── Get sensor reading for a specific farm ──────────────────────────────
     const getSensorForFarm = useCallback((farmId) => {
         if (!farmId) return null;
@@ -261,6 +344,7 @@ export const IoTProvider = ({ children }) => {
     const value = {
         pairedDevices,
         sensorReadings,
+        wifiStatus,
         connectingId,
         isWebBluetoothSupported,
         scanAndPair,
@@ -272,6 +356,7 @@ export const IoTProvider = ({ children }) => {
         removeDevice,
         getSensorForFarm,
         getDevicesForFarm,
+        sendWiFiCredentials,
     };
 
     return <IoTContext.Provider value={value}>{children}</IoTContext.Provider>;

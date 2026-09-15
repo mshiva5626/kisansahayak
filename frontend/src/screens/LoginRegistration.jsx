@@ -10,6 +10,7 @@ const LoginRegistration = ({
     onLogin, 
     onRegister, 
     onGoogleLogin, 
+    onDemoLogin,
     onBack 
 }) => {
     const [isLogin, setIsLogin] = useState(initialTab === 'login');
@@ -277,7 +278,19 @@ const LoginRegistration = ({
                         {errorMsg && (
                             <div className="mb-5 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/60 text-red-700 dark:text-red-300 text-xs font-semibold flex items-center gap-2.5 animate-fade-in shadow-sm">
                                 <span className="material-symbols-outlined text-red-500 text-lg shrink-0">error</span>
-                                <div className="flex-1">{errorMsg}</div>
+                                <div className="flex-1">
+                                    <p>{errorMsg}</p>
+                                    {(errorMsg.toLowerCase().includes('network') || errorMsg.toLowerCase().includes('failed') || errorMsg.toLowerCase().includes('timeout') || errorMsg.toLowerCase().includes('connect')) && onDemoLogin && (
+                                        <button
+                                            type="button"
+                                            onClick={onDemoLogin}
+                                            className="mt-2 py-1.5 px-3 rounded-lg bg-[#0ED054] text-slate-950 font-bold text-xs flex items-center gap-1.5 hover:bg-emerald-400 transition-all cursor-pointer shadow"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">rocket_launch</span>
+                                            <span>Continue in Demo Mode</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         )}
 
@@ -403,6 +416,20 @@ const LoginRegistration = ({
                                     )}
                                     <span>{isGoogleLoading ? 'Connecting...' : t('signInWithGoogle')}</span>
                                 </button>
+
+                                {/* 1-Click Demo Login Option */}
+                                {onDemoLogin && (
+                                    <div className="mt-3">
+                                        <button
+                                            type="button"
+                                            onClick={onDemoLogin}
+                                            className="w-full py-2.5 px-4 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">agriculture</span>
+                                            <span>{language === 'hi' ? 'अतिथि मोड (तुरंत डैशबोर्ड देखें)' : 'Quick Demo Access (Explore Dashboard)'}</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             /* ========================================================================= */

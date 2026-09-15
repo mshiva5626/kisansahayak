@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useIoT } from '../context/IoTContext';
 import { farmAPI } from '../api';
+import WiFiConfiguration from './WiFiConfiguration';
 
 // ─── Step IDs ─────────────────────────────────────────────────────────────────
-const STEPS = { INTRO: 0, SCAN: 1, CONNECTING: 2, ASSIGN_FARM: 3, SUCCESS: 4 };
+const STEPS = { INTRO: 0, SCAN: 1, CONNECTING: 2, WIFI_CONFIG: 3, ASSIGN_FARM: 4, SUCCESS: 5 };
 
 // ─── Radar SVG Animation Component ────────────────────────────────────────────
 const RadarScan = ({ scanning }) => (
@@ -136,7 +137,7 @@ const IoTDevicePairing = ({ onBack, onNavigate, selectedFarmId }) => {
             await subscribeToDevice(result.deviceId);
             finishProgress();
             await new Promise(r => setTimeout(r, 600));
-            setStep(STEPS.ASSIGN_FARM);
+            setStep(STEPS.WIFI_CONFIG);
         } catch (err) {
             setIsScanning(false);
             if (err.message === 'WEB_BLUETOOTH_UNSUPPORTED') {
@@ -167,7 +168,7 @@ const IoTDevicePairing = ({ onBack, onNavigate, selectedFarmId }) => {
 
     // ─── Render helpers ────────────────────────────────────────────────────────
     const renderStepIndicator = () => {
-        const totalSteps = 4; // Intro → Scan → Connect → Assign
+        const totalSteps = 5; // Intro → Scan → Connect → WiFi → Assign
         const current = Math.min(step, totalSteps - 1);
         return (
             <div className="flex items-center gap-2 justify-center mb-8">
@@ -493,6 +494,14 @@ const IoTDevicePairing = ({ onBack, onNavigate, selectedFarmId }) => {
                 {step === STEPS.INTRO      && renderIntro()}
                 {step === STEPS.SCAN       && renderScan()}
                 {step === STEPS.CONNECTING && renderConnecting()}
+                {step === STEPS.WIFI_CONFIG && (
+                    <WiFiConfiguration
+                        deviceId={scannedDevice?.deviceId}
+                        deviceName={scannedDevice?.deviceName}
+                        onSuccess={() => setStep(STEPS.ASSIGN_FARM)}
+                        onSkip={() => setStep(STEPS.ASSIGN_FARM)}
+                    />
+                )}
                 {step === STEPS.ASSIGN_FARM && renderAssignFarm()}
                 {step === STEPS.SUCCESS    && renderSuccess()}
             </div>

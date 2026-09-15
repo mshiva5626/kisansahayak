@@ -3,7 +3,7 @@ import farmerImg from '../assets/farmer.jpg';
 import { getTranslation, LANGUAGES } from '../utils/translations';
 import LanguageModal from '../components/LanguageModal';
 
-const WelcomeScreen = ({ language = 'en', onLanguageChange, onLogin, onRegister }) => {
+const WelcomeScreen = ({ language = 'en', onLanguageChange, onLogin, onRegister, onDemoLogin }) => {
     const [isSplashLoading, setIsSplashLoading] = useState(true);
     const [isLangModalOpen, setIsLangModalOpen] = useState(false);
 
@@ -147,6 +147,18 @@ const WelcomeScreen = ({ language = 'en', onLanguageChange, onLogin, onRegister 
                         <span className="material-icons text-lg text-[#0ED054]">login</span>
                         <span>{t('loginCta')}</span>
                     </button>
+
+                    {/* Quick Demo Access Button */}
+                    {onDemoLogin && (
+                        <button
+                            onClick={onDemoLogin}
+                            className="w-full py-2.5 px-4 rounded-xl bg-[#0ED054]/15 hover:bg-[#0ED054]/25 active:bg-[#0ED054]/30 border border-[#0ED054]/30 text-[#0ED054] font-bold text-xs flex items-center justify-center space-x-2 transition-all cursor-pointer shadow-sm"
+                        >
+                            <span className="material-symbols-outlined text-sm">agriculture</span>
+                            <span>{language === 'hi' ? 'अतिथि / डेमो मोड (तुरंत देखें)' : 'Quick Demo Access (Explore App)'}</span>
+                            <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                        </button>
+                    )}
 
                     <div className="pt-2 text-center">
                         <div className="inline-flex items-center space-x-2 text-[11px] text-gray-400">

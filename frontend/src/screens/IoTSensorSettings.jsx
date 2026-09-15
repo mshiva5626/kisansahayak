@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useIoT } from '../context/IoTContext';
+import { useIoT, WIFI_STATUS } from '../context/IoTContext';
 import { farmAPI } from '../api';
 
 // ─── Moisture color helpers ────────────────────────────────────────────────────
@@ -93,7 +93,7 @@ const EditDeviceSheet = ({ device, farms, onSave, onDelete, onClose }) => {
 
 // ─── Main IoT Settings Screen ──────────────────────────────────────────────────
 const IoTSensorSettings = ({ onBack, onNavigate }) => {
-    const { pairedDevices, sensorReadings, updateDevice, removeDevice, connectDevice, disconnectDevice, connectingId } = useIoT();
+    const { pairedDevices, sensorReadings, wifiStatus, updateDevice, removeDevice, connectDevice, disconnectDevice, connectingId } = useIoT();
     const [farms, setFarms] = useState([]);
     const [editingDevice, setEditingDevice] = useState(null);
 
@@ -183,6 +183,7 @@ const IoTSensorSettings = ({ onBack, onNavigate }) => {
                                 const isConnecting = connectingId === device.deviceId;
                                 const moisture = reading.moisture ?? null;
                                 const { bg, text, label, emoji } = getMoistureColor(moisture);
+                                const deviceWifiStatus = wifiStatus[device.deviceId] ?? WIFI_STATUS.IDLE;
 
                                 return (
                                     <div
@@ -268,6 +269,34 @@ const IoTSensorSettings = ({ onBack, onNavigate }) => {
                                                     )}
                                                 </button>
                                             )}
+                                        </div>
+
+                                        {/* WiFi Configuration */}
+                                        <div className="px-4 pb-4">
+                                            <div className="flex items-center justify-between p-3 rounded-xl bg-blue-500/8 border border-blue-500/20">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`material-symbols-outlined text-base ${
+                                                        deviceWifiStatus === WIFI_STATUS.CONNECTED ? 'text-blue-400' : 'text-slate-500'
+                                                    }`}>wifi</span>
+                                                    <div>
+                                                        <p className="text-xs font-bold text-slate-300">WiFi</p>
+                                                        <p className={`text-[10px] font-medium ${
+                                                            deviceWifiStatus === WIFI_STATUS.CONNECTED ? 'text-blue-400' : 'text-slate-500'
+                                                        }`}>
+                                                            {deviceWifiStatus === WIFI_STATUS.CONNECTED ? 'Connected' : 
+                                                             deviceWifiStatus === WIFI_STATUS.CONNECTING ? 'Connecting...' :
+                                                             deviceWifiStatus === WIFI_STATUS.FAILED ? 'Failed' : 'Not configured'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => onNavigate('wifi-config')}
+                                                    className="text-[11px] font-bold text-blue-400 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/30 active:scale-95 transition-all flex items-center gap-1"
+                                                >
+                                                    <span className="material-symbols-outlined text-sm">settings</span>
+                                                    Configure
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 );

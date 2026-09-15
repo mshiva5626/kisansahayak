@@ -1,9 +1,23 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
+const getApiBaseUrl = () => {
+    const envUrl = import.meta.env.VITE_API_URL;
+    if (envUrl && envUrl.trim() !== '') {
+        return envUrl;
+    }
+    // In production running on HTTPS (e.g. Vercel deployment), don't default to http://127.0.0.1
+    // which causes mixed-content errors and connection hangs on mobile/remote browsers
+    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+        return '/api';
+    }
+    return 'http://127.0.0.1:5000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const API = axios.create({
     baseURL: API_BASE_URL,
+    timeout: 5000, // 5-second fail-fast timeout so requests never freeze the UI indefinitely
     headers: {
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true',
@@ -27,8 +41,8 @@ API.interceptors.response.use(
     (response) => response,
     (error) => {
         const msg = error.response?.data?.message || '';
-        if ((error.response?.status === 401 || error.response?.status === 404) && (msg.includes('token') || msg === 'User not found')) {
-            // Token is invalid or expired — clear it and force re-login
+        // Only trigger session clear for explicit 401 auth failures, never on network error or timeouts
+        if (error.response?.status === 401 && (msg.includes('token') || msg === 'User not found' || msg.includes('expired'))) {
             console.warn('Invalid token detected, clearing session...');
             localStorage.removeItem('token');
             localStorage.removeItem('user');

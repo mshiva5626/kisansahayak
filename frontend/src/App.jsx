@@ -28,6 +28,7 @@ import AMIInsightCenter from './screens/AMIInsightCenter';
 import IoTDevicePairing from './screens/IoTDevicePairing';
 import IoTSensorSettings from './screens/IoTSensorSettings';
 import IoTESP32Guide from './screens/IoTESP32Guide';
+import WiFiConfiguration from './screens/WiFiConfiguration';
 import { IoTProvider } from './context/IoTContext';
 
 import { authAPI } from './api';
@@ -217,6 +218,34 @@ function App() {
     }
   };
 
+  const handleDemoLogin = () => {
+    const demoUser = {
+      id: 'demo-farmer-01',
+      name: 'Ramesh Patel',
+      email: 'ramesh.patel@kisan.in',
+      mobile_number: '9876543210',
+      state: 'Madhya Pradesh',
+      district: 'Indore',
+      preferred_language: language || 'en',
+      role: 'verified_farmer',
+      land_size: '2 - 5 Acres (Semi-Medium)',
+      experience_years: '5 - 10 Years',
+      education_qualification: 'Senior Secondary (12th)'
+    };
+    const demoToken = 'demo-jwt-kisan-token';
+    localStorage.setItem('token', demoToken);
+    localStorage.setItem('user', JSON.stringify(demoUser));
+    setUserProfile(demoUser);
+    setUserLocation({
+      state: 'Madhya Pradesh',
+      district: 'Indore',
+      city: 'Indore',
+      latitude: 22.7196,
+      longitude: 75.8577
+    });
+    navigateTo('dashboard');
+  };
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -253,6 +282,7 @@ function App() {
                 setAuthInitialTab('register');
                 navigateTo('login');
               }}
+              onDemoLogin={handleDemoLogin}
             />
           )}
           {currentScreen === 'language' && (
@@ -273,6 +303,7 @@ function App() {
               onLogin={handleLogin}
               onRegister={handleRegister}
               onGoogleLogin={handleGoogleLogin}
+              onDemoLogin={handleDemoLogin}
               onBack={() => navigateTo('welcome')}
             />
           )}
@@ -500,6 +531,15 @@ function App() {
           {currentScreen === 'iot-guide' && (
             <IoTESP32Guide
               onBack={() => navigateTo('iot-settings')}
+            />
+          )}
+          {currentScreen === 'wifi-config' && (
+            <WiFiConfiguration
+              standalone={true}
+              deviceId={selectedFarmId}  
+              deviceName="KisanSensor"
+              onBack={() => navigateTo('iot-settings')}
+              onSuccess={() => navigateTo('iot-settings')}
             />
           )}
         </div>

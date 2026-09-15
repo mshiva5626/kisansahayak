@@ -26,12 +26,14 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# IDE files
+# IDE & Agent files
 .vscode/
 .idea/
 *.swp
 *.swo
+.agents/
 
 # Cache
 .cache/
 .eslintcache
+
