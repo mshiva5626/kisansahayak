@@ -539,6 +539,31 @@
       "userId": "farmer_mu72y1rt_2vqn1",
       "createdAt": "2026-09-18T15:09:55.817Z",
       "updatedAt": "2026-09-18T15:09:55.817Z"
+    },
+    {
+      "farm_name": "Test Farm",
+      "state": "Odisha",
+      "district": "Rayagada",
+      "area": 5,
+      "unit": "Acres",
+      "terrain_type": "topographic terrain",
+      "water_source": "drip irrigation",
+      "crop_type": "Wheat",
+      "crop_variety": "",
+      "soil_type": "Alluvial Loam",
+      "sowing_date": "2026-09-19",
+      "latitude": 19.04626126252985,
+      "longitude": 83.83753601599551,
+      "location": {
+        "lat": 19.04626126252985,
+        "lon": 83.83753601599551,
+        "address": "Pottasingi, Rayagada, Odisha",
+        "notes": ""
+      },
+      "_id": "mem_54_mu8ucxxm",
+      "userId": "farmer_mu8biuea_st7pt",
+      "createdAt": "2026-09-19T20:30:01.930Z",
+      "updatedAt": "2026-09-19T20:30:01.930Z"
     }
   ],
   "images": [
@@ -1075,7 +1100,7 @@
     }
   ],
   "notifications": [],
-  "_nextId": 54,
+  "_nextId": 55,
   "chatSessions": [
     {
       "_id": "sess_mu8gjk5u",

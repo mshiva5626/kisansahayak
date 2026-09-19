@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { farmAPI } from '../api';
-import InteractiveGoogleMap from '../components/InteractiveGoogleMap';
+import LeafletFarmMap from '../components/LeafletFarmMap';
 import { detectAndResolveCurrentLocation } from '../utils/geolocation';
 
 const POPULAR_CROPS = [
@@ -35,6 +35,45 @@ const IRRIGATION_OPTIONS = [
     'Sprinkler System',
     'Rainfed'
 ];
+
+/**
+ * Premium Green Geometric Pattern SVG Background
+ * Inspired by boAt-style dark textured patterns — subtle leaf-circuit geometry
+ */
+const PatternBackground = () => (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+        <svg className="absolute inset-0 w-full h-full opacity-[0.045]" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="farm-grid-pattern" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+                    {/* Diamond grid cells */}
+                    <path d="M40 0 L80 40 L40 80 L0 40 Z" fill="none" stroke="#13ec13" strokeWidth="0.6"/>
+                    {/* Leaf veins / circuit traces */}
+                    <path d="M40 0 L40 80" fill="none" stroke="#13ec13" strokeWidth="0.3"/>
+                    <path d="M0 40 L80 40" fill="none" stroke="#13ec13" strokeWidth="0.3"/>
+                    {/* Corner dots */}
+                    <circle cx="40" cy="0" r="1.8" fill="#13ec13" opacity="0.5"/>
+                    <circle cx="40" cy="80" r="1.8" fill="#13ec13" opacity="0.5"/>
+                    <circle cx="0" cy="40" r="1.8" fill="#13ec13" opacity="0.5"/>
+                    <circle cx="80" cy="40" r="1.8" fill="#13ec13" opacity="0.5"/>
+                    {/* Center node */}
+                    <circle cx="40" cy="40" r="2.5" fill="#13ec13" opacity="0.35"/>
+                    {/* Micro diagonal branches */}
+                    <path d="M20 20 L30 30 M60 20 L50 30 M20 60 L30 50 M60 60 L50 50" fill="none" stroke="#13ec13" strokeWidth="0.35" opacity="0.6"/>
+                </pattern>
+                {/* Radial vignette to darken edges */}
+                <radialGradient id="vignette-farm" cx="50%" cy="45%" r="70%">
+                    <stop offset="0%" stopColor="transparent"/>
+                    <stop offset="100%" stopColor="#040a06"/>
+                </radialGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#farm-grid-pattern)"/>
+            <rect width="100%" height="100%" fill="url(#vignette-farm)" opacity="0.7"/>
+        </svg>
+        {/* Subtle green radial glow */}
+        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[#13ec13]/[0.04] blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-[#0db80d]/[0.035] blur-[100px]"></div>
+    </div>
+);
 
 const FarmCreationWizard = ({ onBack, onComplete }) => {
     // 3-Step Clear, Uncongested Workflow:
@@ -87,7 +126,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
             });
     }, []);
 
-    // Handle Map Pinning from Google Maps
+    // Handle Map Pinning from Leaflet Map
     const handleMapLocationSelect = (locDetails) => {
         if (!locDetails) return;
         setFormData((prev) => ({
@@ -99,7 +138,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
             subDistrict: locDetails.subDistrict || prev.subDistrict,
             village: locDetails.locality || prev.village,
             address: locDetails.formattedAddress || `${locDetails.district || 'Farm'}, ${locDetails.state || 'India'}`,
-            source: locDetails.source || 'Google Map Pin'
+            source: locDetails.source || 'Satellite Map Pin'
         }));
     };
 
@@ -182,16 +221,19 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
     };
 
     return (
-        <div className="min-h-screen bg-[#07130c] text-slate-100 font-display antialiased flex flex-col relative selection:bg-emerald-500/30">
+        <div className="min-h-screen bg-[#040a06] text-slate-100 font-display antialiased flex flex-col relative selection:bg-[#13ec13]/30 overflow-x-hidden">
+            {/* Premium Green Geometric Pattern Background */}
+            <PatternBackground />
+
             {/* Top Navigation Bar with Clear 3-Step Indicator */}
-            <header className="sticky top-0 z-30 px-6 pt-12 pb-4 bg-[#07130c]/90 border-b border-white/10 backdrop-blur-xl flex items-center justify-between shadow-lg">
+            <header className="sticky top-0 z-30 px-6 pt-12 pb-4 bg-[#040a06]/92 border-b border-[#13ec13]/10 backdrop-blur-2xl flex items-center justify-between shadow-lg shadow-black/30">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => {
                             if (step === 1) onBack();
                             else setStep(step - 1);
                         }}
-                        className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                        className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-[#13ec13]/10 border border-[#13ec13]/15 text-slate-300 hover:text-[#13ec13] flex items-center justify-center transition-colors cursor-pointer"
                         title="Back"
                     >
                         <span className="material-icons-round text-lg">arrow_back</span>
@@ -201,16 +243,16 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                         <h1 className="font-bold text-base md:text-lg text-white leading-tight flex items-center gap-2">
                             <span>
                                 {step === 1 && 'Step 1: Farm & Land Area'}
-                                {step === 2 && 'Step 2: Pin Location on Google Map'}
+                                {step === 2 && 'Step 2: Pin Location on Satellite Map'}
                                 {step === 3 && 'Step 3: Crop, Soil & Irrigation'}
                             </span>
-                            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
+                            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#13ec13]/15 text-[#13ec13] border border-[#13ec13]/30">
                                 {step} of 3
                             </span>
                         </h1>
-                        <p className="text-xs text-emerald-400 font-medium">
+                        <p className="text-xs text-[#13ec13]/80 font-medium">
                             {step === 1 && 'Name your farm and define total land size'}
-                            {step === 2 && 'Locate your agricultural plot on Google Terrain view'}
+                            {step === 2 && 'Locate your agricultural plot on satellite view'}
                             {step === 3 && 'Specify crops, sowing schedule and soil details'}
                         </p>
                     </div>
@@ -228,9 +270,9 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                             }}
                             className={`w-7 h-2 rounded-full transition-all cursor-pointer ${
                                 step === s
-                                    ? 'bg-primary shadow-[0_0_12px_rgba(19,236,19,0.6)] w-9'
+                                    ? 'bg-[#13ec13] shadow-[0_0_12px_rgba(19,236,19,0.6)] w-9'
                                     : step > s
-                                        ? 'bg-primary/40'
+                                        ? 'bg-[#13ec13]/35'
                                         : 'bg-white/10'
                             }`}
                             title={`Jump to Step ${s}`}
@@ -243,10 +285,10 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
             {/* STEP 1: FARM NAME & LAND AREA (Clean, Spacious, Uncongested)               */}
             {/* ========================================================================= */}
             {step === 1 && (
-                <main className="flex-1 max-w-xl w-full mx-auto p-6 flex flex-col justify-center space-y-6 animate-fade-in pb-32">
+                <main className="flex-1 max-w-xl w-full mx-auto p-6 flex flex-col justify-center space-y-6 animate-fade-in pb-32 relative z-10">
                     {/* Welcome Banner */}
                     <div className="text-center space-y-1.5 mb-2">
-                        <div className="w-14 h-14 mx-auto rounded-3xl bg-primary/20 text-primary border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/20 mb-3">
+                        <div className="w-14 h-14 mx-auto rounded-3xl bg-[#13ec13]/15 text-[#13ec13] border border-[#13ec13]/30 flex items-center justify-center shadow-lg shadow-[#13ec13]/15 mb-3">
                             <span className="material-symbols-outlined text-3xl">add_location_alt</span>
                         </div>
                         <h2 className="text-xl font-extrabold text-white">Create New Farm Profile</h2>
@@ -255,11 +297,14 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                         </p>
                     </div>
 
-                    {/* Clean Form Card */}
-                    <div className="p-6 md:p-8 rounded-3xl bg-[#0c2415]/85 border border-white/10 backdrop-blur-xl shadow-2xl space-y-6">
+                    {/* Clean Form Card — Glassmorphism with green tint */}
+                    <div className="p-6 md:p-8 rounded-3xl bg-[#081a0e]/80 border border-[#13ec13]/15 backdrop-blur-xl shadow-2xl shadow-black/40 space-y-6 relative overflow-hidden">
+                        {/* Inner subtle glow */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[2px] bg-gradient-to-r from-transparent via-[#13ec13]/40 to-transparent"></div>
+
                         {/* Farm Name Field */}
                         <div className="space-y-2">
-                            <label className="block text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                            <label className="block text-xs font-bold text-[#13ec13] uppercase tracking-wider">
                                 🌾 Farm Name <span className="text-red-400">*</span>
                             </label>
                             <input
@@ -267,7 +312,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                                 placeholder="e.g. Ramesh Green Field, East Plot #1"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full px-4 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-primary focus:bg-white/10 transition-all shadow-inner"
+                                className="w-full px-4 py-3.5 rounded-2xl bg-white/5 border border-[#13ec13]/15 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-[#13ec13] focus:bg-[#13ec13]/5 focus:shadow-[0_0_20px_rgba(19,236,19,0.08)] transition-all shadow-inner"
                                 autoFocus
                             />
                             <p className="text-[11px] text-slate-400">
@@ -277,7 +322,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
 
                         {/* Land Size & Unit Field */}
                         <div className="space-y-2">
-                            <label className="block text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                            <label className="block text-xs font-bold text-[#13ec13] uppercase tracking-wider">
                                 📐 Total Land Size <span className="text-red-400">*</span>
                             </label>
                             <div className="flex">
@@ -288,12 +333,12 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                                     placeholder="e.g. 5.0"
                                     value={formData.area}
                                     onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                                    className="flex-1 px-4 py-3.5 rounded-l-2xl bg-white/5 border border-r-0 border-white/10 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-primary focus:bg-white/10 transition-all shadow-inner"
+                                    className="flex-1 px-4 py-3.5 rounded-l-2xl bg-white/5 border border-r-0 border-[#13ec13]/15 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-[#13ec13] focus:bg-[#13ec13]/5 transition-all shadow-inner"
                                 />
                                 <select
                                     value={formData.unit}
                                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                                    className="px-4 py-3.5 rounded-r-2xl bg-[#0e2c1a] border border-white/10 text-emerald-300 text-xs font-bold focus:outline-none cursor-pointer"
+                                    className="px-4 py-3.5 rounded-r-2xl bg-[#0a1e0f] border border-[#13ec13]/15 text-[#13ec13] text-xs font-bold focus:outline-none cursor-pointer"
                                 >
                                     <option value="Acres">Acres</option>
                                     <option value="Hectares">Hectares</option>
@@ -308,37 +353,40 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                     <button
                         type="button"
                         onClick={handleStep1Next}
-                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#0ED054] to-[#0a9e3e] text-white font-extrabold text-sm shadow-xl shadow-primary/25 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
+                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#13ec13] to-[#0db80d] text-[#040a06] font-extrabold text-sm shadow-xl shadow-[#13ec13]/25 hover:shadow-[#13ec13]/40 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider relative overflow-hidden"
                     >
-                        <span>Next: Pin Field on Google Map</span>
+                        <span>Next: Pin Field on Satellite Map</span>
                         <span className="material-icons-round text-lg">arrow_forward</span>
                     </button>
                 </main>
             )}
 
             {/* ========================================================================= */}
-            {/* STEP 2: GOOGLE MAPS TERRAIN MAPPING & PINNING                             */}
+            {/* STEP 2: SATELLITE MAP PINNING & LOCATION                                   */}
             {/* ========================================================================= */}
             {step === 2 && (
-                <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-4 animate-fade-in pb-32">
+                <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-4 animate-fade-in pb-32 relative z-10">
                     {/* Live Location Info Banner */}
-                    <div className="p-3.5 rounded-2xl bg-[#0c2415]/90 border border-emerald-500/30 flex items-center justify-between gap-3 shadow-lg backdrop-blur-md">
+                    <div className="p-3.5 rounded-2xl bg-[#081a0e]/90 border border-[#13ec13]/25 flex items-center justify-between gap-3 shadow-lg backdrop-blur-md">
                         <div className="flex items-center gap-2.5">
-                            <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping"></span>
+                            <span className="relative flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#13ec13] opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#13ec13]"></span>
+                            </span>
                             <div>
-                                <p className="text-xs font-bold text-white">Google Maps Field Pinning</p>
-                                <p className="text-[11px] text-emerald-400">
+                                <p className="text-xs font-bold text-white">Satellite Field Pinning</p>
+                                <p className="text-[11px] text-[#13ec13]/80">
                                     Map is centered at your live GPS. Drag marker or tap to position over your plot.
                                 </p>
                             </div>
                         </div>
-                        <span className="text-[10px] uppercase font-extrabold bg-primary/20 text-primary border border-primary/30 px-2.5 py-1 rounded-xl">
+                        <span className="text-[10px] uppercase font-extrabold bg-[#13ec13]/15 text-[#13ec13] border border-[#13ec13]/30 px-2.5 py-1 rounded-xl">
                             Live GPS
                         </span>
                     </div>
 
-                    {/* Interactive Google Map with Terrain / Satellite Toggle */}
-                    <InteractiveGoogleMap
+                    {/* Interactive Leaflet Satellite Map */}
+                    <LeafletFarmMap
                         initialLat={formData.latitude}
                         initialLon={formData.longitude}
                         selectedLocation={{ latitude: formData.latitude, longitude: formData.longitude }}
@@ -348,13 +396,13 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
 
                     {/* Detected Location Card & Survey Notes */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-4 rounded-2xl bg-[#0c2415]/80 border border-white/10 space-y-2">
-                            <div className="flex items-center justify-between text-xs font-bold text-emerald-300">
+                        <div className="p-4 rounded-2xl bg-[#081a0e]/80 border border-[#13ec13]/15 space-y-2">
+                            <div className="flex items-center justify-between text-xs font-bold text-[#13ec13]">
                                 <span className="flex items-center gap-1.5">
-                                    <span className="material-symbols-outlined text-base text-primary">pin_drop</span>
+                                    <span className="material-symbols-outlined text-base text-[#13ec13]">pin_drop</span>
                                     <span>Detected Field Address</span>
                                 </span>
-                                <span className="text-[10px] text-emerald-400 font-mono">
+                                <span className="text-[10px] text-[#13ec13]/70 font-mono">
                                     {Number(formData.latitude).toFixed(4)}°, {Number(formData.longitude).toFixed(4)}°
                                 </span>
                             </div>
@@ -367,8 +415,8 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                             </div>
                         </div>
 
-                        <div className="p-4 rounded-2xl bg-[#0c2415]/80 border border-white/10 space-y-1.5">
-                            <label className="block text-xs font-bold text-emerald-300">
+                        <div className="p-4 rounded-2xl bg-[#081a0e]/80 border border-[#13ec13]/15 space-y-1.5">
+                            <label className="block text-xs font-bold text-[#13ec13]">
                                 Survey No. / Field Notes (Optional)
                             </label>
                             <input
@@ -376,7 +424,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                                 placeholder="e.g. Survey #42 / Near Canal Road / North Well"
                                 value={formData.plotNotes}
                                 onChange={(e) => setFormData({ ...formData, plotNotes: e.target.value })}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-primary font-medium"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-[#13ec13]/15 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-[#13ec13] font-medium"
                             />
                             <p className="text-[10px] text-slate-400">
                                 Used by AI to tailor hyper-local soil moisture and irrigation advisories.
@@ -389,14 +437,14 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                         <button
                             type="button"
                             onClick={() => setStep(1)}
-                            className="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-slate-200 text-xs font-bold transition-all cursor-pointer"
+                            className="px-5 py-3 rounded-2xl bg-white/8 hover:bg-white/12 text-slate-200 text-xs font-bold transition-all cursor-pointer border border-white/5"
                         >
                             Back to Name
                         </button>
                         <button
                             type="button"
                             onClick={handleStep2Next}
-                            className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#0ED054] to-[#0a9e3e] text-white text-xs font-extrabold shadow-lg shadow-primary/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
+                            className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#13ec13] to-[#0db80d] text-[#040a06] text-xs font-extrabold shadow-lg shadow-[#13ec13]/25 hover:shadow-[#13ec13]/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
                         >
                             <span>Next: Crop & Soil Details</span>
                             <span className="material-icons-round text-base">arrow_forward</span>
@@ -409,11 +457,13 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
             {/* STEP 3: CROP, SOIL, IRRIGATION & SOWING DETAILS                           */}
             {/* ========================================================================= */}
             {step === 3 && (
-                <main className="flex-1 max-w-2xl w-full mx-auto p-6 space-y-6 animate-fade-in pb-36">
+                <main className="flex-1 max-w-2xl w-full mx-auto p-6 space-y-6 animate-fade-in pb-36 relative z-10">
                     {/* Cultivated Crop Input & Suggestions */}
-                    <div className="p-5 rounded-3xl bg-[#0c2415]/85 border border-white/10 backdrop-blur-xl shadow-xl space-y-4">
+                    <div className="p-5 rounded-3xl bg-[#081a0e]/80 border border-[#13ec13]/15 backdrop-blur-xl shadow-xl space-y-4 relative overflow-hidden">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[2px] bg-gradient-to-r from-transparent via-[#13ec13]/40 to-transparent"></div>
+
                         <div className="space-y-2">
-                            <label className="block text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                            <label className="block text-xs font-bold text-[#13ec13] uppercase tracking-wider">
                                 🌿 Cultivated Crop Name <span className="text-red-400">*</span>
                             </label>
                             <input
@@ -421,7 +471,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                                 placeholder="Type crop name (e.g. Wheat, Paddy, Dragon Fruit, Cotton...)"
                                 value={formData.crop}
                                 onChange={(e) => setFormData({ ...formData, crop: e.target.value })}
-                                className="w-full px-4 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-primary focus:bg-white/10 transition-all shadow-inner"
+                                className="w-full px-4 py-3.5 rounded-2xl bg-white/5 border border-[#13ec13]/15 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-[#13ec13] focus:bg-[#13ec13]/5 transition-all shadow-inner"
                             />
                         </div>
 
@@ -440,8 +490,8 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                                             onClick={() => setFormData({ ...formData, crop: c.name })}
                                             className={`px-3 py-2 rounded-2xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                                                 isSelected
-                                                    ? 'bg-primary/25 border-primary text-emerald-300 shadow-[0_0_12px_rgba(19,236,19,0.2)]'
-                                                    : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'
+                                                    ? 'bg-[#13ec13]/20 border-[#13ec13] text-[#13ec13] shadow-[0_0_12px_rgba(19,236,19,0.2)]'
+                                                    : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:border-white/15'
                                             }`}
                                         >
                                             <span className="text-sm">{c.icon}</span>
@@ -454,7 +504,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
 
                         {/* Optional Crop Variety Input */}
                         <div className="pt-3 border-t border-white/10 space-y-1.5">
-                            <label className="block text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                            <label className="block text-xs font-bold text-[#13ec13] uppercase tracking-wider">
                                 Seed Variety / Hybrid Name <span className="text-slate-500 font-normal lowercase">(optional)</span>
                             </label>
                             <input
@@ -462,15 +512,17 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                                 placeholder="e.g. HD-2967, Sharbati, Sona Masoori, BT-2, Desi"
                                 value={formData.variety}
                                 onChange={(e) => setFormData({ ...formData, variety: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-primary"
+                                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-[#13ec13]/15 text-white placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-[#13ec13]"
                             />
                         </div>
                     </div>
 
                     {/* Sowing Date & Soil Type */}
-                    <div className="p-5 rounded-3xl bg-[#0c2415]/85 border border-white/10 backdrop-blur-xl shadow-xl space-y-4">
-                        <h3 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-lg text-primary">calendar_month</span>
+                    <div className="p-5 rounded-3xl bg-[#081a0e]/80 border border-[#13ec13]/15 backdrop-blur-xl shadow-xl space-y-4 relative overflow-hidden">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[2px] bg-gradient-to-r from-transparent via-[#13ec13]/40 to-transparent"></div>
+
+                        <h3 className="text-sm font-bold text-[#13ec13] flex items-center gap-2">
+                            <span className="material-symbols-outlined text-lg text-[#13ec13]">calendar_month</span>
                             <span>Sowing Date & Soil Profile</span>
                         </h3>
 
@@ -483,7 +535,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                                     type="date"
                                     value={formData.sowingDate}
                                     onChange={(e) => setFormData({ ...formData, sowingDate: e.target.value })}
-                                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-primary"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-[#13ec13]/15 text-white text-xs font-semibold focus:outline-none focus:border-[#13ec13]"
                                     style={{ colorScheme: 'dark' }}
                                 />
                             </div>
@@ -495,7 +547,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                                 <select
                                     value={formData.soilType}
                                     onChange={(e) => setFormData({ ...formData, soilType: e.target.value })}
-                                    className="w-full px-4 py-2.5 rounded-xl bg-[#0e2c1a] border border-white/10 text-emerald-300 text-xs font-bold focus:outline-none cursor-pointer"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#0a1e0f] border border-[#13ec13]/15 text-[#13ec13] text-xs font-bold focus:outline-none cursor-pointer"
                                 >
                                     {SOIL_TYPES.map((st) => (
                                         <option key={st} value={st}>{st}</option>
@@ -519,8 +571,8 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                                             onClick={() => toggleWaterSource(irr)}
                                             className={`px-3 py-2 rounded-2xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                                                 active
-                                                    ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-sm'
-                                                    : 'bg-white/5 border-white/5 text-slate-400 hover:text-slate-200'
+                                                    ? 'bg-[#13ec13]/20 border-[#13ec13] text-[#13ec13] shadow-sm shadow-[#13ec13]/15'
+                                                    : 'bg-white/5 border-white/5 text-slate-400 hover:text-slate-200 hover:border-white/15'
                                             }`}
                                         >
                                             <span className="material-icons-round text-sm">{active ? 'check_circle' : 'add'}</span>
@@ -533,12 +585,14 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                     </div>
 
                     {/* Final Confirmation & Save Card */}
-                    <div className="p-4 rounded-3xl bg-gradient-to-r from-[#0c2e17] to-[#0e3b1d] border border-primary/40 flex flex-wrap items-center justify-between gap-3 shadow-2xl">
+                    <div className="p-4 rounded-3xl bg-gradient-to-r from-[#081a0e] to-[#0a2614] border border-[#13ec13]/30 flex flex-wrap items-center justify-between gap-3 shadow-2xl shadow-[#13ec13]/5 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#13ec13]/50 to-transparent"></div>
+
                         <div>
                             <p className="text-xs font-black text-white">
                                 {formData.name} • {formData.area} {formData.unit}
                             </p>
-                            <p className="text-[11px] text-emerald-300 font-medium">
+                            <p className="text-[11px] text-[#13ec13]/80 font-medium">
                                 {formData.crop} • {formData.soilType} • {formData.district || 'India'}
                             </p>
                         </div>
@@ -547,7 +601,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                             <button
                                 type="button"
                                 onClick={() => setStep(2)}
-                                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 text-xs font-bold transition-all cursor-pointer"
+                                className="px-4 py-2.5 rounded-xl bg-white/8 hover:bg-white/12 text-slate-200 text-xs font-bold transition-all cursor-pointer border border-white/5"
                             >
                                 Back
                             </button>
@@ -555,7 +609,7 @@ const FarmCreationWizard = ({ onBack, onComplete }) => {
                                 type="button"
                                 onClick={handleSaveFarm}
                                 disabled={isLoading}
-                                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#0ED054] to-[#0a9e3e] text-white text-xs font-black shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 uppercase tracking-wider"
+                                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#13ec13] to-[#0db80d] text-[#040a06] text-xs font-black shadow-lg shadow-[#13ec13]/30 hover:shadow-[#13ec13]/45 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 uppercase tracking-wider"
                             >
                                 {isLoading ? (
                                     <>
