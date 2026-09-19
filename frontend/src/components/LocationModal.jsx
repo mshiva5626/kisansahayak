@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { detectAndResolveCurrentLocation } from '../utils/geolocation';
+import { getCoordinatesForLocation } from '../utils/districtCoordinates';
 
 // Curated list of major agricultural states and their prominent APMC market districts
 const AGRI_LOCATIONS = [
@@ -228,10 +229,13 @@ const LocationModal = ({ isOpen, currentLocation, onSelectLocation, onClose }) =
                                             <button
                                                 key={district}
                                                 onClick={() => {
+                                                    const coords = getCoordinatesForLocation(item.state, district);
                                                     onSelectLocation({
                                                         state: item.state,
                                                         district: district,
                                                         city: district,
+                                                        latitude: coords.lat,
+                                                        longitude: coords.lon,
                                                         source: 'Manual Selection'
                                                     });
                                                     onClose();

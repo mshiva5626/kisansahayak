@@ -18,18 +18,21 @@ async function getFarm(farmId, userId) {
     return data;
 }
 
-// Get weather by lat/lon query params
-router.get('/', protect, async (req, res) => {
-    const { lat, lon } = req.query;
-    if (!lat || !lon) {
-        return res.status(400).json({ message: 'Latitude and Longitude are required' });
-    }
+// Get weather by lat/lon query params (Public meteorological data)
+router.get('/', async (req, res) => {
+    let { lat, lon, latitude, longitude } = req.query;
+    lat = lat || latitude;
+    lon = lon || longitude;
+
+    const finalLat = parseFloat(lat) || 22.7196;
+    const finalLon = parseFloat(lon) || 75.8577;
 
     try {
-        const weatherData = await getWeather(lat, lon);
+        const weatherData = await getWeather(finalLat, finalLon);
         res.status(200).json(weatherData);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Weather route error:', error.message);
+        res.status(500).json({ message: error.message || 'Failed to retrieve weather data' });
     }
 });
 

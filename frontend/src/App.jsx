@@ -28,6 +28,7 @@ import FertilizerMarketplace from './screens/FertilizerMarketplace';
 import AMIInsightCenter from './screens/AMIInsightCenter';
 import IoTDevicePairing from './screens/IoTDevicePairing';
 import IoTSensorSettings from './screens/IoTSensorSettings';
+import { getCoordinatesForLocation } from './utils/districtCoordinates';
 import IoTESP32Guide from './screens/IoTESP32Guide';
 import WiFiConfiguration from './screens/WiFiConfiguration';
 import { IoTProvider } from './context/IoTContext';
@@ -53,9 +54,18 @@ function App() {
   const [userLocation, setUserLocation] = useState(() => {
     try {
       const stored = localStorage.getItem('kisan_location');
-      return stored ? JSON.parse(stored) : { state: 'Madhya Pradesh', district: 'Indore', city: 'Indore' };
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (!parsed.latitude || !parsed.longitude) {
+          const coords = getCoordinatesForLocation(parsed.state, parsed.district);
+          parsed.latitude = coords.lat;
+          parsed.longitude = coords.lon;
+        }
+        return parsed;
+      }
+      return { state: 'Madhya Pradesh', district: 'Indore', city: 'Indore', latitude: 22.7196, longitude: 75.8577 };
     } catch {
-      return { state: 'Madhya Pradesh', district: 'Indore', city: 'Indore' };
+      return { state: 'Madhya Pradesh', district: 'Indore', city: 'Indore', latitude: 22.7196, longitude: 75.8577 };
     }
   });
   const [scanResult, setScanResult] = useState(null);
@@ -68,9 +78,15 @@ function App() {
   };
 
   const handleLocationChange = (newLoc) => {
-    setUserLocation(newLoc);
+    const updated = { ...newLoc };
+    if (!updated.latitude || !updated.longitude) {
+      const coords = getCoordinatesForLocation(updated.state, updated.district);
+      updated.latitude = coords.lat;
+      updated.longitude = coords.lon;
+    }
+    setUserLocation(updated);
     try {
-      localStorage.setItem('kisan_location', JSON.stringify(newLoc));
+      localStorage.setItem('kisan_location', JSON.stringify(updated));
     } catch {
       // Ignored
     }
