@@ -271,12 +271,17 @@ exports.getSensorHistory = async (req, res) => {
         const farmId = req.params.farmId;
         const supabase = getSupabase();
 
-        const { data: readings, error } = await supabase
+        let query = supabase
             .from('sensor_readings')
             .select('*')
-            .eq('farm_id', farmId)
             .order('created_at', { ascending: false })
             .limit(50);
+
+        if (farmId && farmId !== 'all' && farmId !== 'default' && farmId !== 'undefined' && farmId !== 'null') {
+            query = query.eq('farm_id', farmId);
+        }
+
+        const { data: readings, error } = await query;
 
         if (error) throw error;
 

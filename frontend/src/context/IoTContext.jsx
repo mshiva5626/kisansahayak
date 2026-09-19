@@ -70,67 +70,8 @@ export const IoTProvider = ({ children }) => {
     }, [pairedDevices]);
 
     // ─── Check Web Bluetooth availability ───────────────────────────────────
-    const isWebBluetoothSupported = () => {
+    const isWebBluetoothSupported = useCallback(() => {
         return typeof navigator !== 'undefined' && 'bluetooth' in navigator;
-    };
-
-    // ─── Scan & Pair a new device ────────────────────────────────────────────
-    // Returns { deviceId, deviceName } on success, throws on failure
-    const scanAndPair = useCallback(async () => {
-        if (!isWebBluetoothSupported()) {
-            throw new Error('WEB_BLUETOOTH_UNSUPPORTED');
-        }
-
-        // Prompt system BLE picker
-        const device = await navigator.bluetooth.requestDevice({
-            filters: [
-                { services: [KISAN_SERVICE_UUID] },
-                { namePrefix: 'KisanSensor' }
-            ],
-            optionalServices: [KISAN_SERVICE_UUID]
-        });
-
-        const deviceId   = device.id;
-        const deviceName = device.name || 'KisanSensor';
-
-        // Connect GATT
-        const server = await device.gatt.connect();
-        const service = await server.getPrimaryService(KISAN_SERVICE_UUID);
-
-        // Read initial moisture
-        let initialMoisture = null;
-        try {
-            const moistChar = await service.getCharacteristic(MOISTURE_CHAR_UUID);
-            const val = await moistChar.readValue();
-            initialMoisture = val.getUint8(0); // 0-100 %
-        } catch { /* characteristic may not be readable until first notify */ }
-
-        // Read battery level
-        let battery = null;
-        try {
-            const batChar = await service.getCharacteristic(BATTERY_CHAR_UUID);
-            const val = await batChar.readValue();
-            battery = val.getUint8(0);
-        } catch { /* optional */ }
-
-        // Store the raw device object ref for reconnection
-        bleConnections.current[deviceId] = { device, server, service };
-
-        // Handle unexpected disconnection
-        device.addEventListener('gattserverdisconnected', () => {
-            setSensorReadings(prev => ({
-                ...prev,
-                [deviceId]: { ...(prev[deviceId] || {}), connected: false }
-            }));
-        });
-
-        // Return pairing metadata (farmId will be assigned separately)
-        return {
-            deviceId,
-            deviceName,
-            initialMoisture,
-            battery
-        };
     }, []);
 
     // ─── Subscribe to live notifications from a connected device ────────────
@@ -139,10 +80,30 @@ export const IoTProvider = ({ children }) => {
         if (!conn) return;
 
         try {
-            const moistureChar = await conn.service.getCharacteristic(MOISTURE_CHAR_UUID); // Moisture (notify)
+            const moistureChar = await conn.service.getCharacteristic(MOISTURE_CHAR_UUID);
+
+            // 1. Immediately read initial moisture value with zero delay
+            try {
+                const initialVal = await moistureChar.readValue();
+                const m = initialVal.getUint8(0);
+                setSensorReadings(prev => ({
+                    ...prev,
+                    [deviceId]: {
+                        ...(prev[deviceId] || {}),
+                        moisture: m,
+                        connected: true,
+                        lastUpdated: new Date().toISOString()
+                    }
+                }));
+            } catch (rErr) {
+                console.warn('[BLE] Immediate readValue:', rErr.message);
+            }
+
+            // 2. Start Notifications for instantaneous streaming updates
             await moistureChar.startNotifications();
             let lastServerPush = 0;
-            moistureChar.addEventListener('characteristicvaluechanged', (e) => {
+
+            const onMoistureNotify = (e) => {
                 const val = e.target.value.getUint8(0);
                 const nowIso = new Date().toISOString();
                 setSensorReadings(prev => ({
@@ -168,9 +129,34 @@ export const IoTProvider = ({ children }) => {
                         }).catch(() => {});
                     } catch (e) {}
                 }
-            });
+            };
 
-            // Battery (poll every 30s — not notify)
+            moistureChar.addEventListener('characteristicvaluechanged', onMoistureNotify);
+
+            // 3. Robust polling fallback (every 1.5s) to guarantee real-time updates even if notify drops
+            const moistInterval = setInterval(async () => {
+                try {
+                    if (!conn.device?.gatt?.connected) {
+                        clearInterval(moistInterval);
+                        return;
+                    }
+                    const val = await moistureChar.readValue();
+                    const m = val.getUint8(0);
+                    setSensorReadings(prev => ({
+                        ...prev,
+                        [deviceId]: {
+                            ...(prev[deviceId] || {}),
+                            moisture: m,
+                            connected: true,
+                            lastUpdated: new Date().toISOString()
+                        }
+                    }));
+                } catch { /* notification handles it */ }
+            }, 1500);
+
+            bleConnections.current[deviceId].moistInterval = moistInterval;
+
+            // 4. Battery (poll every 20s)
             const pollBattery = async () => {
                 try {
                     const batChar = await conn.service.getCharacteristic(BATTERY_CHAR_UUID);
@@ -180,57 +166,154 @@ export const IoTProvider = ({ children }) => {
                         ...prev,
                         [deviceId]: { ...(prev[deviceId] || {}), battery }
                     }));
-                } catch { /* ignore */ }
+                } catch { /* optional */ }
             };
             pollBattery();
-            const batInterval = setInterval(pollBattery, 30000);
-            // Store interval for cleanup
+            const batInterval = setInterval(pollBattery, 20000);
             bleConnections.current[deviceId].batInterval = batInterval;
 
             setSensorReadings(prev => ({
                 ...prev,
                 [deviceId]: { ...(prev[deviceId] || {}), connected: true }
             }));
+
             // Read initial WiFi status
             try {
                 const wifiStatChar = await conn.service.getCharacteristic(WIFI_STATUS_CHAR_UUID);
                 const wifiVal = await wifiStatChar.readValue();
                 const wStatus = wifiVal.getUint8(0);
                 setWifiStatus(prev => ({ ...prev, [deviceId]: wStatus }));
-            } catch { /* WiFi status char may not exist on older firmware */ }
+            } catch { /* optional */ }
         } catch (err) {
-            console.error('Subscribe failed:', err);
+            console.error('[BLE] Subscribe failed:', err);
         }
     }, []);
 
+    // ─── Scan & Pair a new device ────────────────────────────────────────────
+    const scanAndPair = useCallback(async (farmIdToAssign = null, farmNameToAssign = null) => {
+        if (!isWebBluetoothSupported()) {
+            throw new Error('WEB_BLUETOOTH_UNSUPPORTED');
+        }
+
+        // Prompt native system BLE picker
+        const device = await navigator.bluetooth.requestDevice({
+            filters: [
+                { services: [KISAN_SERVICE_UUID] },
+                { namePrefix: 'KisanSensor' }
+            ],
+            optionalServices: [KISAN_SERVICE_UUID]
+        });
+
+        const deviceId   = device.id;
+        const deviceName = device.name || 'KisanSensor';
+
+        // Connect GATT
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(KISAN_SERVICE_UUID);
+
+        bleConnections.current[deviceId] = { device, server, service };
+
+        // Handle unexpected disconnection
+        device.addEventListener('gattserverdisconnected', () => {
+            const conn = bleConnections.current[deviceId];
+            if (conn?.moistInterval) clearInterval(conn.moistInterval);
+            if (conn?.batInterval) clearInterval(conn.batInterval);
+            setSensorReadings(prev => ({
+                ...prev,
+                [deviceId]: { ...(prev[deviceId] || {}), connected: false }
+            }));
+        });
+
+        // AUTO-SAVE to pairedDevices immediately so device is NEVER LOST
+        setPairedDevices(prev => {
+            const exists = prev.find(d => d.deviceId === deviceId);
+            if (exists) {
+                return prev.map(d =>
+                    d.deviceId === deviceId
+                        ? { ...d, deviceName, farmId: farmIdToAssign || d.farmId || 'all', farmName: farmNameToAssign || d.farmName || 'My Farm', pairedAt: new Date().toISOString() }
+                        : d
+                );
+            }
+            return [...prev, {
+                deviceId,
+                deviceName,
+                farmId: farmIdToAssign || 'all',
+                farmName: farmNameToAssign || 'My Farm',
+                pairedAt: new Date().toISOString()
+            }];
+        });
+
+        // Register immediate connected state
+        setSensorReadings(prev => ({
+            ...prev,
+            [deviceId]: {
+                ...(prev[deviceId] || {}),
+                connected: true,
+                lastUpdated: new Date().toISOString()
+            }
+        }));
+
+        // Subscribe to live notifications immediately
+        await subscribeToDevice(deviceId);
+
+        return {
+            deviceId,
+            deviceName
+        };
+    }, [isWebBluetoothSupported, subscribeToDevice]);
+
     // ─── Connect to an already-paired device ────────────────────────────────
     const connectDevice = useCallback(async (deviceId) => {
-        const conn = bleConnections.current[deviceId];
-        if (conn?.device?.gatt?.connected) return; // already connected
+        let conn = bleConnections.current[deviceId];
+        if (conn?.device?.gatt?.connected) return;
 
         setConnectingId(deviceId);
         try {
-            // If device object is cached (same browser session), reconnect
+            // If device object is cached in memory (same session), reconnect directly
             if (conn?.device) {
                 const server = await conn.device.gatt.connect();
                 const service = await server.getPrimaryService(KISAN_SERVICE_UUID);
                 bleConnections.current[deviceId] = { ...conn, server, service };
                 await subscribeToDevice(deviceId);
-            } else {
-                // Need to re-scan (new browser session, no device ref)
-                // This is a platform limitation of Web Bluetooth
-                throw new Error('NEEDS_RESCAN');
+                return;
             }
+
+            // If Chrome has stored permitted devices
+            if (typeof navigator !== 'undefined' && 'bluetooth' in navigator && navigator.bluetooth.getDevices) {
+                try {
+                    const devices = await navigator.bluetooth.getDevices();
+                    const match = devices.find(d => d.id === deviceId);
+                    if (match) {
+                        const server = await match.gatt.connect();
+                        const service = await server.getPrimaryService(KISAN_SERVICE_UUID);
+                        bleConnections.current[deviceId] = { device: match, server, service };
+                        match.addEventListener('gattserverdisconnected', () => {
+                            setSensorReadings(prev => ({
+                                ...prev,
+                                [deviceId]: { ...(prev[deviceId] || {}), connected: false }
+                            }));
+                        });
+                        await subscribeToDevice(deviceId);
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('[BLE] getDevices auto-reconnect fallback:', e.message);
+                }
+            }
+
+            // If not cached, trigger scan
+            await scanAndPair();
         } finally {
             setConnectingId(null);
         }
-    }, [subscribeToDevice]);
+    }, [subscribeToDevice, scanAndPair]);
 
     // ─── Disconnect device ───────────────────────────────────────────────────
     const disconnectDevice = useCallback((deviceId) => {
         const conn = bleConnections.current[deviceId];
         if (!conn) return;
 
+        if (conn.moistInterval) clearInterval(conn.moistInterval);
         if (conn.batInterval) clearInterval(conn.batInterval);
         try { conn.device?.gatt?.disconnect(); } catch { /* ignore */ }
 
@@ -240,6 +323,82 @@ export const IoTProvider = ({ children }) => {
             [deviceId]: { ...(prev[deviceId] || {}), connected: false }
         }));
     }, []);
+
+    // ─── Auto-reconnect previously permitted Bluetooth devices on mount ─────
+    useEffect(() => {
+        let isMounted = true;
+        const autoReconnect = async () => {
+            if (typeof navigator === 'undefined' || !navigator.bluetooth || !navigator.bluetooth.getDevices) return;
+            try {
+                const devices = await navigator.bluetooth.getDevices();
+                if (devices && devices.length > 0 && isMounted) {
+                    const target = devices.find(d => d.name?.startsWith('KisanSensor')) || devices[0];
+                    if (target && target.gatt && !target.gatt.connected) {
+                        try {
+                            const server = await target.gatt.connect();
+                            const service = await server.getPrimaryService(KISAN_SERVICE_UUID);
+                            bleConnections.current[target.id] = { device: target, server, service };
+                            target.addEventListener('gattserverdisconnected', () => {
+                                setSensorReadings(prev => ({
+                                    ...prev,
+                                    [target.id]: { ...(prev[target.id] || {}), connected: false }
+                                }));
+                            });
+                            await subscribeToDevice(target.id);
+                        } catch (connErr) {
+                            // Non-critical auto-reconnect attempt
+                        }
+                    }
+                }
+            } catch (e) {
+                // Ignore silent auto-connect failure
+            }
+        };
+        autoReconnect();
+        return () => { isMounted = false; };
+    }, [subscribeToDevice]);
+
+    // ─── Background WiFi sensor polling if BLE is not active ────────────────
+    useEffect(() => {
+        let isMounted = true;
+        const checkBackendTelemetry = async () => {
+            // Only poll if no BLE device is actively connected
+            const hasBleConnected = Object.values(sensorReadings).some(r => r.connected && !r.isWiFi);
+            if (hasBleConnected) return;
+
+            try {
+                const { data } = await soilIntelligenceAPI.getSensorHistory('all');
+                if (isMounted && data?.readings && data.readings.length > 0) {
+                    const latest = data.readings[0];
+                    const readingTime = new Date(latest.created_at).getTime();
+                    // If reading arrived within the last 15 minutes, consider it active
+                    if (Date.now() - readingTime < 15 * 60 * 1000) {
+                        setSensorReadings(prev => ({
+                            ...prev,
+                            [latest.device_id || 'kisan_wifi']: {
+                                deviceId: latest.device_id || 'kisan_wifi',
+                                deviceName: 'KisanSensor (WiFi)',
+                                moisture: latest.moisture,
+                                battery: latest.battery ?? 90,
+                                connected: true,
+                                isWiFi: true,
+                                lastUpdated: latest.created_at
+                            }
+                        }));
+                    }
+                }
+            } catch (err) {
+                // Backend endpoint silent catch
+            }
+        };
+
+        checkBackendTelemetry();
+        const pollId = setInterval(checkBackendTelemetry, 4000);
+        return () => {
+            isMounted = false;
+            clearInterval(pollId);
+        };
+    }, [sensorReadings]);
 
     // ─── Save a newly paired device (after farm selection) ──────────────────
     const savePairedDevice = useCallback(({ deviceId, deviceName, farmId, farmName }) => {
@@ -262,18 +421,14 @@ export const IoTProvider = ({ children }) => {
         });
     }, []);
 
-    // ─── Update a sensor's name or farm assignment ───────────────────────────
-    const updateDevice = useCallback(({ deviceId, deviceName, farmId, farmName }) => {
+    // ─── Update device metadata ──────────────────────────────────────────────
+    const updateDevice = useCallback((deviceId, updates) => {
         setPairedDevices(prev =>
-            prev.map(d =>
-                d.deviceId === deviceId
-                    ? { ...d, ...(deviceName !== undefined && { deviceName }), ...(farmId !== undefined && { farmId, farmName }) }
-                    : d
-            )
+            prev.map(d => (d.deviceId === deviceId ? { ...d, ...updates } : d))
         );
     }, []);
 
-    // ─── Remove a paired device ──────────────────────────────────────────────
+    // ─── Remove device ───────────────────────────────────────────────────────
     const removeDevice = useCallback((deviceId) => {
         disconnectDevice(deviceId);
         setPairedDevices(prev => prev.filter(d => d.deviceId !== deviceId));
@@ -284,10 +439,12 @@ export const IoTProvider = ({ children }) => {
         });
     }, [disconnectDevice]);
 
-    // ─── Send WiFi credentials to a connected device over BLE ────────────────
+    // ─── Send WiFi credentials to ESP32 via BLE ──────────────────────────────
     const sendWiFiCredentials = useCallback(async (deviceId, ssid, password) => {
         const conn = bleConnections.current[deviceId];
-        if (!conn?.service) throw new Error('Device not connected');
+        if (!conn?.service) {
+            throw new Error('DEVICE_NOT_CONNECTED');
+        }
 
         setWifiStatus(prev => ({ ...prev, [deviceId]: WIFI_STATUS.CONNECTING }));
 
@@ -321,17 +478,14 @@ export const IoTProvider = ({ children }) => {
                         statusChar.removeEventListener('characteristicvaluechanged', handleStatusChange);
                         reject(new Error('WIFI_CONNECTION_FAILED'));
                     }
-                    // status === CONNECTING: keep waiting
                 };
 
                 statusChar.addEventListener('characteristicvaluechanged', handleStatusChange);
                 statusChar.startNotifications().catch(() => {
-                    // If notifications fail, poll instead
                     clearTimeout(timeoutId);
                     reject(new Error('Failed to subscribe to WiFi status notifications'));
                 });
 
-                // Timeout after 20 seconds
                 timeoutId = setTimeout(() => {
                     statusChar.removeEventListener('characteristicvaluechanged', handleStatusChange);
                     setWifiStatus(prev => ({ ...prev, [deviceId]: WIFI_STATUS.FAILED }));
@@ -344,13 +498,51 @@ export const IoTProvider = ({ children }) => {
         }
     }, []);
 
-    // ─── Get sensor reading for a specific farm ──────────────────────────────
+    // ─── Get sensor reading for a specific farm (ROBUST REAL-TIME RESOLUTION) ─
     const getSensorForFarm = useCallback((farmId) => {
-        if (!farmId) return null;
-        const device = pairedDevices.find(d => d.farmId === farmId);
-        if (!device) return null;
-        const reading = sensorReadings[device.deviceId] || {};
-        return { ...device, ...reading };
+        // 1. PRIORITY: Check for any actively connected BLE/WiFi sensor in sensorReadings
+        const connectedEntry = Object.entries(sensorReadings).find(([_, r]) => r.connected === true);
+        if (connectedEntry) {
+            const [devId, reading] = connectedEntry;
+            const pairedMeta = pairedDevices.find(d => d.deviceId === devId);
+            return {
+                deviceId: devId,
+                deviceName: pairedMeta?.deviceName || reading.deviceName || 'KisanSensor',
+                farmId: pairedMeta?.farmId || farmId || 'active',
+                ...pairedMeta,
+                ...reading,
+                connected: true
+            };
+        }
+
+        // 2. Look for device explicitly assigned to this farm
+        if (farmId) {
+            const device = pairedDevices.find(d => d.farmId === farmId);
+            if (device) {
+                const reading = sensorReadings[device.deviceId] || {};
+                return { ...device, ...reading };
+            }
+        }
+
+        // 3. Fallback to any paired device
+        if (pairedDevices.length > 0) {
+            const device = pairedDevices[0];
+            const reading = sensorReadings[device.deviceId] || {};
+            return { ...device, ...reading };
+        }
+
+        // 4. Any reading entry cached in state
+        const anyEntry = Object.entries(sensorReadings)[0];
+        if (anyEntry) {
+            const [devId, reading] = anyEntry;
+            return {
+                deviceId: devId,
+                deviceName: reading.deviceName || 'KisanSensor',
+                ...reading
+            };
+        }
+
+        return null;
     }, [pairedDevices, sensorReadings]);
 
     // ─── Get all devices for a farm ──────────────────────────────────────────
