@@ -2,10 +2,53 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { getAccurateLocationDetails, detectAndResolveCurrentLocation } from '../utils/geolocation';
 
 /**
- * LeafletFarmMap - Fast-loading interactive map using Leaflet + Google Earth tiles.
- * Replaces the broken Google Maps JS API component with zero API key requirement.
- * Supports: Satellite/Hybrid/Terrain switching, draggable marker, GPS locate, search.
+ * LeafletFarmMap - Ultra-fast loading interactive map using Leaflet + Google Earth tiles.
+ * 
+ * Performance optimizations:
+ * 1. Leaflet CSS is preloaded in index.html (zero CSS delay)
+ * 2. Leaflet JS is eagerly loaded at app startup via warmup()
+ * 3. DNS preconnect to mt0-3.google.com (zero DNS lookup delay)
+ * 4. Aggressive tile buffer (keepBuffer: 6) — caches 6 screens of tiles around viewport
+ * 5. updateWhenZooming: true for smooth zoom transitions
+ * 6. Tile fadeAnimation disabled for instant paint
+ * 7. Low initial zoom (14) for fast first-paint, then animate to 16 after load
  */
+
+// ── Eagerly load Leaflet JS at import time (not at mount time) ──
+let leafletReadyPromise = null;
+
+function warmupLeaflet() {
+    if (leafletReadyPromise) return leafletReadyPromise;
+
+    if (window.L) {
+        leafletReadyPromise = Promise.resolve(window.L);
+        return leafletReadyPromise;
+    }
+
+    leafletReadyPromise = new Promise((resolve, reject) => {
+        // Check if script tag already exists
+        const existing = document.querySelector('script[src*="leaflet@1.9.4"]');
+        if (existing) {
+            if (window.L) return resolve(window.L);
+            existing.addEventListener('load', () => resolve(window.L));
+            existing.addEventListener('error', reject);
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.async = true;
+        script.onload = () => resolve(window.L);
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+
+    return leafletReadyPromise;
+}
+
+// Start loading Leaflet immediately when this module is imported (not when component mounts)
+warmupLeaflet();
+
 const LeafletFarmMap = ({
     initialLat = 20.5937,
     initialLon = 78.9629,
@@ -30,47 +73,14 @@ const LeafletFarmMap = ({
         lon: selectedLocation?.longitude || initialLon
     });
     const [resolvedInfo, setResolvedInfo] = useState(null);
-    const [leafletLoaded, setLeafletLoaded] = useState(false);
-
-    // Load Leaflet CSS + JS dynamically (only once)
-    useEffect(() => {
-        if (window.L) {
-            setLeafletLoaded(true);
-            return;
-        }
-
-        const loadLeaflet = async () => {
-            // CSS
-            if (!document.querySelector('link[href*="leaflet@1.9.4"]')) {
-                const css = document.createElement('link');
-                css.rel = 'stylesheet';
-                css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-                document.head.appendChild(css);
-            }
-
-            // JS
-            if (!window.L) {
-                await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.head.appendChild(script);
-                });
-            }
-
-            setLeafletLoaded(true);
-        };
-
-        loadLeaflet().catch(err => console.error('Failed to load Leaflet:', err));
-    }, []);
+    const [mapReady, setMapReady] = useState(false);
 
     // Update location and trigger reverse geocode
     const handleCoordinateChange = useCallback(async (lat, lon, pan = false) => {
         setCurrentCoords({ lat, lon });
 
         if (pan && mapRef.current) {
-            mapRef.current.setView([lat, lon], mapRef.current.getZoom(), { animate: true });
+            mapRef.current.flyTo([lat, lon], mapRef.current.getZoom(), { duration: 0.8 });
         }
 
         if (markerRef.current) {
@@ -80,11 +90,8 @@ const LeafletFarmMap = ({
         try {
             const locDetails = await getAccurateLocationDetails(lat, lon);
             setResolvedInfo(locDetails);
-            if (onLocationSelect) {
-                onLocationSelect(locDetails);
-            }
+            if (onLocationSelect) onLocationSelect(locDetails);
         } catch (e) {
-            console.warn('Reverse geocode error:', e);
             if (onLocationSelect) {
                 onLocationSelect({
                     latitude: lat,
@@ -100,109 +107,140 @@ const LeafletFarmMap = ({
 
     // Initialize Leaflet map
     useEffect(() => {
-        if (!leafletLoaded || !window.L || !mapContainerRef.current || mapRef.current) return;
+        let cancelled = false;
 
-        const L = window.L;
-        const startLat = selectedLocation?.latitude || initialLat;
-        const startLon = selectedLocation?.longitude || initialLon;
+        warmupLeaflet().then((L) => {
+            if (cancelled || !L || !mapContainerRef.current || mapRef.current) return;
 
-        const map = L.map(mapContainerRef.current, {
-            center: [startLat, startLon],
-            zoom: zoom,
-            maxZoom: 22,
-            zoomControl: false
+            const startLat = selectedLocation?.latitude || initialLat;
+            const startLon = selectedLocation?.longitude || initialLon;
+
+            // ── Create map with performance-tuned options ──
+            const map = L.map(mapContainerRef.current, {
+                center: [startLat, startLon],
+                zoom: 14,              // Start at zoom 14 for fast first-paint (fewer tiles)
+                maxZoom: 22,
+                zoomControl: false,
+                fadeAnimation: false,   // No fade = instant tile paint
+                zoomAnimation: true,
+                markerZoomAnimation: true,
+                preferCanvas: true      // Canvas renderer is faster than SVG
+            });
+            mapRef.current = map;
+
+            // Zoom control top-right
+            L.control.zoom({ position: 'topright' }).addTo(map);
+
+            // ── High-perf tile layer config ──
+            const tileOpts = (extra = {}) => ({
+                subdomains: ['0', '1', '2', '3'],
+                maxZoom: 22,
+                maxNativeZoom: 20,
+                keepBuffer: 6,            // Cache 6 screens of tiles around viewport
+                updateWhenIdle: false,     // Load tiles during pan (don't wait for idle)
+                updateWhenZooming: true,   // Load tiles during zoom animation
+                tileSize: 256,
+                crossOrigin: 'anonymous',
+                ...extra
+            });
+
+            baseLayers.current['satellite'] = L.tileLayer(
+                'https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+                { ...tileOpts(), attribution: '© Google Earth' }
+            );
+
+            baseLayers.current['hybrid'] = L.tileLayer(
+                'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+                { ...tileOpts(), attribution: '© Google Earth' }
+            );
+
+            baseLayers.current['terrain'] = L.tileLayer(
+                'https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+                { ...tileOpts({ maxNativeZoom: 18 }), attribution: '© Google Terrain' }
+            );
+
+            // Add satellite as default
+            const defaultLayer = baseLayers.current['satellite'];
+            defaultLayer.addTo(map);
+
+            // Once first batch of tiles loaded → zoom to target level
+            defaultLayer.once('load', () => {
+                if (!cancelled && mapRef.current) {
+                    setTimeout(() => {
+                        mapRef.current.flyTo([startLat, startLon], zoom, { duration: 0.6 });
+                    }, 100);
+                }
+            });
+
+            // ── Draggable Marker with pulsing green dot ──
+            const markerIcon = L.divIcon({
+                className: 'leaflet-farm-pin-custom',
+                html: `
+                    <div style="position:relative;width:40px;height:40px;">
+                        <div style="position:absolute;inset:0;border-radius:50%;background:rgba(19,236,19,0.35);animation:fpp 2s infinite ease-out;"></div>
+                        <div style="position:absolute;top:10px;left:10px;width:20px;height:20px;border-radius:50%;background:#13ec13;border:3px solid #fff;box-shadow:0 0 14px #13ec13,0 2px 8px rgba(0,0,0,0.4);"></div>
+                    </div>
+                    <style>@keyframes fpp{0%{transform:scale(.7);opacity:1}100%{transform:scale(2.6);opacity:0}}</style>
+                `,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
+
+            const marker = L.marker([startLat, startLon], {
+                icon: markerIcon,
+                draggable: true,
+                autoPan: true
+            }).addTo(map);
+            markerRef.current = marker;
+
+            marker.bindPopup('<strong style="color:#059669;">📍 Your Farm Pin</strong><br><span style="font-size:11px;">Drag to fine-tune position</span>');
+
+            // Map Click -> Move Pin
+            map.on('click', (e) => {
+                handleCoordinateChange(e.latlng.lat, e.latlng.lng);
+            });
+
+            // Marker Drag End -> Update Coordinates
+            marker.on('dragend', () => {
+                const pos = marker.getLatLng();
+                handleCoordinateChange(pos.lat, pos.lng);
+            });
+
+            setMapReady(true);
+
+            // Initial reverse geocode
+            handleCoordinateChange(Number(startLat), Number(startLon));
+
+            // ── Preload adjacent tiles for hybrid/terrain layers in background ──
+            setTimeout(() => {
+                if (!cancelled) {
+                    // Silently create tile layers so browser caches DNS + TCP connections
+                    const preloadImg = new Image();
+                    preloadImg.src = `https://mt0.google.com/vt/lyrs=y&x=0&y=0&z=1`;
+                    const preloadImg2 = new Image();
+                    preloadImg2.src = `https://mt1.google.com/vt/lyrs=p&x=0&y=0&z=1`;
+                }
+            }, 2000);
         });
-        mapRef.current = map;
-
-        // Zoom control on top right
-        L.control.zoom({ position: 'topright' }).addTo(map);
-
-        // ── Basemaps ──
-        baseLayers.current['satellite'] = L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-            subdomains: ['0', '1', '2', '3'],
-            maxZoom: 22,
-            maxNativeZoom: 20,
-            attribution: '© Google Earth'
-        });
-
-        baseLayers.current['hybrid'] = L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-            subdomains: ['0', '1', '2', '3'],
-            maxZoom: 22,
-            maxNativeZoom: 20,
-            attribution: '© Google Earth'
-        });
-
-        baseLayers.current['terrain'] = L.tileLayer('https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
-            subdomains: ['0', '1', '2', '3'],
-            maxZoom: 22,
-            maxNativeZoom: 18,
-            attribution: '© Google Terrain'
-        });
-
-        // Set default basemap
-        baseLayers.current['satellite'].addTo(map);
-
-        // ── Draggable Marker ──
-        const markerIcon = L.divIcon({
-            className: 'leaflet-farm-pin-custom',
-            html: `
-                <div style="position:relative;width:40px;height:40px;">
-                    <div style="position:absolute;inset:0;border-radius:50%;background:rgba(19,236,19,0.35);animation:farm-pin-pulse 2s infinite ease-out;"></div>
-                    <div style="position:absolute;top:10px;left:10px;width:20px;height:20px;border-radius:50%;background:#13ec13;border:3px solid #fff;box-shadow:0 0 14px #13ec13,0 2px 8px rgba(0,0,0,0.4);"></div>
-                </div>
-                <style>
-                    @keyframes farm-pin-pulse {
-                        0% { transform:scale(0.7); opacity:1; }
-                        100% { transform:scale(2.6); opacity:0; }
-                    }
-                </style>
-            `,
-            iconSize: [40, 40],
-            iconAnchor: [20, 20]
-        });
-
-        const marker = L.marker([startLat, startLon], {
-            icon: markerIcon,
-            draggable: true,
-            autoPan: true
-        }).addTo(map);
-        markerRef.current = marker;
-
-        marker.bindPopup('<strong style="color:#059669;">📍 Your Farm Pin</strong><br><span style="font-size:11px;">Drag to fine-tune position</span>');
-
-        // Map Click -> Move Pin
-        map.on('click', (e) => {
-            handleCoordinateChange(e.latlng.lat, e.latlng.lng);
-        });
-
-        // Marker Drag End -> Update Coordinates
-        marker.on('dragend', () => {
-            const pos = marker.getLatLng();
-            handleCoordinateChange(pos.lat, pos.lng);
-        });
-
-        // Initial reverse geocode
-        handleCoordinateChange(Number(startLat), Number(startLon));
 
         return () => {
+            cancelled = true;
             if (mapRef.current) {
                 mapRef.current.remove();
                 mapRef.current = null;
             }
         };
-    }, [leafletLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Switch Map Type
     const handleMapTypeSwitch = (type) => {
         setMapType(type);
         if (!mapRef.current || !baseLayers.current[type]) return;
 
-        // Remove all base layers
         Object.values(baseLayers.current).forEach(layer => {
             if (mapRef.current.hasLayer(layer)) mapRef.current.removeLayer(layer);
         });
 
-        // Add selected base layer
         baseLayers.current[type].addTo(mapRef.current);
     };
 
@@ -215,16 +253,13 @@ const LeafletFarmMap = ({
             const loc = await detectAndResolveCurrentLocation((p) => setLocatingStatus(p.message));
             if (loc?.latitude && loc?.longitude) {
                 handleCoordinateChange(loc.latitude, loc.longitude, true);
-                if (mapRef.current) {
-                    mapRef.current.setZoom(18);
-                }
+                if (mapRef.current) mapRef.current.setZoom(18);
             }
-            setIsLocating(false);
-            setLocatingStatus('');
         } catch (err) {
             console.error('GPS error:', err);
-            setLocatingStatus('');
+        } finally {
             setIsLocating(false);
+            setLocatingStatus('');
         }
     };
 
@@ -238,12 +273,8 @@ const LeafletFarmMap = ({
             const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery + ', India')}&limit=1`);
             const data = await res.json();
             if (data && data.length > 0) {
-                const searchLat = parseFloat(data[0].lat);
-                const searchLon = parseFloat(data[0].lon);
-                handleCoordinateChange(searchLat, searchLon, true);
-                if (mapRef.current) {
-                    mapRef.current.setZoom(16);
-                }
+                handleCoordinateChange(parseFloat(data[0].lat), parseFloat(data[0].lon), true);
+                if (mapRef.current) mapRef.current.setZoom(16);
             }
         } catch (err) {
             console.error('Search error:', err);
@@ -257,7 +288,6 @@ const LeafletFarmMap = ({
             {/* Top Toolbar: Search & Map Type Switcher */}
             {showControls && (
                 <div className="absolute top-3 left-3 right-3 z-[500] flex flex-wrap items-center justify-between gap-2 pointer-events-auto">
-                    {/* Search Bar */}
                     {showSearch && (
                         <form onSubmit={handleSearch} className="flex-1 min-w-[200px] max-w-sm">
                             <div className="relative flex items-center">
@@ -273,20 +303,13 @@ const LeafletFarmMap = ({
                                     <span className="material-icons animate-spin text-sm text-[#13ec13] absolute right-3">sync</span>
                                 ) : (
                                     searchQuery && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setSearchQuery('')}
-                                            className="material-icons text-sm text-slate-400 hover:text-white absolute right-2.5 cursor-pointer"
-                                        >
-                                            close
-                                        </button>
+                                        <button type="button" onClick={() => setSearchQuery('')} className="material-icons text-sm text-slate-400 hover:text-white absolute right-2.5 cursor-pointer">close</button>
                                     )
                                 )}
                             </div>
                         </form>
                     )}
 
-                    {/* Map Layers (Satellite, Hybrid, Terrain) */}
                     <div className="flex items-center bg-[#071a0d]/95 border border-[#13ec13]/30 rounded-2xl p-1 backdrop-blur-md shadow-lg">
                         {[
                             { key: 'satellite', icon: 'satellite_alt', label: 'Satellite' },
@@ -314,8 +337,8 @@ const LeafletFarmMap = ({
             {/* Map Container */}
             <div ref={mapContainerRef} className="w-full h-full relative z-0" />
 
-            {/* Loading Skeleton */}
-            {!leafletLoaded && (
+            {/* Loading Skeleton — only shown before Leaflet is ready */}
+            {!mapReady && (
                 <div className="absolute inset-0 flex items-center justify-center bg-[#050e08] z-10">
                     <div className="text-center space-y-3">
                         <div className="w-10 h-10 mx-auto border-2 border-[#13ec13]/30 border-t-[#13ec13] rounded-full animate-spin"></div>
@@ -338,7 +361,7 @@ const LeafletFarmMap = ({
                 <span className="text-xs font-extrabold hidden sm:inline">{isLocating ? 'Locking GPS...' : 'Locate Field'}</span>
             </button>
 
-            {/* Bottom HUD: Live Coordinates & Address Confirmation */}
+            {/* Bottom HUD */}
             <div className="absolute bottom-3 left-3 right-3 z-[500] p-3 rounded-2xl bg-[#071a0d]/95 border border-[#13ec13]/30 text-white backdrop-blur-xl shadow-2xl flex flex-wrap items-center justify-between gap-2 pointer-events-auto">
                 <div className="flex items-center gap-2.5 overflow-hidden">
                     <div className="w-8 h-8 rounded-xl bg-[#13ec13]/15 text-[#13ec13] flex items-center justify-center shrink-0 border border-[#13ec13]/30">
@@ -358,11 +381,8 @@ const LeafletFarmMap = ({
                         </p>
                     </div>
                 </div>
-
                 <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] text-[#13ec13]/70 font-bold hidden md:inline">
-                        🎯 Drag pin to fine-tune
-                    </span>
+                    <span className="text-[10px] text-[#13ec13]/70 font-bold hidden md:inline">🎯 Drag pin to fine-tune</span>
                 </div>
             </div>
         </div>

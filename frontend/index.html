@@ -8,6 +8,20 @@
   <title>Kissan Sahayak</title>
   <meta name="description" content="AI-Powered Agricultural Intelligence for Indian Farmers" />
 
+  <!-- Preconnect to Google Tile Servers for instant satellite map loading -->
+  <link rel="preconnect" href="https://mt0.google.com" crossorigin />
+  <link rel="preconnect" href="https://mt1.google.com" crossorigin />
+  <link rel="preconnect" href="https://mt2.google.com" crossorigin />
+  <link rel="preconnect" href="https://mt3.google.com" crossorigin />
+  <link rel="dns-prefetch" href="https://mt0.google.com" />
+  <link rel="dns-prefetch" href="https://mt1.google.com" />
+  <link rel="dns-prefetch" href="https://unpkg.com" />
+
+  <!-- Preload Leaflet assets so map initializes instantly -->
+  <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" as="style" />
+  <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" as="script" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
   <!-- PWA Meta Tags -->
   <meta name="theme-color" content="#059669" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
