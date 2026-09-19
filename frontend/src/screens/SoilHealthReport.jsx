@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import BottomNavbar from '../components/BottomNavbar';
+import NPKReportCard from '../components/NPKReportCard';
+import { useCart } from '../context/CartContext';
 import { soilAPI } from '../api';
 
 const SoilHealthReport = ({ onBack, onNavigate, userProfile, selectedFarmId }) => {
@@ -10,6 +12,7 @@ const SoilHealthReport = ({ onBack, onNavigate, userProfile, selectedFarmId }) =
     const [hasAnalyzed, setHasAnalyzed] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [toast, setToast] = useState(null);
+    const { cartCount, setIsCartOpen } = useCart();
 
     // Default placeholder data
     const [reportData, setReportData] = useState({
@@ -188,6 +191,20 @@ const SoilHealthReport = ({ onBack, onNavigate, userProfile, selectedFarmId }) =
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        {/* Fertilizer Cart Trigger */}
+                        <button
+                            onClick={() => setIsCartOpen(true)}
+                            className="relative flex items-center justify-center bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all active:scale-95 tactile-btn"
+                            title="Fertilizer Cart"
+                        >
+                            <span className="material-symbols-outlined text-xl">shopping_cart</span>
+                            {cartCount > 0 && (
+                                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 text-slate-900 text-[10px] font-black flex items-center justify-center shadow-md animate-pulse">
+                                    {cartCount}
+                                </span>
+                            )}
+                        </button>
+
                         <button onClick={handleDownloadPdf} className="flex items-center justify-center bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all active:scale-95 tactile-btn" title="Download PDF">
                             <span className="material-symbols-outlined text-xl">download</span>
                         </button>
@@ -217,8 +234,13 @@ const SoilHealthReport = ({ onBack, onNavigate, userProfile, selectedFarmId }) =
                     </div>
                 )}
 
+                {/* ── S.R. Reddy & ICAR Agronomic NPK & Fertilizer Prescription ── */}
+                <div className="mt-6">
+                    <NPKReportCard moisture={48} defaultCrop="wheat" />
+                </div>
+
                 {/* Overall Status Card */}
-                <div className="tilt-card-container mt-6">
+                <div className="tilt-card-container mt-4">
                     <div className="tilt-card krishi-glass rounded-[24px] p-6 shadow-[0_4px_20px_-4px_rgba(8,61,32,0.15)] border border-white/50 dark:border-white/10 relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                             <span className="material-symbols-outlined text-6xl">psychiatry</span>
@@ -226,8 +248,8 @@ const SoilHealthReport = ({ onBack, onNavigate, userProfile, selectedFarmId }) =
 
                         <div className="flex justify-between items-start mb-4 relative z-10">
                             <div className="flex flex-col">
-                                <span className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Overall Status</span>
-                                <span className="text-emerald-700 dark:text-emerald-400 text-3xl font-black tracking-tight">{reportData.status}</span>
+                                <span className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Upload Card Status</span>
+                                <span className="text-emerald-700 dark:text-emerald-400 text-2xl font-black tracking-tight">{reportData.status}</span>
                             </div>
                             <span className={`${getBadgeStyle(reportData.badge)} px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase border border-current/10 shadow-sm`}>
                                 {reportData.badge}

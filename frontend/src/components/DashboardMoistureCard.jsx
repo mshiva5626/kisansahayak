@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useIoT } from '../context/IoTContext';
+import { estimateSoilNPKFromSensor } from '../utils/npkAgronomyModel';
 
 // ─── Circular gauge ───────────────────────────────────────────────────────────
 const CircularGauge = ({ value, size = 80, strokeWidth = 6 }) => {
@@ -80,6 +81,9 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate }) => {
     }, [pulse]);
 
     const moisture = sensor?.moisture ?? null;
+    const soilNPK = useMemo(() => {
+        return estimateSoilNPKFromSensor(moisture ?? 45, 'wheat');
+    }, [moisture]);
     const { label, color, bg, tip, emoji } = getMoistureStatus(moisture);
     const isConnected = sensor?.connected === true;
     const isConnecting = sensor ? connectingId === sensor.deviceId : false;
@@ -237,9 +241,37 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate }) => {
                 </div>
             </div>
 
+            {/* Live Sensor-Correlated NPK Indicators */}
+            <div className="mt-3.5 pt-3 border-t border-emerald-500/15">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">science</span>
+                        Live Sensor NPK Estimates
+                    </span>
+                    <span className="text-[9px] text-gray-400">S.R. Reddy ICAR Model</span>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5">
+                    <div className="bg-white/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 rounded-xl px-2 py-1.5 text-center">
+                        <span className="text-[9px] font-bold text-gray-400 block">Nitrogen</span>
+                        <span className="text-xs font-black text-amber-500">{soilNPK.n.value}</span>
+                        <span className="text-[8px] text-gray-400 block">kg/ha • {soilNPK.n.label}</span>
+                    </div>
+                    <div className="bg-white/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 rounded-xl px-2 py-1.5 text-center">
+                        <span className="text-[9px] font-bold text-gray-400 block">Phos (P₂O₅)</span>
+                        <span className="text-xs font-black text-emerald-500">{soilNPK.p.value}</span>
+                        <span className="text-[8px] text-gray-400 block">kg/ha • {soilNPK.p.label}</span>
+                    </div>
+                    <div className="bg-white/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 rounded-xl px-2 py-1.5 text-center">
+                        <span className="text-[9px] font-bold text-gray-400 block">Potash (K₂O)</span>
+                        <span className="text-xs font-black text-teal-500">{soilNPK.k.value}</span>
+                        <span className="text-[8px] text-gray-400 block">kg/ha • {soilNPK.k.label}</span>
+                    </div>
+                </div>
+            </div>
+
             {/* Last updated */}
             {sensor.lastUpdated && (
-                <p className="text-[9px] text-slate-500 text-right mt-1">
+                <p className="text-[9px] text-slate-500 text-right mt-2">
                     Updated {new Date(sensor.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </p>
             )}

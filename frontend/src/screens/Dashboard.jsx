@@ -5,6 +5,9 @@ import DashboardSkeleton from '../components/DashboardSkeleton';
 import LocationModal from '../components/LocationModal';
 import SeasonalPriceIntelligence from '../components/SeasonalPriceIntelligence';
 import DashboardMoistureCard from '../components/DashboardMoistureCard';
+import NPKReportCard from '../components/NPKReportCard';
+import { useCart } from '../context/CartContext';
+import { useIoT } from '../context/IoTContext';
 import { weatherAPI, farmAPI, mandiAPI, aiAPI } from '../api';
 
 const Dashboard = ({ 
@@ -33,6 +36,10 @@ const Dashboard = ({
     const [isTasksLoading, setIsTasksLoading] = useState(false);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+
+    const { cartCount, setIsCartOpen } = useCart();
+    const { getSensorForFarm } = useIoT();
+    const sensor = getSensorForFarm(selectedFarmId);
 
     const activeState = userLocation?.state || userProfile?.state || 'Madhya Pradesh';
     const activeDistrict = userLocation?.district || userProfile?.district || 'Indore';
@@ -204,6 +211,20 @@ const Dashboard = ({
                                 </div>
                             </div>
                             <div className="flex items-center gap-2.5">
+                                {/* Fertilizer Cart & Order Button */}
+                                <button
+                                    onClick={() => setIsCartOpen(true)}
+                                    className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/20 active:scale-95 transition-all relative shadow-md"
+                                    title="Fertilizer Cart & Commission"
+                                >
+                                    <span className="material-symbols-outlined text-[#0ED054] text-[21px]">shopping_cart</span>
+                                    {cartCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center shadow-md animate-pulse">
+                                            {cartCount}
+                                        </span>
+                                    )}
+                                </button>
+
                                 {/* IoT Bluetooth Pair button */}
                                 <button
                                     onClick={onIoTPairClick || (() => onNavigate('iot-pairing'))}
@@ -404,6 +425,13 @@ const Dashboard = ({
                         {/* ── Live IoT Soil Moisture Card ── */}
                         <DashboardMoistureCard
                             selectedFarmId={selectedFarmId}
+                            onNavigate={onNavigate}
+                        />
+
+                        {/* ── Live Sensor NPK & Fertilizer Prescription Report (S.R. Reddy ICAR) ── */}
+                        <NPKReportCard
+                            moisture={sensor?.moisture ?? 48}
+                            defaultCrop={farm?.crop_type?.toLowerCase() || 'wheat'}
                             onNavigate={onNavigate}
                         />
 

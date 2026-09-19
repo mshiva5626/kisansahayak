@@ -30,6 +30,8 @@ import IoTSensorSettings from './screens/IoTSensorSettings';
 import IoTESP32Guide from './screens/IoTESP32Guide';
 import WiFiConfiguration from './screens/WiFiConfiguration';
 import { IoTProvider } from './context/IoTContext';
+import { CartProvider } from './context/CartContext';
+import FertilizerCartDrawer from './components/FertilizerCartDrawer';
 
 import { authAPI } from './api';
 import { supabase, signInWithGoogle } from './supabaseClient';
@@ -266,7 +268,8 @@ function App() {
 
   return (
     <IoTProvider>
-    <div className="min-h-[100dvh] bg-slate-900 md:bg-gray-800 dark:bg-black flex justify-center items-center">
+      <CartProvider>
+        <div className="min-h-[100dvh] bg-slate-900 md:bg-gray-800 dark:bg-black flex justify-center items-center">
       <div className="w-full max-w-md h-[100dvh] md:h-[90dvh] md:max-h-[850px] md:rounded-[2.5rem] bg-background-light dark:bg-background-dark overflow-hidden relative shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] flex flex-col transform translate-x-0">
         <div className="flex-1 w-full h-full overflow-y-auto no-scrollbar relative flex flex-col">
           {currentScreen === 'welcome' && (
@@ -500,10 +503,17 @@ function App() {
               onLocationChange={handleLocationChange}
             />
           )}
-          {currentScreen === 'soil-test' && (
+          {(currentScreen === 'soil-test' || currentScreen === 'soil-health') && (
             <SoilHealthReport
               onBack={() => navigateTo('dashboard')}
               onNavigate={navigateTo}
+              userProfile={userProfile}
+              selectedFarmId={selectedFarmId}
+            />
+          )}
+          {(currentScreen === 'fertilizer-marketplace' || currentScreen === 'fertilizer-store') && (
+            <FertilizerMarketplace
+              onBack={() => navigateTo('dashboard')}
               userProfile={userProfile}
               selectedFarmId={selectedFarmId}
             />
@@ -545,6 +555,8 @@ function App() {
         </div>
       </div>
     </div>
+    <FertilizerCartDrawer />
+    </CartProvider>
     </IoTProvider>
   );
 }
