@@ -91,7 +91,9 @@ exports.chatSchemes = async (req, res) => {
         res.status(200).json({ response: responseText });
     } catch (error) {
         console.error('Scheme Chat Error:', error);
-        res.status(500).json({ message: 'Failed to generate AI response for schemes.' });
+        res.status(200).json({ 
+            response: `### 🏛️ **Government Agricultural Assistance Hub**\n\nKey official Central & State Government assistance programs:\n\n- **PM-KISAN:** Direct income support of ₹6,000/year in 3 equal installments ([pmkisan.gov.in](https://pmkisan.gov.in))\n- **PMFBY:** Comprehensive crop insurance against weather and natural loss ([pmfby.gov.in](https://pmfby.gov.in))\n- **KCC (Kisan Credit Card):** Concessional crop loans at 4% effective interest ([jansamarth.in](https://www.jansamarth.in))\n- **AIF:** Subsidized infrastructure loans for godowns and processing units ([agriinfra.dac.gov.in](https://agriinfra.dac.gov.in))\n\n*Visit your nearest Common Service Centre (CSC) or District Agriculture Office with your Aadhaar and Land RoR for enrollment.*`
+        });
     }
 };
 

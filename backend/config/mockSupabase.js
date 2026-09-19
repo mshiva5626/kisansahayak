@@ -14,6 +14,8 @@ function readData() {
             images: [],
             advisories: [],
             notifications: [],
+            soil_reports: [],
+            sensor_readings: [],
             _nextId: 100
         }, null, 2), 'utf8');
     }
@@ -28,6 +30,8 @@ function readData() {
             images: [],
             advisories: [],
             notifications: [],
+            soil_reports: [],
+            sensor_readings: [],
             _nextId: 100
         };
     }

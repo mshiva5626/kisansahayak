@@ -202,23 +202,23 @@ const LoginRegistration = ({
     };
 
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display antialiased min-h-full flex flex-col overflow-x-hidden text-slate-900 dark:text-slate-100 relative w-full">
+        <div className="bg-[#f8fafc] font-display antialiased min-h-full flex flex-col overflow-x-hidden text-slate-800 relative w-full">
             {/* Header with Aesthetic Curve & Emblem */}
-            <header className="relative pt-10 pb-14 px-6 flex flex-col items-center justify-center rounded-b-[2.5rem] shadow-xl z-20 shrink-0 overflow-hidden min-h-[220px] bg-gradient-to-b from-[#021309] via-[#052615] to-[#0a3d22]">
+            <header className="relative pt-10 pb-14 px-6 flex flex-col items-center justify-center rounded-b-[2.5rem] shadow-lg z-20 shrink-0 overflow-hidden min-h-[200px] bg-gradient-to-b from-emerald-700 via-emerald-600 to-teal-700">
                 <div className="absolute inset-0 z-0">
                     <img 
                         alt="Lush agricultural farm" 
-                        className="w-full h-full object-cover opacity-35 brightness-75 scale-105" 
+                        className="w-full h-full object-cover opacity-25 brightness-90 scale-105" 
                         src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=1200&auto=format&fit=crop" 
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#021309] via-[#052615]/70 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-emerald-700/80 via-emerald-600/50 to-transparent"></div>
                 </div>
 
                 {/* Top Language Switcher in Header */}
                 <div className="absolute top-4 right-5 z-20">
                     <button
                         onClick={() => setIsLangModalOpen(true)}
-                        className="flex items-center space-x-1.5 bg-black/40 hover:bg-black/60 border border-white/20 px-3 py-1 rounded-full text-white text-xs font-bold backdrop-blur-md transition-all active:scale-95 cursor-pointer shadow-md"
+                        className="flex items-center space-x-1.5 bg-white/20 hover:bg-white/30 border border-white/30 px-3 py-1 rounded-full text-white text-xs font-bold backdrop-blur-md transition-all active:scale-95 cursor-pointer shadow-sm"
                     >
                         <span>{currentLangObj.flag}</span>
                         <span>{currentLangObj.native}</span>
@@ -226,18 +226,16 @@ const LoginRegistration = ({
                     </button>
                 </div>
 
-                <div className="flex flex-col items-center justify-center gap-1.5 w-full relative z-10">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#083D20] via-[#0ED054] to-[#34d399] p-[1.5px] shadow-xl flex items-center justify-center mb-1">
-                        <div className="w-full h-full bg-[#02170b] rounded-[14px] flex items-center justify-center">
-                            <svg className="w-6 h-6 text-[#0ED054]" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.22,6.22,0,0,0,1.75,3.75C7,8,17,8,17,8Z"></path>
-                            </svg>
-                        </div>
+                <div className="flex flex-col items-center justify-center gap-1 w-full relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-white/20 border border-white/40 shadow-md flex items-center justify-center mb-1">
+                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.22,6.22,0,0,0,1.75,3.75C7,8,17,8,17,8Z"></path>
+                        </svg>
                     </div>
-                    <h1 className="text-2xl font-extrabold tracking-tight leading-none text-white uppercase drop-shadow-md">
+                    <h1 className="text-2xl font-extrabold tracking-tight leading-none text-white uppercase drop-shadow-sm">
                         {t('appName')}
                     </h1>
-                    <p className="text-[#0ED054] text-xs font-bold tracking-wide drop-shadow">
+                    <p className="text-emerald-100 text-xs font-semibold tracking-wide">
                         {t('appTagline')}
                     </p>
                 </div>
@@ -246,7 +244,7 @@ const LoginRegistration = ({
             {/* Main Interactive Card */}
             <main className="flex-1 relative flex flex-col w-full max-w-md mx-auto z-10 -mt-8">
                 <div className="flex-1 overflow-y-auto no-scrollbar relative z-10 px-5 pb-8">
-                    <div className="krishi-glass rounded-[28px] shadow-2xl p-6 border border-white/60 dark:border-white/10 backdrop-blur-2xl bg-white/95 dark:bg-slate-900/95">
+                    <div className="bg-white rounded-[28px] shadow-xl p-6 border border-slate-200/80">
                         
                         {/* Switch Mode Tabs (Login vs Register) */}
                         <div className="flex bg-slate-100 dark:bg-slate-800/90 p-1 rounded-2xl mb-6 border border-slate-200/60 dark:border-slate-700/60">

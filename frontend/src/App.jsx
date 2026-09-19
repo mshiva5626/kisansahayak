@@ -23,6 +23,7 @@ import FarmerProfileSetup from './screens/FarmerProfileSetup';
 import SatelliteImagery from './screens/SatelliteImagery';
 import LiveMarketPrices from './screens/LiveMarketPrices';
 import SoilHealthReport from './screens/SoilHealthReport';
+import SoilIntelligenceHub from './screens/SoilIntelligenceHub';
 import FertilizerMarketplace from './screens/FertilizerMarketplace';
 import AMIInsightCenter from './screens/AMIInsightCenter';
 import IoTDevicePairing from './screens/IoTDevicePairing';
@@ -147,10 +148,18 @@ function App() {
     };
   }, []);
 
-  const navigateTo = (screen) => {
+  const navigateTo = (screen, params) => {
     // Handle logout specially
     if (screen === 'logout') {
       handleLogout();
+      return;
+    }
+
+    if (screen === 'copilot' || screen === 'chat') {
+      if (params?.initialQuery) {
+        setChatContext({ type: 'direct_query', initialQuery: params.initialQuery });
+      }
+      setCurrentScreen('chat');
       return;
     }
 
@@ -269,8 +278,8 @@ function App() {
   return (
     <IoTProvider>
       <CartProvider>
-        <div className="min-h-[100dvh] bg-slate-900 md:bg-gray-800 dark:bg-black flex justify-center items-center">
-      <div className="w-full max-w-md h-[100dvh] md:h-[90dvh] md:max-h-[850px] md:rounded-[2.5rem] bg-background-light dark:bg-background-dark overflow-hidden relative shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] flex flex-col transform translate-x-0">
+        <div className="min-h-[100dvh] bg-slate-100 md:bg-emerald-50/40 flex justify-center items-center py-0 md:py-4">
+          <div className="w-full max-w-md h-[100dvh] md:h-[92dvh] md:max-h-[860px] md:rounded-[2.5rem] bg-[#f8fafc] border border-slate-200/80 overflow-hidden relative shadow-2xl flex flex-col transform translate-x-0 text-slate-800">
         <div className="flex-1 w-full h-full overflow-y-auto no-scrollbar relative flex flex-col">
           {currentScreen === 'welcome' && (
             <WelcomeScreen
@@ -443,7 +452,7 @@ function App() {
           )}
           {currentScreen === 'scan-results' && (
             <CropAnalysisResults
-              onBack={() => navigateTo('dashboard')}
+              onBack={() => navigateTo('scanner')}
               onViewTreatment={() => {
                 setChatContext({ type: 'crop_scan', data: scanResult });
                 navigateTo('chat');
@@ -487,13 +496,6 @@ function App() {
               userLocation={userLocation}
             />
           )}
-          {currentScreen === 'scan-results' && (
-            <CropAnalysisResults
-              onBack={() => navigateTo('scanner')}
-              onViewTreatment={() => navigateTo('ai-chat')}
-              scanResult={scanResult}
-            />
-          )}
           {currentScreen === 'mandi-prices' && (
             <LiveMarketPrices
               onBack={() => navigateTo('dashboard')}
@@ -503,8 +505,16 @@ function App() {
               onLocationChange={handleLocationChange}
             />
           )}
-          {(currentScreen === 'soil-test' || currentScreen === 'soil-health') && (
+          {currentScreen === 'soil-health' && (
             <SoilHealthReport
+              onBack={() => navigateTo('dashboard')}
+              onNavigate={navigateTo}
+              userProfile={userProfile}
+              selectedFarmId={selectedFarmId}
+            />
+          )}
+          {(currentScreen === 'soil-test' || currentScreen === 'soil-intelligence') && (
+            <SoilIntelligenceHub
               onBack={() => navigateTo('dashboard')}
               onNavigate={navigateTo}
               userProfile={userProfile}
@@ -527,7 +537,7 @@ function App() {
           )}
           {currentScreen === 'iot-pairing' && (
             <IoTDevicePairing
-              onBack={() => navigateTo('dashboard')}
+              onBack={() => navigateTo('soil-intelligence')}
               onNavigate={navigateTo}
               selectedFarmId={selectedFarmId}
             />
@@ -538,9 +548,9 @@ function App() {
               onNavigate={navigateTo}
             />
           )}
-          {currentScreen === 'iot-guide' && (
+          {(currentScreen === 'iot-guide' || currentScreen === 'iot-esp32-guide') && (
             <IoTESP32Guide
-              onBack={() => navigateTo('iot-settings')}
+              onBack={() => navigateTo('soil-intelligence')}
             />
           )}
           {currentScreen === 'wifi-config' && (

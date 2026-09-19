@@ -71,10 +71,17 @@ const CropScannerViewfinder = ({ onBack, onCapture, selectedFarmId }) => {
             onCapture({
                 image_id: analysisData.image_id,
                 image_type: analysisData.image_type,
-                analysis: analysisData.analysis_result,
-                confidence: analysisData.confidence_score,
-                indicators: analysisData.indicators,
-                image_url: uploadData.image.image_url
+                analysis: analysisData.analysis_result || analysisData,
+                confidence: typeof analysisData.confidence === 'number' ? analysisData.confidence : analysisData.confidence_score,
+                indicators: analysisData.indicators || analysisData.observations || [],
+                image_url: uploadData.image.image_url,
+                is_valid_crop_or_leaf: analysisData.is_valid_crop_or_leaf !== false && analysisData.analysis_result?.is_valid_crop_or_leaf !== false,
+                crop: analysisData.crop || analysisData.analysis_result?.crop,
+                observations: analysisData.observations || analysisData.analysis_result?.observations || [],
+                possible_issue: analysisData.possible_issue || analysisData.analysis_result?.possible_issue,
+                severity: analysisData.severity || analysisData.analysis_result?.severity,
+                recommendation: analysisData.recommendation || analysisData.analysis_result?.recommendation,
+                disclaimer: analysisData.disclaimer || analysisData.analysis_result?.disclaimer
             });
         } catch (err) {
             console.error('Scan Error:', err);
@@ -162,14 +169,14 @@ const CropScannerViewfinder = ({ onBack, onCapture, selectedFarmId }) => {
             )}
 
             {/* Top Control Bar */}
-            <header className="absolute top-0 left-0 right-0 z-20 px-5 pt-12 pb-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
-                <button onClick={onBack} className="w-10 h-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/10 transition-colors active:scale-95">
+            <header className="absolute top-0 left-0 right-0 z-20 px-5 pt-12 pb-4 flex justify-between items-center bg-gradient-to-b from-slate-900/80 via-slate-900/40 to-transparent">
+                <button onClick={onBack} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 transition-colors active:scale-95 cursor-pointer">
                     <span className="material-symbols-outlined">close</span>
                 </button>
 
-                <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                    <span className={`w-2 h-2 rounded-full ${isScanning ? 'bg-orange-500 animate-ping' : 'bg-[#13ec6d] animate-pulse'} shadow-[0_0_8px_rgba(19,236,109,0.8)]`}></span>
-                    <span className="text-[10px] uppercase tracking-widest text-[#13ec6d] font-bold">AI Scanner</span>
+                <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-md border border-white/40">
+                    <span className={`w-2 h-2 rounded-full ${isScanning ? 'bg-amber-500 animate-ping' : 'bg-emerald-600 animate-pulse'}`}></span>
+                    <span className="text-[11px] uppercase tracking-wider text-emerald-800 font-extrabold">Leaf Doctor AI</span>
                 </div>
 
                 <div className="w-10 h-10"></div>
@@ -180,29 +187,29 @@ const CropScannerViewfinder = ({ onBack, onCapture, selectedFarmId }) => {
                 <div className="relative w-72 h-72">
                     {/* Animated scanning line */}
                     {isScanning && (
-                        <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#13ec6d] to-transparent z-10 shadow-[0_0_15px_rgba(19,236,109,0.8)] scan-line"></div>
+                        <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent z-10 shadow-[0_0_15px_rgba(52,211,153,0.8)] scan-line"></div>
                     )}
 
                     {/* Corner Borders */}
-                    <div className={`absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 ${isScanning ? 'border-orange-500' : 'border-[#13ec6d]'} shadow-[0_0_10px_rgba(19,236,109,0.4)] rounded-tl-xl transition-colors`}></div>
-                    <div className={`absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 ${isScanning ? 'border-orange-500' : 'border-[#13ec6d]'} shadow-[0_0_10px_rgba(19,236,109,0.4)] rounded-tr-xl transition-colors`}></div>
-                    <div className={`absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 ${isScanning ? 'border-orange-500' : 'border-[#13ec6d]'} shadow-[0_0_10px_rgba(19,236,109,0.4)] rounded-bl-xl transition-colors`}></div>
-                    <div className={`absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 ${isScanning ? 'border-orange-500' : 'border-[#13ec6d]'} shadow-[0_0_10px_rgba(19,236,109,0.4)] rounded-br-xl transition-colors`}></div>
+                    <div className={`absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 ${isScanning ? 'border-amber-400' : 'border-emerald-400'} shadow-[0_0_10px_rgba(52,211,153,0.5)] rounded-tl-2xl transition-colors`}></div>
+                    <div className={`absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 ${isScanning ? 'border-amber-400' : 'border-emerald-400'} shadow-[0_0_10px_rgba(52,211,153,0.5)] rounded-tr-2xl transition-colors`}></div>
+                    <div className={`absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 ${isScanning ? 'border-amber-400' : 'border-emerald-400'} shadow-[0_0_10px_rgba(52,211,153,0.5)] rounded-bl-2xl transition-colors`}></div>
+                    <div className={`absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 ${isScanning ? 'border-amber-400' : 'border-emerald-400'} shadow-[0_0_10px_rgba(52,211,153,0.5)] rounded-br-2xl transition-colors`}></div>
 
                     {/* Center crosshair */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center opacity-50">
-                        <div className="w-1 h-1 bg-[#13ec6d] rounded-full"></div>
-                        <div className="absolute w-full h-px bg-[#13ec6d]/30"></div>
-                        <div className="absolute w-px h-full bg-[#13ec6d]/30"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center opacity-60">
+                        <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                        <div className="absolute w-full h-px bg-emerald-400/40"></div>
+                        <div className="absolute w-px h-full bg-emerald-400/40"></div>
                     </div>
                 </div>
 
                 {/* Status pill */}
-                <div className="mt-12 bg-black/50 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/10 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#13ec6d] text-sm animate-pulse">
+                <div className="mt-10 bg-white/95 text-slate-800 backdrop-blur-md px-5 py-2.5 rounded-full border border-slate-200 shadow-xl flex items-center gap-2">
+                    <span className="material-symbols-outlined text-emerald-600 text-sm animate-pulse">
                         {isScanning ? 'sync' : 'center_focus_weak'}
                     </span>
-                    <p className="text-white text-sm font-medium tracking-wide">{stageLabel}</p>
+                    <p className="text-slate-800 text-xs font-bold tracking-wide">{stageLabel}</p>
                 </div>
             </main>
 

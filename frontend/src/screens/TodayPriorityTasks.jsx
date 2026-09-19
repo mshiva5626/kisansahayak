@@ -184,29 +184,29 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
     }).toUpperCase();
 
     return (
-        <div className="bg-gradient-to-b from-[#fcfdfc] to-[#e3eae4] dark:from-[#03140A] dark:to-[#081d11] font-display text-gray-900 dark:text-gray-100 min-h-screen flex justify-center pb-24 antialiased">
+        <div className="bg-[#f8fafc] font-display text-slate-900 min-h-screen flex justify-center pb-24 antialiased">
             <div className="w-full max-w-md bg-transparent min-h-screen relative flex flex-col shadow-2xl overflow-hidden">
                 
                 {/* Top Header */}
-                <header className="pt-12 px-6 pb-4 flex justify-between items-center bg-white/40 dark:bg-[#03140A]/40 backdrop-blur-xl sticky top-0 z-20 border-b border-gray-100 dark:border-white/5 shadow-sm">
+                <header className="pt-12 px-6 pb-4 flex justify-between items-center bg-white/95 sticky top-0 z-20 border-b border-slate-200 shadow-xs">
                     <div className="flex items-center gap-3">
                         <button 
                             onClick={onBack} 
-                            className="p-2 -ml-2 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors active:scale-95 flex items-center justify-center cursor-pointer"
+                            className="p-2 -ml-2 rounded-2xl bg-slate-100 hover:bg-slate-200 transition-colors active:scale-95 flex items-center justify-center cursor-pointer text-slate-700"
                         >
-                            <span className="material-symbols-outlined text-xl text-gray-700 dark:text-gray-200">arrow_back</span>
+                            <span className="material-symbols-outlined text-xl">arrow_back</span>
                         </button>
                         <div>
-                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block leading-none">
+                            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest block leading-none">
                                 Kisan Daily Checks
                             </span>
-                            <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight mt-0.5">
+                            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight mt-0.5">
                                 Operations & Tasks
                             </h1>
                         </div>
                     </div>
                     <div className="text-right">
-                        <span className="inline-block text-[11px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 rounded-full shadow-sm">
+                        <span className="inline-block text-[11px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full shadow-xs">
                             {formattedDate}
                         </span>
                     </div>
@@ -216,24 +216,24 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                     
                     {/* Error / Offline Alert */}
                     {error && (
-                        <div className="p-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2">
-                            <span className="material-symbols-outlined text-sm">info</span>
+                        <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
+                            <span className="material-symbols-outlined text-sm text-amber-600">info</span>
                             <span>{error}</span>
                         </div>
                     )}
 
                     {/* Crop & Field Stage Banner */}
-                    <div className="bg-gradient-to-r from-[#072412] to-[#0d3d1e] text-white p-4 rounded-3xl shadow-xl border border-emerald-500/20 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#13ec6d]/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div className="bg-gradient-to-r from-emerald-800 to-teal-800 text-white p-4 rounded-3xl shadow-lg border border-emerald-700 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
                         
                         <div className="flex items-center justify-between mb-2 relative z-10">
                             <div className="flex items-center gap-2">
-                                <span className="w-2.5 h-2.5 rounded-full bg-[#13ec6d] animate-pulse shadow-[0_0_8px_#13ec6d]"></span>
-                                <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]"></span>
+                                <span className="text-xs font-bold text-emerald-100 uppercase tracking-wider">
                                     {tasksData?.crop || 'Crop'} Field Intelligence
                                 </span>
                             </div>
-                            <span className="text-[10px] bg-black/40 text-emerald-200 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-medium">
+                            <span className="text-[10px] bg-white/20 text-emerald-50 px-2.5 py-0.5 rounded-full border border-white/30 font-semibold">
                                 {tasksData?.overall_field_status || 'Active Care'}
                             </span>
                         </div>
@@ -243,11 +243,11 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                         </h2>
 
                         {/* Sowing Date & Age Indicator */}
-                        <div className="flex items-center justify-between bg-black/30 rounded-2xl p-2.5 my-2 border border-emerald-500/20 relative z-10">
+                        <div className="flex items-center justify-between bg-white/15 rounded-2xl p-2.5 my-2 border border-white/20 relative z-10">
                             <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined text-emerald-400 text-lg">calendar_today</span>
+                                <span className="material-symbols-outlined text-emerald-300 text-lg">calendar_today</span>
                                 <div>
-                                    <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider block">
+                                    <span className="text-[10px] text-emerald-200 font-bold uppercase tracking-wider block">
                                         Crop Age / Sowing
                                     </span>
                                     <span className="text-xs font-black text-white">
@@ -257,10 +257,10 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                             </div>
                             <button
                                 onClick={() => setIsSowingModalOpen(true)}
-                                className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[11px] font-bold px-2.5 py-1 rounded-xl border border-emerald-500/30 flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+                                className="bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold px-2.5 py-1 rounded-xl border border-white/30 flex items-center gap-1 cursor-pointer transition-all active:scale-95"
                             >
                                 <span className="material-symbols-outlined text-xs">edit_calendar</span>
-                                <span>Change Age</span>
+                                <span>Adjust</span>
                             </button>
                         </div>
 
@@ -294,7 +294,7 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                     </div>
 
                     {/* Filter Tabs */}
-                    <div className="flex gap-2 p-1 bg-gray-200/60 dark:bg-black/40 rounded-2xl">
+                    <div className="flex gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200/80">
                         {[
                             { id: 'all', label: `All Checks (${totalActiveCount})` },
                             { id: 'pending', label: `Pending (${totalActiveCount - completedTasksCount})` },
@@ -305,8 +305,8 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                                 onClick={() => setActiveFilter(tab.id)}
                                 className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                                     activeFilter === tab.id
-                                        ? 'bg-white dark:bg-emerald-600 text-gray-900 dark:text-white shadow-sm'
-                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                        ? 'bg-white text-emerald-800 shadow-xs'
+                                        : 'text-slate-500 hover:text-slate-800'
                                 }`}
                             >
                                 {tab.label}
@@ -429,16 +429,16 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
 
                 {/* AI Field Survey Modal */}
                 {isSurveyOpen && (
-                    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                        <div className="w-full max-w-sm bg-[#041a0d] border border-emerald-500/30 rounded-3xl p-5 text-white shadow-2xl flex flex-col max-h-[85vh] overflow-hidden animate-fade-in">
-                            <div className="flex items-center justify-between pb-3 border-b border-emerald-500/20">
+                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="w-full max-w-sm bg-white border border-slate-200 rounded-3xl p-5 text-slate-800 shadow-2xl flex flex-col max-h-[85vh] overflow-hidden animate-fade-in">
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                                 <div className="flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-emerald-400">psychology</span>
-                                    <h3 className="font-extrabold text-sm text-white">AI Field Diagnostic Survey</h3>
+                                    <span className="material-symbols-outlined text-emerald-600">psychology</span>
+                                    <h3 className="font-extrabold text-sm text-slate-900">AI Field Diagnostic Survey</h3>
                                 </div>
                                 <button 
                                     onClick={() => setIsSurveyOpen(false)}
-                                    className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-gray-300"
+                                    className="p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                                 >
                                     <span className="material-symbols-outlined text-base">close</span>
                                 </button>
@@ -447,25 +447,25 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                             <div className="flex-1 overflow-y-auto no-scrollbar py-4 space-y-4">
                                 {isGeneratingSurvey ? (
                                     <div className="py-12 flex flex-col items-center justify-center gap-3">
-                                        <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                                        <p className="text-xs text-emerald-300 text-center font-medium">
+                                        <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                        <p className="text-xs text-emerald-700 text-center font-medium">
                                             Generating custom questions for your {tasksData?.crop || 'crop'} and soil...
                                         </p>
                                     </div>
                                 ) : (
                                     <>
-                                        <p className="text-xs text-gray-300 leading-relaxed">
+                                        <p className="text-xs text-slate-600 leading-relaxed">
                                             Answer these 3 quick observations from your field today. The AI will recalibrate today's action checklist.
                                         </p>
 
                                         {(surveyData?.questions || []).map((q, qIdx) => (
-                                            <div key={q.id || qIdx} className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-2">
+                                            <div key={q.id || qIdx} className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                                                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
                                                         Check {qIdx + 1} • {q.category || 'Field Observation'}
                                                     </span>
                                                 </div>
-                                                <p className="text-xs font-bold text-white leading-snug">
+                                                <p className="text-xs font-bold text-slate-900 leading-snug">
                                                     {q.question}
                                                 </p>
                                                 <div className="space-y-1.5 pt-1">
@@ -477,13 +477,13 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                                                                 onClick={() => setSurveyAnswers(prev => ({ ...prev, [q.id]: opt.label }))}
                                                                 className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition-all flex items-center justify-between cursor-pointer ${
                                                                     isSelected
-                                                                        ? 'bg-emerald-500 text-slate-950 font-bold shadow-md'
-                                                                        : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/5'
+                                                                        ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                                                                        : 'bg-white text-slate-700 hover:bg-emerald-50 border border-slate-200'
                                                                 }`}
                                                             >
                                                                 <span>{opt.label}</span>
                                                                 {isSelected && (
-                                                                    <span className="material-symbols-outlined text-sm text-slate-950 font-bold">check</span>
+                                                                    <span className="material-symbols-outlined text-sm text-white font-bold">check</span>
                                                                 )}
                                                             </button>
                                                         );
@@ -495,21 +495,21 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                                 )}
                             </div>
 
-                            <div className="pt-3 border-t border-emerald-500/20 flex gap-2">
+                            <div className="pt-3 border-t border-slate-200 flex gap-2">
                                 <button
                                     onClick={() => setIsSurveyOpen(false)}
-                                    className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold"
+                                    className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSubmitSurvey}
                                     disabled={isSubmittingSurvey || isGeneratingSurvey}
-                                    className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-bold shadow-lg flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
                                 >
                                     {isSubmittingSurvey ? (
                                         <>
-                                            <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+                                            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                                             <span>Updating...</span>
                                         </>
                                     ) : (
@@ -523,27 +523,27 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
 
                 {/* Sowing Date Adjustment Modal */}
                 {isSowingModalOpen && (
-                    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-4 animate-fade-in">
-                        <div className="bg-[#072412] border border-emerald-500/30 rounded-3xl w-full max-w-md p-5 flex flex-col gap-4 text-white shadow-2xl animate-fade-in-up">
+                    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-fade-in">
+                        <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-md p-5 flex flex-col gap-4 text-slate-800 shadow-2xl animate-fade-in-up">
                             
-                            <div className="flex items-center justify-between border-b border-emerald-500/20 pb-3">
+                            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                                 <div className="flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-emerald-400 text-xl">event_available</span>
+                                    <span className="material-symbols-outlined text-emerald-600 text-xl">event_available</span>
                                     <div>
-                                        <h3 className="text-base font-black text-white">Adjust Crop Sowing Date</h3>
-                                        <p className="text-[11px] text-emerald-300">Sets the exact Days After Sowing (DAS) for precise daily checks</p>
+                                        <h3 className="text-base font-black text-slate-900">Adjust Crop Sowing Date</h3>
+                                        <p className="text-[11px] text-slate-500">Sets the exact Days After Sowing (DAS) for precise daily checks</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setIsSowingModalOpen(false)}
-                                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer"
+                                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
                                 >
                                     <span className="material-symbols-outlined text-lg">close</span>
                                 </button>
                             </div>
 
                             <div className="flex flex-col gap-2">
-                                <span className="text-xs font-bold text-gray-300">Quick Stage Presets:</span>
+                                <span className="text-xs font-bold text-slate-600">Quick Stage Presets:</span>
                                 
                                 <button
                                     onClick={() => {
@@ -551,16 +551,16 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                                         handleSetSowingDate(today);
                                     }}
                                     disabled={isUpdatingSowingDate}
-                                    className="p-3 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 flex items-center justify-between text-left transition-all active:scale-[0.98] cursor-pointer"
+                                    className="p-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 flex items-center justify-between text-left transition-all active:scale-[0.98] cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
                                         <span className="text-2xl">🌱</span>
                                         <div>
-                                            <span className="text-sm font-black text-emerald-300 block">Planted Today (Day 0)</span>
-                                            <span className="text-[10px] text-gray-300">Seedbed depth, moisture seal & bird protection</span>
+                                            <span className="text-sm font-black text-emerald-900 block">Planted Today (Day 0)</span>
+                                            <span className="text-[10px] text-emerald-700">Seedbed depth, moisture seal & bird protection</span>
                                         </div>
                                     </div>
-                                    <span className="material-symbols-outlined text-emerald-400 text-sm">arrow_forward</span>
+                                    <span className="material-symbols-outlined text-emerald-600 text-sm">arrow_forward</span>
                                 </button>
 
                                 <button
@@ -570,16 +570,16 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                                         handleSetSowingDate(d.toISOString().split('T')[0]);
                                     }}
                                     disabled={isUpdatingSowingDate}
-                                    className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between text-left transition-all active:scale-[0.98] cursor-pointer"
+                                    className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-between text-left transition-all active:scale-[0.98] cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
                                         <span className="text-2xl">🌿</span>
                                         <div>
-                                            <span className="text-sm font-bold text-white block">3 Days Ago (Germination)</span>
-                                            <span className="text-[10px] text-gray-400">Subterranean radicle check & crust softening</span>
+                                            <span className="text-sm font-bold text-slate-800 block">3 Days Ago (Germination)</span>
+                                            <span className="text-[10px] text-slate-500">Subterranean radicle check & crust softening</span>
                                         </div>
                                     </div>
-                                    <span className="material-symbols-outlined text-gray-400 text-sm">arrow_forward</span>
+                                    <span className="material-symbols-outlined text-slate-400 text-sm">arrow_forward</span>
                                 </button>
 
                                 <button
@@ -589,16 +589,16 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                                         handleSetSowingDate(d.toISOString().split('T')[0]);
                                     }}
                                     disabled={isUpdatingSowingDate}
-                                    className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between text-left transition-all active:scale-[0.98] cursor-pointer"
+                                    className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-between text-left transition-all active:scale-[0.98] cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
                                         <span className="text-2xl">🌾</span>
                                         <div>
-                                            <span className="text-sm font-bold text-white block">8 Days Ago (Seedling Stand)</span>
-                                            <span className="text-[10px] text-gray-400">Emergence uniformity & damping-off inspection</span>
+                                            <span className="text-sm font-bold text-slate-800 block">8 Days Ago (Seedling Stand)</span>
+                                            <span className="text-[10px] text-slate-500">Emergence uniformity & damping-off inspection</span>
                                         </div>
                                     </div>
-                                    <span className="material-symbols-outlined text-gray-400 text-sm">arrow_forward</span>
+                                    <span className="material-symbols-outlined text-slate-400 text-sm">arrow_forward</span>
                                 </button>
 
                                 <button
@@ -608,32 +608,32 @@ const TodayPriorityTasks = ({ onBack, onNavigate, selectedFarmId, userProfile })
                                         handleSetSowingDate(d.toISOString().split('T')[0]);
                                     }}
                                     disabled={isUpdatingSowingDate}
-                                    className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between text-left transition-all active:scale-[0.98] cursor-pointer"
+                                    className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-between text-left transition-all active:scale-[0.98] cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
                                         <span className="text-2xl">🌳</span>
                                         <div>
-                                            <span className="text-sm font-bold text-white block">30 Days Ago (Vegetative Canopy)</span>
-                                            <span className="text-[10px] text-gray-400">Canopy scouting, top dressing & weed sanitation</span>
+                                            <span className="text-sm font-bold text-slate-800 block">30 Days Ago (Vegetative Canopy)</span>
+                                            <span className="text-[10px] text-slate-500">Canopy scouting, top dressing & weed sanitation</span>
                                         </div>
                                     </div>
-                                    <span className="material-symbols-outlined text-gray-400 text-sm">arrow_forward</span>
+                                    <span className="material-symbols-outlined text-slate-400 text-sm">arrow_forward</span>
                                 </button>
                             </div>
 
-                            <div className="pt-3 border-t border-emerald-500/20 flex flex-col gap-2">
-                                <label className="text-xs font-bold text-gray-300">Or Pick Exact Sowing Date:</label>
+                            <div className="pt-3 border-t border-slate-200 flex flex-col gap-2">
+                                <label className="text-xs font-bold text-slate-600">Or Pick Exact Sowing Date:</label>
                                 <div className="flex gap-2">
                                     <input
                                         type="date"
                                         value={customSowingDate}
                                         onChange={(e) => setCustomSowingDate(e.target.value)}
-                                        className="flex-1 bg-black/40 border border-emerald-500/30 rounded-xl px-3 py-2 text-white text-xs"
+                                        className="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:outline-none focus:border-emerald-500"
                                     />
                                     <button
                                         onClick={() => handleSetSowingDate(customSowingDate)}
                                         disabled={isUpdatingSowingDate}
-                                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl cursor-pointer"
+                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl cursor-pointer shadow-xs"
                                     >
                                         Apply
                                     </button>

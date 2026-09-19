@@ -175,10 +175,10 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate }) => {
                     <h2 className="font-extrabold text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-wider">Live Soil Moisture</h2>
                 </div>
                 <button
-                    onClick={() => onNavigate('iot-settings')}
-                    className="text-[10px] text-emerald-500 font-bold flex items-center gap-0.5"
+                    onClick={() => onNavigate('soil-intelligence')}
+                    className="text-[10px] text-emerald-600 font-bold flex items-center gap-0.5 hover:underline cursor-pointer"
                 >
-                    Sensors
+                    Soil Hub & NPK
                     <span className="material-symbols-outlined text-sm">arrow_forward</span>
                 </button>
             </div>

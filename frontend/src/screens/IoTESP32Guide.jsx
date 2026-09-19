@@ -3,257 +3,254 @@ import React, { useState } from 'react';
 const CODE_SECTIONS = [
     {
         id: 'wiring',
-        label: 'Wiring',
+        label: 'Wiring (FC-28 + 30-Pin)',
         icon: 'cable',
-        content: `ESP32 Pin Connections:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Capacitive Moisture Sensor:
-  VCC (3.3V) → ESP32 3.3V pin
-  GND        → ESP32 GND
-  AOUT       → ESP32 GPIO 34 (ADC)
+        content: `ESP32 NodeMCU 30-Pin & FC-28 Soil Hygrometer Wiring:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sensor Module: FC-28 / YL-69 Probe + LM393 Comparator Board
+Microcontroller: ESP32 NodeMCU CP2102 (30-Pin Board)
 
-Status LED (optional):
-  (+) Anode  → GPIO 2 (built-in LED)
-  (-) Cathode → GND (via 330Ω resistor)
+1. Probe to LM393 Comparator:
+   • Connect the 2 pins from the fork probe to the 2-pin
+     header on the LM393 comparator board using jumper wires.
 
-Power Options:
-  A) USB-C   → Any 5V USB charger
-  B) Battery → 3.7V LiPo + TP4056 charger
-  C) Solar   → 5V solar panel + TP4056
+2. LM393 Comparator Module to ESP32 NodeMCU 30-Pin:
+   • VCC  ───► ESP32 3V3 (or VIN if using 5V USB)
+   • GND  ───► ESP32 GND
+   • A0   ───► ESP32 GPIO 34 (D34 - ADC1, WiFi-safe)
+   • D0   ───► ESP32 GPIO 35 (Optional digital threshold)
 
-Notes:
-  • GPIO 34 is input-only on ESP32 (perfect for ADC)
-  • Use a capacitive sensor (not resistive) for longevity
-  • Sensor VCC can use 3.3V — no 5V needed
-  • Keep wires short (< 30cm) to reduce noise`
+3. Sensitivity Potentiometer (Blue Trimpot on LM393):
+   • Rotate the screw with a small screwdriver to calibrate
+     the threshold LED if using digital output (D0).
+
+Why GPIO 34?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• GPIO 34 belongs to ADC1. ADC1 is completely safe to use
+  when WiFi and Bluetooth are active. (ADC2 pins conflict with WiFi).
+• GPIO 34 is an input-only pin, making it ideal for analog sensors.`
     },
     {
         id: 'libraries',
-        label: 'Libraries',
+        label: 'Arduino Setup',
         icon: 'library_books',
-        content: `Arduino IDE Library Setup:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Open Arduino IDE
-2. Go to: Tools → Manage Libraries
+        content: `Arduino IDE Setup for ESP32 CP2102:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Install CP2102 USB Driver (if board is not detected):
+   • Download "CP210x USB to UART Bridge VCP Drivers" from Silicon Labs.
 
-Install these libraries:
-  ✓ NimBLE-Arduino  (by h2zero)
-    Version: 1.4.x or later
-    → Lightweight BLE for ESP32
+2. ESP32 Board Support:
+   • File → Preferences → Additional Boards Manager URLs:
+     https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+   • Tools → Board → Boards Manager → Search "esp32" → Install by Espressif.
 
-  ✓ ESP32 Board Support
-    File → Preferences → Additional URLs:
-    https://raw.githubusercontent.com/espressif/
-    arduino-esp32/gh-pages/package_esp32_index.json
+3. Required Libraries (Tools → Manage Libraries):
+   • "NimBLE-Arduino" by h2zero (for Mode 1: BLE)
+   • "ArduinoJson" by Benoît Blanchon (for Mode 2: WiFi JSON POST)
 
-    Then: Tools → Board → Boards Manager
-    Search "esp32" → Install by Espressif Systems
-
-Board Settings:
-  Board:        "ESP32 Dev Module"
-  Flash Size:   "4MB (32Mb)"
-  CPU Freq:     "240MHz"
-  Upload Speed: "115200"
-  Port:         Your COM port (check Device Manager)`
+4. Board Settings in Arduino IDE:
+   • Board:        "DOIT ESP32 DEVKIT V1" (or "ESP32 Dev Module")
+   • Upload Speed: "115200" (or 921600)
+   • Port:         Select the COM port of CP2102`
     },
     {
-        id: 'sketch',
-        label: 'Arduino Code',
-        icon: 'code',
-        content: `#include <NimBLEDevice.h>
-#include <WiFi.h>
-#include <Preferences.h>
+        id: 'ble_sketch',
+        label: 'Mode 1: BLE Firmware',
+        icon: 'bluetooth',
+        content: `/**
+ * Mode 1: KisanSahayak Web Bluetooth Firmware
+ * Board: ESP32 NodeMCU 30-Pin + FC-28 LM393
+ * Connects directly to Google Chrome / Edge without WiFi!
+ */
+#include <NimBLEDevice.h>
 
-// ── BLE UUIDs (Matches KisanSahayak IoTContext) ────
 #define DEVICE_NAME        "KisanSensor"
 #define SERVICE_UUID       "12345678-1234-1234-1234-123456789abc"
 #define MOISTURE_CHAR_UUID "12345678-1234-1234-1234-123456789ab1"
 #define BATTERY_CHAR_UUID  "12345678-1234-1234-1234-123456789ab2"
-#define DEVICE_NAME_UUID   "12345678-1234-1234-1234-123456789ab3"
-#define WIFI_SSID_CHAR_UUID   "12345678-1234-1234-1234-123456789ab4"
-#define WIFI_PASS_CHAR_UUID   "12345678-1234-1234-1234-123456789ab5"
-#define WIFI_STATUS_CHAR_UUID "12345678-1234-1234-1234-123456789ab6"
 
-#define MOISTURE_PIN  34   // ADC1 Channel 6
-#define LED_PIN        2   // Built-in Blue LED
-#define BATTERY_PIN   35   // Optional 100k+100k divider
+#define MOISTURE_PIN       34   // FC-28 Analog A0 connected to GPIO 34
+#define STATUS_LED          2   // Built-in Blue LED
 
-#define DEFAULT_DRY 3200
-#define DEFAULT_WET 1100
+// Calibration values for FC-28 (Adjust based on your dry/wet readings)
+int DRY_VALUE = 3400;   // Sensor in dry air
+int WET_VALUE = 1300;   // Sensor in cup of water
 
-NimBLEServer*          pServer         = nullptr;
-NimBLECharacteristic*  pMoistureChar   = nullptr;
-NimBLECharacteristic*  pBatteryChar    = nullptr;
-NimBLECharacteristic*  pWifiStatusChar = nullptr;
-
-bool          deviceConnected   = false;
-unsigned long lastReadTime      = 0;
-unsigned long lastLedToggle     = 0;
-bool          ledState          = false;
-Preferences   nvs;
-int           dryVal = DEFAULT_DRY;
-int           wetVal = DEFAULT_WET;
-
-String        pendingSsid       = "";
-String        pendingPass       = "";
-bool          wifiRequested     = false;
-
-uint8_t readFilteredMoisture(int &outRaw) {
-    const int SAMPLES = 30;
-    int buffer[SAMPLES];
-    for (int i = 0; i < SAMPLES; i++) {
-        buffer[i] = analogRead(MOISTURE_PIN);
-        delay(3);
-    }
-    // Insertion sort
-    for (int i = 1; i < SAMPLES; i++) {
-        int key = buffer[i];
-        int j = i - 1;
-        while (j >= 0 && buffer[j] > key) { buffer[j + 1] = buffer[j]; j--; }
-        buffer[j + 1] = key;
-    }
-    // Trimmed mean (reject top & bottom 5 outliers)
-    long sum = 0;
-    for (int i = 5; i < 25; i++) sum += buffer[i];
-    outRaw = sum / 20;
-    int percent = map(outRaw, dryVal, wetVal, 0, 100);
-    return (uint8_t)constrain(percent, 0, 100);
-}
+NimBLEServer*         pServer       = nullptr;
+NimBLECharacteristic* pMoistureChar = nullptr;
+NimBLECharacteristic* pBatteryChar  = nullptr;
+bool deviceConnected = false;
 
 class ServerCallbacks : public NimBLEServerCallbacks {
-    void onConnect(NimBLEServer* pS) override {
+    void onConnect(NimBLEServer* pServer) override {
         deviceConnected = true;
-        digitalWrite(LED_PIN, HIGH);
-        Serial.println("[BLE] App connected!");
+        digitalWrite(STATUS_LED, HIGH);
+        Serial.println("KisanSahayak Web App Connected via BLE!");
     }
-    void onDisconnect(NimBLEServer* pS) override {
+    void onDisconnect(NimBLEServer* pServer) override {
         deviceConnected = false;
-        digitalWrite(LED_PIN, LOW);
-        Serial.println("[BLE] App disconnected. Pairing mode restarted.");
+        digitalWrite(STATUS_LED, LOW);
+        Serial.println("Disconnected. Restarting Advertising...");
         NimBLEDevice::startAdvertising();
-    }
-};
-
-class WifiSsidCb : public NimBLECharacteristicCallbacks {
-    void onWrite(NimBLECharacteristic* p) override { pendingSsid = p->getValue().c_str(); }
-};
-class WifiPassCb : public NimBLECharacteristicCallbacks {
-    void onWrite(NimBLECharacteristic* p) override {
-        pendingPass = p->getValue().c_str();
-        if (pendingSsid.length() > 0) wifiRequested = true;
     }
 };
 
 void setup() {
     Serial.begin(115200);
-    analogReadResolution(12);
-    analogSetAttenuation(ADC_11db);
-    pinMode(MOISTURE_PIN, INPUT);
-    pinMode(LED_PIN, OUTPUT);
-
-    nvs.begin("kisan_cal", true);
-    dryVal = nvs.getInt("dry", DEFAULT_DRY);
-    wetVal = nvs.getInt("wet", DEFAULT_WET);
-    nvs.end();
+    pinMode(STATUS_LED, OUTPUT);
+    analogReadResolution(12); // 0-4095
 
     NimBLEDevice::init(DEVICE_NAME);
     NimBLEDevice::setPower(ESP_PWR_LVL_P9);
+
     pServer = NimBLEDevice::createServer();
     pServer->setCallbacks(new ServerCallbacks());
 
     NimBLEService* pService = pServer->createService(SERVICE_UUID);
-    pMoistureChar = pService->createCharacteristic(MOISTURE_CHAR_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
-    pBatteryChar  = pService->createCharacteristic(BATTERY_CHAR_UUID, NIMBLE_PROPERTY::READ);
-    
-    auto* pSsid = pService->createCharacteristic(WIFI_SSID_CHAR_UUID, NIMBLE_PROPERTY::WRITE);
-    pSsid->setCallbacks(new WifiSsidCb());
-    auto* pPass = pService->createCharacteristic(WIFI_PASS_CHAR_UUID, NIMBLE_PROPERTY::WRITE);
-    pPass->setCallbacks(new WifiPassCb());
-    pWifiStatusChar = pService->createCharacteristic(WIFI_STATUS_CHAR_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+
+    pMoistureChar = pService->createCharacteristic(
+        MOISTURE_CHAR_UUID,
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
+    );
+
+    pBatteryChar = pService->createCharacteristic(
+        BATTERY_CHAR_UUID,
+        NIMBLE_PROPERTY::READ
+    );
+
+    uint8_t dummyBat = 95;
+    pBatteryChar->setValue(&dummyBat, 1);
 
     pService->start();
-    NimBLEAdvertising* pAdv = NimBLEDevice::getAdvertising();
-    pAdv->addServiceUUID(SERVICE_UUID);
-    pAdv->setName(DEVICE_NAME);
-    NimBLEDevice::startAdvertising();
+
+    NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
+    pAdvertising->addServiceUUID(SERVICE_UUID);
+    pAdvertising->setName(DEVICE_NAME);
+    pAdvertising->start();
+
+    Serial.println("KisanSensor BLE Ready! Connect from Soil Hub.");
 }
 
 void loop() {
-    unsigned long now = millis();
-    // 2Hz blink when waiting in pairing mode
-    if (!deviceConnected && now - lastLedToggle >= 250) {
-        lastLedToggle = now;
-        ledState = !ledState;
-        digitalWrite(LED_PIN, ledState ? HIGH : LOW);
+    // Read FC-28 Analog
+    int raw = analogRead(MOISTURE_PIN);
+
+    // Map raw ADC (3400 dry -> 0%, 1300 wet -> 100%)
+    int moisturePercent = map(raw, DRY_VALUE, WET_VALUE, 0, 100);
+    moisturePercent = constrain(moisturePercent, 0, 100);
+
+    Serial.printf("Raw ADC: %d | Moisture: %d%%\n", raw, moisturePercent);
+
+    if (deviceConnected && pMoistureChar) {
+        uint8_t val = (uint8_t)moisturePercent;
+        pMoistureChar->setValue(&val, 1);
+        pMoistureChar->notify();
     }
-    // Read sensor every 2 seconds
-    if (now - lastReadTime >= 2000) {
-        lastReadTime = now;
-        int raw = 0;
-        uint8_t m = readFilteredMoisture(raw);
-        pMoistureChar->setValue(&m, 1);
-        if (deviceConnected) pMoistureChar->notify();
+
+    delay(2000); // Send reading every 2 seconds
+}`
+    },
+    {
+        id: 'wifi_sketch',
+        label: 'Mode 2: WiFi HTTP POST',
+        icon: 'wifi',
+        content: `/**
+ * Mode 2: Field Deployment — Direct WiFi HTTP POST
+ * Sends moisture readings directly to the KisanSahayak backend!
+ * Database persistence: Automatically saves to sensor_readings
+ */
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+// ── WiFi Credentials ──────────────────────────────────────────────
+const char* ssid     = "YOUR_WIFI_SSID";
+const char* password = "YOUR_WIFI_PASSWORD";
+
+// ── Backend API URL (Replace with your local IP or backend URL) ──
+// For local PC testing: http://192.168.1.X:5000/api/soil-intelligence/sensor-data
+const char* serverUrl = "http://192.168.1.100:5000/api/soil-intelligence/sensor-data";
+
+#define MOISTURE_PIN 34
+#define STATUS_LED    2
+
+int DRY_VALUE = 3400;
+int WET_VALUE = 1300;
+
+void setup() {
+    Serial.begin(115200);
+    pinMode(STATUS_LED, OUTPUT);
+    analogReadResolution(12);
+
+    Serial.print("Connecting to WiFi: ");
+    Serial.println(ssid);
+    WiFi.begin(ssid, password);
+
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+        digitalWrite(STATUS_LED, !digitalRead(STATUS_LED));
     }
-    delay(10);
+
+    digitalWrite(STATUS_LED, HIGH);
+    Serial.println("\nWiFi Connected! IP: " + WiFi.localIP().toString());
+}
+
+void loop() {
+    if (WiFi.status() == WL_CONNECTED) {
+        int raw = analogRead(MOISTURE_PIN);
+        int moisture = constrain(map(raw, DRY_VALUE, WET_VALUE, 0, 100), 0, 100);
+
+        HTTPClient http;
+        http.begin(serverUrl);
+        http.addHeader("Content-Type", "application/json");
+
+        // Prepare JSON payload
+        StaticJsonDocument<200> doc;
+        doc["deviceId"] = "ESP32_FC28_01";
+        doc["farmId"]   = "default";
+        doc["moisture"] = moisture;
+        doc["battery"]  = 95;
+
+        String requestBody;
+        serializeJson(doc, requestBody);
+
+        int httpResponseCode = http.POST(requestBody);
+        Serial.printf("Posted Moisture %d%% | HTTP Code: %d\n", moisture, httpResponseCode);
+
+        if (httpResponseCode > 0) {
+            String response = http.getString();
+            Serial.println("Response: " + response);
+        }
+
+        http.end();
+    }
+
+    delay(10000); // Send data every 10 seconds (or deep sleep for field use)
 }`
     },
     {
         id: 'calibration',
         label: 'Calibration',
         icon: 'tune',
-        content: `Instant 1-Click Calibration:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-No re-compiling needed! Calibration saves to Flash.
+        content: `Calibrating your FC-28 Moisture Sensor:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Step 1: Dry Reading (Air)
+  1. Hold the FC-28 probe in dry air (completely dry).
+  2. Open Arduino Serial Monitor (115200 baud).
+  3. Note the Raw ADC number (typically ~3200 - 3600).
+  4. Set this as DRY_VALUE in your Arduino sketch.
 
-Step 1: Open Arduino IDE Serial Monitor
-  Baud Rate: 115200
+Step 2: Wet Reading (Water)
+  1. Submerge the metal prongs into a glass of water
+     (do NOT submerge the blue LM393 module).
+  2. Note the Raw ADC number (typically ~1100 - 1500).
+  3. Set this as WET_VALUE in your Arduino sketch.
 
-Step 2: DRY Calibration (0% Moisture)
-  • Hold sensor in open dry air
-  • Type 'd' in the Serial input and press Enter
-  • ESP32 will permanently save DRY value to NVS
-
-Step 3: WET Calibration (100% Moisture)
-  • Dip sensor blade in a glass of water
-    (only the lower blade — keep circuit dry!)
-  • Type 'w' in the Serial input and press Enter
-  • ESP32 will permanently save WET value to NVS
-
-Step 4: Check Calibration Status
-  • Type 'c' to view your current calibration table
-  • Type 'r' anytime to reset to factory defaults
-
-Soil Accuracy Reference:
-  • Dry Soil:       10% - 25% (Needs irrigation)
-  • Optimal Soil:   45% - 70% (Healthy root zone)
-  • Saturated Soil: 80% - 100% (Just watered / rain)`
-    },
-    {
-        id: 'troubleshoot',
-        label: 'Troubleshoot',
-        icon: 'build',
-        content: `Common Issues & Fixes:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Blue LED Behavior:
-  • BLINKING (2Hz) = Pairing Mode (advertising, ready to pair)
-  • SOLID ON       = App connected and streaming live data
-  • FAST STROBE    = WiFi connecting in progress
-
-Device not appearing in Bluetooth list:
-  ✓ Use Google Chrome or Microsoft Edge (Web Bluetooth)
-  ✓ Turn on Phone/PC Bluetooth
-  ✓ In Chrome address bar, ensure site has Bluetooth permission
-  ✓ Verify Serial Monitor says "BLE Advertising active"
-
-Moisture reading stuck at 0% or 100%:
-  ✓ Calibrate with 'd' (in air) and 'w' (in water) via Serial Monitor
-  ✓ Ensure sensor AOUT connects to GPIO 34 (ADC1)
-  ✓ If sensor voltage does not change, try powering VCC from 5V/VIN
-    (many clone v1.2 sensors need 5V to run properly)
-
-WiFi connection failed:
-  ✓ ESP32 only supports 2.4GHz WiFi (not 5GHz)
-  ✓ Double-check your WiFi password`
+Step 3: Soil Test
+  1. Insert probe 2-3 inches into field soil.
+  2. The map() function will now accurately report 0% to 100% moisture!
+  3. Clean and dry the probe prongs after testing to extend longevity.`
     }
 ];
 
@@ -271,105 +268,80 @@ const IoTESP32Guide = ({ onBack }) => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#03140A] via-[#061c10] to-[#081d11] text-white font-sans overflow-x-hidden">
-            {/* Ambient */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-
+        <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans antialiased pb-12">
             {/* Header */}
-            <header className="flex items-center justify-between px-5 pt-12 pb-5 shrink-0 relative z-10">
-                <button
-                    onClick={onBack}
-                    className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center active:scale-90 transition-all border border-white/10"
-                >
-                    <span className="material-symbols-outlined text-white text-xl">arrow_back</span>
-                </button>
-                <div className="text-center">
-                    <h1 className="text-base font-extrabold text-white">ESP32 Setup Guide</h1>
-                    <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">KisanSensor Firmware</p>
-                </div>
-                <div className="w-10 h-10" />
-            </header>
-
-            {/* Intro banner */}
-            <div className="px-5 mb-5 relative z-10">
-                <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-start gap-3">
-                    <span className="material-symbols-outlined text-blue-400 text-2xl shrink-0">developer_board</span>
-                    <div>
-                        <p className="text-sm font-extrabold text-white">ESP32 + Capacitive Moisture Sensor</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Follow these steps in order: Wire → Install Libraries → Upload Code → Calibrate</p>
+            <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-emerald-100 px-4 py-3 shadow-sm">
+                <div className="max-w-2xl mx-auto flex items-center justify-between">
+                    <button
+                        onClick={onBack}
+                        className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 active:scale-95 transition-all"
+                        title="Back"
+                    >
+                        <span className="material-symbols-outlined text-xl">arrow_back</span>
+                    </button>
+                    <div className="text-center">
+                        <h1 className="text-base font-extrabold text-slate-900">ESP32 & FC-28 Hardware Guide</h1>
+                        <p className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">NodeMCU 30-Pin + LM393 Probe</p>
                     </div>
+                    <div className="w-9" />
                 </div>
-            </div>
 
-            {/* Section tabs */}
-            <div className="px-5 mb-4 relative z-10">
-                <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                {/* Section Tabs */}
+                <div className="max-w-2xl mx-auto mt-3 flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
                     {CODE_SECTIONS.map(section => (
                         <button
                             key={section.id}
                             onClick={() => setActiveSection(section.id)}
                             className={`flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                                 activeSection === section.id
-                                    ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
-                                    : 'bg-white/5 text-slate-400 border border-white/10'
+                                    ? 'bg-emerald-600 text-white shadow-sm'
+                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                             }`}
                         >
                             <span className="material-symbols-outlined text-sm">{section.icon}</span>
-                            {section.label}
+                            <span>{section.label}</span>
                         </button>
                     ))}
                 </div>
-            </div>
+            </header>
 
-            {/* Code block */}
-            <div className="flex-1 px-5 pb-10 relative z-10">
-                <div className="rounded-3xl bg-[#050f08] border border-white/10 overflow-hidden">
-                    {/* Code header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/3">
-                        <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-blue-400 text-base">{current.icon}</span>
-                            <span className="text-sm font-bold text-white">{current.label}</span>
+            <main className="max-w-2xl mx-auto px-4 pt-4 space-y-4">
+                {/* Hardware Banner */}
+                <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <span className="material-symbols-outlined text-2xl">memory</span>
+                    </div>
+                    <div>
+                        <h2 className="text-sm font-extrabold text-emerald-950">ESP32 NodeMCU 30-Pin CP2102 + FC-28</h2>
+                        <p className="text-xs text-emerald-800 mt-0.5 leading-relaxed">
+                            Complete reference wiring and firmware code tailored to your exact hardware setup.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Code Container */}
+                <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-md">
+                    <div className="flex items-center justify-between px-4 py-3 bg-slate-950/80 border-b border-slate-800">
+                        <div className="flex items-center gap-2 text-slate-200">
+                            <span className="material-symbols-outlined text-emerald-400 text-base">{current.icon}</span>
+                            <span className="text-xs font-extrabold">{current.label}</span>
                         </div>
                         <button
                             onClick={handleCopy}
-                            className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors active:scale-95"
+                            className="flex items-center gap-1 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg active:scale-95 transition-all"
                         >
-                            <span className="material-symbols-outlined text-base">
-                                {copied ? 'check_circle' : 'content_copy'}
+                            <span className="material-symbols-outlined text-sm">
+                                {copied ? 'check' : 'content_copy'}
                             </span>
-                            {copied ? 'Copied!' : 'Copy'}
+                            <span>{copied ? 'Copied!' : 'Copy'}</span>
                         </button>
                     </div>
 
-                    {/* Scrollable code */}
-                    <pre className="p-4 text-xs text-slate-300 font-mono leading-relaxed overflow-x-auto overflow-y-auto max-h-[52vh] whitespace-pre">
+                    <pre className="p-4 text-xs text-emerald-300 font-mono leading-relaxed overflow-x-auto max-h-[55vh] whitespace-pre bg-slate-900">
                         {current.content}
                     </pre>
                 </div>
-
-                {/* Helpful links */}
-                <div className="mt-4 p-4 rounded-2xl bg-white/3 border border-white/8">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Helpful Resources</p>
-                    <div className="space-y-2">
-                        {[
-                            { label: 'NimBLE-Arduino GitHub', url: 'https://github.com/h2zero/NimBLE-Arduino' },
-                            { label: 'ESP32 Arduino Docs', url: 'https://docs.espressif.com/projects/arduino-esp32' },
-                            { label: 'Web Bluetooth API', url: 'https://developer.chrome.com/docs/capabilities/bluetooth' }
-                        ].map(({ label, url }) => (
-                            <a
-                                key={label}
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-sm">open_in_new</span>
-                                {label}
-                            </a>
-                        ))}
-                    </div>
-                </div>
-            </div>
+            </main>
         </div>
     );
 };

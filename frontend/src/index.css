@@ -6,9 +6,9 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color-scheme: light;
+  color: #1e293b;
+  background-color: #f8fafc;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -20,29 +20,31 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background-color: #f8fafc;
+  color: #1e293b;
 }
 
 /* Custom Oyster White tint */
 .bg-oyster {
-  background-color: #fcfdfc;
+  background-color: #f8fafc;
 }
 
 .dark .bg-oyster {
-  background-color: #102218;
+  background-color: #f8fafc;
 }
 
 /* Subtle texture overlay gradient */
 .agri-overlay {
-  background: linear-gradient(180deg, rgba(246, 248, 247, 0) 0%, rgba(246, 248, 247, 1) 90%);
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 1) 90%);
 }
 
 .dark .agri-overlay {
-  background: linear-gradient(180deg, rgba(16, 34, 24, 0) 0%, rgba(16, 34, 24, 1) 90%);
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 1) 90%);
 }
 
 @layer base {
   body {
-    @apply bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-100 antialiased;
+    @apply bg-[#f8fafc] font-display text-slate-800 antialiased;
   }
 }
 
@@ -375,22 +377,22 @@ body {
   box-shadow: 0 4px 8px -3px rgba(8, 61, 32, 0.1);
 }
 
-/* Premium Krishi-Glass Panel styles with refined transparency & high clarity */
+/* Premium Krishi-Glass Panel styles with refined light theme clarity */
 .krishi-glass {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 8px 32px 0 rgba(8, 61, 32, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
   transition: all 0.3s ease;
 }
 
 .dark .krishi-glass {
-  background: rgba(10, 26, 17, 0.72);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
 /* Pulsing Floating 3D Copilot Orb */

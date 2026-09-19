@@ -1,49 +1,70 @@
 import React from 'react';
 
-const BottomNavbar = ({ activeTab, onNavigate }) => {
+const BottomNavbar = ({ activeTab = 'dashboard', onNavigate, onTabChange }) => {
+    const handleNav = (targetId) => {
+        if (onNavigate) onNavigate(targetId);
+        if (onTabChange) onTabChange(targetId);
+    };
+
     const navItems = [
         { id: 'dashboard', icon: 'home', label: 'Home' },
         { id: 'priority-tasks', icon: 'task_alt', label: 'Tasks' },
-        { id: 'farm-wizard', icon: 'add', label: 'Add', isCenter: true },
+        { id: 'scanner', icon: 'qr_code_scanner', label: 'Scan', isCenter: true },
         { id: 'schemes', icon: 'assignment', label: 'Schemes' },
         { id: 'account-info', icon: 'person', label: 'Profile' }
     ];
 
+    // Determine active state with aliases (e.g. soil-test/soil-intelligence/scan maps to scanner)
+    const isItemActive = (itemId) => {
+        if (activeTab === itemId) return true;
+        if (itemId === 'dashboard' && (activeTab === 'home' || !activeTab)) return true;
+        if (itemId === 'scanner' && (activeTab === 'scan' || activeTab === 'soil-test' || activeTab === 'soil-intelligence')) return true;
+        return false;
+    };
+
     return (
-        <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4 animate-fade-in-up">
-            <nav className="glass-panel backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-full px-2 py-2 shadow-glass flex items-center gap-1 border border-white/40 dark:border-white/10">
+        <div className="fixed bottom-3 inset-x-0 max-w-md mx-auto px-4 z-40 flex justify-center pointer-events-none">
+            <nav className="pointer-events-auto bg-white border border-slate-200/90 rounded-[28px] px-2 py-1.5 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.12),0_8px_10px_-6px_rgba(0,0,0,0.06)] flex items-center justify-between gap-1 w-full max-w-[390px] transition-all">
                 {navItems.map((item) => {
+                    const active = isItemActive(item.id);
+
                     if (item.isCenter) {
                         return (
-                            <div key={item.id} className="mx-1">
+                            <div key={item.id} className="relative -top-2 flex flex-col items-center">
                                 <button
-                                    onClick={() => onNavigate(item.id)}
-                                    className="w-12 h-12 bg-primary hover:bg-primary-dark rounded-full shadow-lg shadow-primary/40 flex items-center justify-center transform hover:-translate-y-1 active:scale-90 transition-all duration-300 text-white"
+                                    onClick={() => handleNav(item.id)}
+                                    className={`w-13 h-13 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 active:scale-90 cursor-pointer ring-4 ring-white ${
+                                        active
+                                            ? 'bg-emerald-600 shadow-emerald-600/40 ring-emerald-100'
+                                            : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30'
+                                    }`}
+                                    title={item.label}
                                 >
-                                    <span className="material-icons-round text-3xl">{item.icon}</span>
+                                    <span className="material-symbols-outlined text-2xl">{item.icon}</span>
                                 </button>
+                                <span className="text-[10px] font-bold text-emerald-700 mt-0.5 tracking-tight">
+                                    {item.label}
+                                </span>
                             </div>
                         );
                     }
 
-                    const isActive = activeTab === item.id;
-
                     return (
                         <button
                             key={item.id}
-                            onClick={() => onNavigate(item.id)}
-                            className={`relative flex flex-col items-center justify-center transition-all duration-300 px-4 py-1 min-w-[64px] ${isActive
-                                ? 'text-primary'
-                                : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
-                                }`}
+                            onClick={() => handleNav(item.id)}
+                            className={`flex-1 py-1 px-1.5 flex flex-col items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer active:scale-95 ${
+                                active
+                                    ? 'text-emerald-700 bg-emerald-50/80 font-bold'
+                                    : 'text-slate-500 hover:text-slate-800 font-medium'
+                            }`}
                         >
-                            <span className="material-icons-round text-2xl mb-1">{item.icon}</span>
-                            <span className={`text-[10px] font-bold tracking-tight uppercase transition-colors ${isActive ? 'text-primary' : 'text-gray-400'}`}>
+                            <span className={`material-symbols-outlined text-[22px] transition-transform ${active ? 'scale-110' : ''}`}>
+                                {item.icon}
+                            </span>
+                            <span className={`text-[10px] mt-0.5 tracking-tight ${active ? 'font-bold text-emerald-800' : 'text-slate-500'}`}>
                                 {item.label}
                             </span>
-                            {isActive && (
-                                <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-primary rounded-full"></span>
-                            )}
                         </button>
                     );
                 })}

@@ -40,85 +40,63 @@ const buildDiagnosticPrompt = (imageType, farm, user) => {
 The Department of Agriculture registers the following standard pests/diseases for this crop:
 ${pests.slice(0, 20).map(p => `• ${p}`).join('\n')}
 (Cross-reference observed symptoms against these official registries where visual evidence aligns.)`;
-    }
+    }    return `System Role: You are a Senior Plant Pathologist and Agronomist with 25+ years of Indian field experience (ICAR & KVK extension network).
 
-    return `System Role: You are a Senior Plant Pathologist and Agronomist with 25+ years of Indian field experience (ICAR & KVK extension network).
+Task: Perform a 2-Step Plant Diagnostic Protocol on the provided image:
 
-Task: Perform a rigorous 8-Step Plant Diagnostic Protocol on the provided crop image.
+STEP 1: RECOGNIZE WHETHER IMAGE IS OF A CROP / PLANT / LEAF
+- Carefully check if the image depicts a plant, crop, or leaf.
+- If it is NOT a crop/leaf/plant (e.g. human face, room, vehicle, animal, food item, screenshot, furniture, solid color, or random object):
+  Set "is_valid_crop_or_leaf": false.
+- If it IS a crop, plant, or leaf:
+  Set "is_valid_crop_or_leaf": true.
 
-FARM CONTEXT:
-- Stated Crop: ${cropName}
-- Location: ${farm?.location?.state || farm?.state || user?.state || 'India'}
-- District: ${farm?.location?.district || farm?.district || user?.district || 'Not specified'}
-- Terrain / Soil: ${farm?.terrain_type || 'Plain'}${npssContext}
-
-MANDATORY 8-STEP DIAGNOSTIC PROTOCOL:
-STEP 1: OBSERVE VISUAL EVIDENCE — Systematically inspect lesions, halos, chlorosis, fungal sporulation, bacterial streaming/water-soaking, pest chewing/stippling, or abiotic stress.
-STEP 2: IDENTIFY / VERIFY CROP — Confirm whether the image matches ${cropName} or state what crop/part is visible.
-STEP 3: SYMPTOM PATTERNS — Note distribution (upper/lower leaves, margins, veins, concentric 'bullseye', random).
-STEP 4: PLAUSIBLE CAUSES — Generate candidate pathogens (fungal, bacterial, viral, pest, nutrient deficiency, abiotic).
-STEP 5: COMPARE DISTINGUISHING FEATURES & LOOK-ALIKES — List 1-3 look-alike diseases and why they were ruled out.
-STEP 6: HONEST CALIBRATED CONFIDENCE — Rate confidence from 0.0 to 1.0 (never claim 100% lab certainty from an image alone).
-STEP 7: ADDITIONAL EVIDENCE NEEDED — What physical tests or field observations should the farmer check next.
-STEP 8: SAFE 3-TIER IPM ACTION PLAN —
-  - Tier 1: Immediate containment steps for TODAY.
-  - Tier 2: Organic / Bio-control agents (e.g. Trichoderma, Pseudomonas, Neem oil with dosage).
-  - Tier 3: Chemical intervention (ACTIVE INGREDIENTS ONLY, dilution, Pre-Harvest Interval [PHI], and safety gear).
+STEP 2: PATHOLOGY & SYMPTOM ANALYSIS (if valid crop/leaf)
+- Identify the crop species (e.g. Tomato, Cotton, Rice, Soybean, Eggplant).
+- List specific, visible morphological symptoms in "observations" (e.g. "Yellowing around leaf edges", "Small dark spots visible").
+- State the most plausible condition in "possible_issue" (e.g. "Possible fungal leaf infection", "Early Blight", "Healthy foliage").
+- Assign a realistic, calibrated confidence score between 0.0 and 1.0 (e.g. 0.78).
+- Determine severity: "Healthy", "Mild", "Moderate", "Severe", or "Critical".
+- Provide an immediate, practical recommendation for the farmer.
+- Always include the standard disclaimer.
 
 CRITICAL INSTRUCTION: Output ONLY a valid, parseable JSON object matching this exact schema:
 
+If NOT a crop/leaf (is_valid_crop_or_leaf = false):
 {
-  "crop_identified": "${cropName}",
-  "disease_name": "Common disease / pest / nutrient deficiency name",
-  "scientific_name": "Pathogen binomial name (e.g. Magnaporthe oryzae)",
-  "causal_agent": "Fungal" or "Bacterial" or "Viral" or "Pest" or "Nutrient Deficiency" or "Abiotic Stress" or "Healthy",
-  "confidence": 0.85,
-  "confidence_reasoning": "Reason for this confidence rating based on visual markers",
-  "severity": "Healthy" or "Mild" or "Moderate" or "Severe" or "Critical",
-  "severity_percentage": "estimated % of leaf area affected, e.g. 20%",
-  "symptoms_observed": [
-    "Specific symptom 1 with appearance and leaf position detail",
-    "Specific symptom 2",
-    "Specific symptom 3"
+  "is_valid_crop_or_leaf": false,
+  "crop": "Non-crop / Unidentified",
+  "observations": [
+    "The uploaded image does not contain a recognizable crop, plant, or leaf."
   ],
-  "symptom_locations": "e.g. Lower leaves, leaf margins, stem nodes",
-  "color_patterns": "Precise color description (e.g. Tan lesions with dark brown margins and yellow halos)",
-  "texture_analysis": "Surface signs (e.g. Powdery spores, necrotic dry papery tissue, water-soaked)",
-  "affected_parts": ["leaf", "stem", "fruit", "root"],
-  "spread_risk": "Low" or "Medium" or "High",
-  "overall_assessment": "2-3 sentence professional summary: diagnosis, current severity, urgency, and prognosis",
-  "environmental_triggers": "Conditions that favor this issue (temperature, humidity, cloudy weather, over-irrigation)",
-  "similar_diseases": [
-    {
-      "name": "Look-alike disease name",
-      "scientific_name": "Pathogen binomial name",
-      "why_ruled_out": "Brief distinguishing reason this was excluded"
-    }
+  "possible_issue": "Not a crop or plant leaf",
+  "confidence": 0.0,
+  "severity": "N/A",
+  "recommendation": "Please point your camera at an actual plant leaf or crop and capture a clear, well-lit photo.",
+  "disclaimer": "AI image analysis is an initial screening, not a definitive diagnosis."
+}
+
+If IS a crop/leaf (is_valid_crop_or_leaf = true):
+{
+  "is_valid_crop_or_leaf": true,
+  "crop": "Crop Name (e.g. Tomato)",
+  "observations": [
+    "Yellowing around leaf edges",
+    "Small dark spots visible"
   ],
-  "additional_evidence_needed": "What to inspect in the field or whether a physical KVK lab test is recommended",
-  "ipm_immediate": "TIER 1 — Emergency steps for TODAY (pruning, drainage, isolating plants)",
-  "ipm_organic": "TIER 2 — Organic/biological treatment with specific dosage (e.g. Neem oil 1500ppm @ 5ml/L, Trichoderma @ 5g/L)",
+  "possible_issue": "Possible fungal leaf infection",
+  "confidence": 0.78,
+  "severity": "Moderate",
+  "recommendation": "Isolate affected leaves and inspect nearby plants.",
+  "disclaimer": "AI image analysis is an initial screening, not a definitive diagnosis.",
+  "scientific_name": "Pathogen binomial name or N/A",
+  "causal_agent": "Fungal" or "Bacterial" or "Viral" or "Pest" or "Nutrient Deficiency" or "Healthy",
+  "ipm_immediate": "Immediate containment step for today",
+  "ipm_organic": "Organic/biological treatment with exact dosage (e.g. Neem oil @ 5ml/L)",
   "ipm_chemical": {
-    "active_ingredient": "Chemical active ingredient name (NOT brand name)",
-    "concentration": "e.g. 75% WP or 18.5% SC",
-    "dosage": "Exact quantity per liter of water or per acre",
-    "application_method": "Foliar spray / soil drench",
-    "frequency": "Spray schedule",
-    "phi_days": "Pre-harvest interval in days",
-    "precaution": "Safety clothing, mask, morning spray time, do not spray before rain"
-  },
-  "immediate_action": "Single most critical step farmer should take right now",
-  "prevention": [
-    "Cultural prevention measure 1 (crop rotation, resistant variety)",
-    "Cultural prevention measure 2 (spacing, clean seed)",
-    "Environmental management 3"
-  ],
-  "recommendations": [
-    "Actionable step 1",
-    "Actionable step 2",
-    "Actionable step 3"
-  ],
-  "yield_impact": "Expected yield reduction if left untreated (e.g. 20-30% loss within 2 weeks)"
+    "active_ingredient": "Chemical active ingredient name",
+    "dosage": "Dilution per liter of water"
+  }
 }`;
 };
 
@@ -129,6 +107,8 @@ function parseDiagnosticJSON(rawText) {
     if (!rawText) throw new Error("Empty vision response");
     let cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
     
+    let parsed = null;
+
     // Locate outermost JSON object
     const startIdx = cleaned.indexOf('{');
     const endIdx = cleaned.lastIndexOf('}');
@@ -136,63 +116,73 @@ function parseDiagnosticJSON(rawText) {
     if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
         try {
             const jsonStr = cleaned.substring(startIdx, endIdx + 1);
-            const parsed = JSON.parse(jsonStr);
-            if (parsed.disease_name || parsed.crop_identified) {
-                return parsed;
-            }
+            parsed = JSON.parse(jsonStr);
         } catch (e) {
             console.warn("JSON block parsing error, attempting text extraction:", e.message);
         }
     }
     
-    // Resilient Plain-Text Extraction if vision model answered in markdown format
-    console.log("Extracting diagnostic fields from plain text vision output...");
-    const extractField = (regex, defaultVal = '') => {
-        const m = cleaned.match(regex);
-        return m ? m[1].trim() : defaultVal;
-    };
+    if (!parsed) {
+        // Fallback text extraction
+        const extractField = (regex, defaultVal = '') => {
+            const m = cleaned.match(regex);
+            return m ? m[1].trim() : defaultVal;
+        };
+        
+        parsed = {
+            is_valid_crop_or_leaf: !/not a crop|non-crop|not a plant/i.test(cleaned),
+            crop: extractField(/(?:Crop|Plant)[:\s*]+([^\n\.,]+)/i, 'Crop Foliage'),
+            possible_issue: extractField(/(?:Possible Issue|Disease|Diagnosis)[:\s*]+([^\n\.,]+)/i, 'Visual Symptoms Observed'),
+            confidence: parseFloat(extractField(/(?:Confidence)[:\s*]+([0-9\.]+)/i, '0.78')) || 0.78,
+            severity: extractField(/(?:Severity)[:\s*]+([^\n\.,]+)/i, 'Moderate'),
+            recommendation: extractField(/(?:Recommendation)[:\s*]+([^\n\.]+)/i, 'Isolate affected leaves and inspect nearby plants.'),
+            observations: [cleaned.substring(0, 150)],
+            disclaimer: 'AI image analysis is an initial screening, not a definitive diagnosis.'
+        };
+    }
+
+    const isValid = parsed.is_valid_crop_or_leaf !== false &&
+                    !/non-crop|not a crop|not a plant|not a leaf/i.test(parsed.crop || '') &&
+                    !/not a crop|not a plant|no plant/i.test(parsed.possible_issue || '');
+
+    const crop = parsed.crop || parsed.crop_identified || (isValid ? 'Crop Leaf' : 'Non-crop / Unidentified');
+    const possibleIssue = parsed.possible_issue || parsed.disease_name || (isValid ? 'Visual Symptoms Observed' : 'Not a crop or plant leaf');
+    const observations = Array.isArray(parsed.observations) && parsed.observations.length > 0 
+        ? parsed.observations 
+        : (Array.isArray(parsed.symptoms_observed) && parsed.symptoms_observed.length > 0 
+            ? parsed.symptoms_observed 
+            : [isValid ? 'Leaf lesions and discoloration observed' : 'The uploaded image does not contain a recognizable crop, plant, or leaf.']);
     
-    const crop = extractField(/(?:Crop|Plant|Target Crop)[:\s*]+([^\n\.,]+)/i, 'Field Crop');
-    const disease = extractField(/(?:Disease|Pathogen|Condition|Diagnosis)[:\s*]+([^\n\.,]+)/i, 'Visual Symptoms Observed');
-    const scientific = extractField(/(?:Scientific Name|Pathogen Name|Species)[:\s*]+([^\n\.,]+)/i, 'Pending lab verification');
-    const severity = extractField(/(?:Severity|Stage)[:\s*]+([^\n\.,]+)/i, 'Moderate');
-    const confidence = parseFloat(extractField(/(?:Confidence|Certainty)[:\s*]+([0-9\.]+)/i, '0.75')) || 0.75;
-    
+    const confidence = typeof parsed.confidence === 'number' ? parsed.confidence : (isValid ? 0.78 : 0.0);
+    const severity = parsed.severity || (isValid ? 'Moderate' : 'N/A');
+    const recommendation = parsed.recommendation || parsed.overall_assessment || parsed.immediate_action || 
+        (isValid ? 'Isolate affected leaves and inspect nearby plants.' : 'Please point your camera at an actual plant leaf or crop and capture a clear, well-lit photo.');
+    const disclaimer = parsed.disclaimer || 'AI image analysis is an initial screening, not a definitive diagnosis.';
+
     return {
+        is_valid_crop_or_leaf: isValid,
+        crop,
+        observations,
+        possible_issue: possibleIssue,
+        confidence,
+        severity,
+        recommendation,
+        disclaimer,
+        // Backward-compatible fields
         crop_identified: crop,
-        disease_name: disease,
-        scientific_name: scientific,
-        causal_agent: 'Biotic / Pathological',
-        confidence: Math.min(Math.max(confidence, 0.3), 0.95),
-        severity: severity,
-        severity_percentage: 25,
-        symptoms_observed: [cleaned.substring(0, 150)],
-        symptom_locations: ['Leaves', 'Foliage'],
-        affected_parts: ['Leaves'],
-        spread_risk: 'Medium under humid conditions',
-        overall_assessment: cleaned.substring(0, 300),
-        additional_evidence_needed: 'High-resolution underside photograph and local extension officer confirmation',
-        ipm_immediate: 'Isolate affected plants and improve inter-row air circulation.',
-        ipm_organic: 'Apply Neem oil (Azadirachtin 10,000 ppm) @ 2 ml/L of water or Trichoderma viride.',
-        ipm_chemical: {
-            active_ingredient: 'Copper Oxychloride 50% WP',
-            concentration: '50% WP',
-            dosage: '2.5 g/L of water (500 g/acre in 200 L water)',
-            application_method: 'Foliar spray',
-            frequency: 'Once upon early onset, repeat after 10-12 days if required',
-            phi_days: '7 days',
-            precaution: 'Wear protective mask and gloves. Spray during calm morning or evening hours.'
-        },
-        immediate_action: 'Prune heavily infected lower leaves and safely destroy them outside the field.',
-        prevention: 'Maintain balanced NPK fertilization and avoid excessive overhead sprinkler irrigation.',
-        recommendations: [
-            'Prune heavily infected lower leaves',
-            'Improve field drainage and air circulation',
-            'Apply recommended biocontrol or fungicide based on threshold'
-        ],
-        yield_impact: 'Potential 10-25% yield reduction if left unmanaged'
+        disease_name: possibleIssue,
+        scientific_name: parsed.scientific_name || 'Pending verification',
+        causal_agent: parsed.causal_agent || (isValid ? 'Biotic' : 'N/A'),
+        overall_assessment: recommendation,
+        symptoms_observed: observations,
+        ipm_immediate: parsed.ipm_immediate || recommendation,
+        ipm_organic: parsed.ipm_organic || 'Apply organic Neem formulation if symptoms expand.',
+        ipm_chemical: parsed.ipm_chemical || null,
+        npss_reference_images: parsed.npss_reference_images || [],
+        npss_regional_reports: parsed.npss_regional_reports || null
     };
 }
+
 
 /**
  * Main entry point: Analyzes crop image file or base64
@@ -303,12 +293,18 @@ async function analyzeImageWithAI(imagePathOrBase64, imageType = 'leaf', farm = 
         
         // Return calibrated fallback structure ensuring UI doesn't crash
         const fallbackDiag = {
+            is_valid_crop_or_leaf: true,
+            crop: farm?.crop_type || 'Crop Leaf',
+            observations: ['Visual symptoms require closer inspection under natural daylight'],
+            possible_issue: 'Visual Symptom Analysis Pending Lab Confirmation',
+            confidence: 0.40,
+            severity: 'Moderate',
+            recommendation: 'Visual evidence is insufficient to confirm a pathogen without laboratory testing or higher resolution photography. Please take a clear, close-up photo in good daylight or consult your local Krishi Vigyan Kendra.',
+            disclaimer: 'AI image analysis is an initial screening, not a definitive diagnosis.',
             crop_identified: farm?.crop_type || 'Crop Leaf',
             disease_name: 'Visual Symptom Analysis Pending Lab Confirmation',
             scientific_name: 'N/A',
             causal_agent: 'Undetermined',
-            confidence: 0.40,
-            severity: 'Moderate',
             severity_percentage: 'Unknown',
             symptoms_observed: ['Visual symptoms require closer inspection under natural daylight'],
             symptom_locations: 'Canopy foliage',

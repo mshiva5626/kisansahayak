@@ -75,16 +75,16 @@ const LiveMarketPrices = ({ onBack, userProfile, selectedFarmId, userLocation, o
     });
 
     return (
-        <div className="relative flex min-h-full w-full flex-col overflow-hidden max-w-md mx-auto bg-gradient-to-b from-[#fcfdfc] to-[#e3eae4] dark:from-[#03140A] dark:to-[#081d11] font-display text-slate-900 dark:text-slate-100 antialiased pb-20">
+        <div className="relative flex min-h-full w-full flex-col overflow-hidden max-w-md mx-auto bg-[#f8fafc] font-display text-slate-900 antialiased pb-20">
             {/* Header Section */}
-            <header className="relative bg-gradient-to-b from-[#021309] via-[#052615] to-[#0a3d22] text-white pb-6 pt-10 px-5 rounded-b-[2.5rem] border-b border-emerald-500/20 shadow-2xl z-10 overflow-hidden shrink-0">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-[#0ED054]/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl pointer-events-none"></div>
+            <header className="relative bg-gradient-to-b from-emerald-800 via-emerald-700 to-teal-800 text-white pb-6 pt-10 px-5 rounded-b-[2.5rem] border-b border-emerald-700 shadow-xl z-10 overflow-hidden shrink-0">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl pointer-events-none"></div>
 
                 {/* Top Nav & Location Bar */}
                 <div className="flex items-center justify-between mb-4 relative z-10">
                     <button 
                         onClick={onBack} 
-                        className="p-2.5 bg-white/10 hover:bg-white/20 active:scale-95 rounded-2xl transition-all flex items-center justify-center cursor-pointer backdrop-blur-md border border-white/15"
+                        className="p-2.5 bg-white/15 hover:bg-white/25 active:scale-95 rounded-2xl transition-all flex items-center justify-center cursor-pointer backdrop-blur-md border border-white/20"
                     >
                         <span className="material-symbols-outlined text-xl text-white">arrow_back</span>
                     </button>
@@ -92,34 +92,34 @@ const LiveMarketPrices = ({ onBack, userProfile, selectedFarmId, userLocation, o
                     {/* Interactive Mandi Location Badge (Upright) */}
                     <button
                         onClick={() => setIsLocationModalOpen(true)}
-                        className="flex items-center space-x-2 bg-black/40 hover:bg-black/60 active:scale-95 border border-[#0ED054]/40 px-3.5 py-1.5 rounded-full text-white backdrop-blur-md transition-all cursor-pointer shadow-lg"
+                        className="flex items-center space-x-2 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 px-3.5 py-1.5 rounded-full text-white backdrop-blur-md transition-all cursor-pointer shadow-sm"
                         title="Change Mandi Location"
                     >
-                        <span className="material-symbols-outlined text-base text-[#0ED054] animate-pulse">location_on</span>
+                        <span className="material-symbols-outlined text-base text-emerald-300 animate-pulse">location_on</span>
                         <div className="text-left">
-                            <span className="text-[9px] uppercase font-bold text-[#0ED054] block leading-none">Mandi Location</span>
+                            <span className="text-[9px] uppercase font-bold text-emerald-200 block leading-none">Mandi Location</span>
                             <span className="text-xs font-extrabold text-white leading-tight">
                                 {activeDistrict}, {activeState}
                             </span>
                         </div>
-                        <span className="material-icons text-xs text-[#0ED054]">expand_more</span>
+                        <span className="material-icons text-xs text-emerald-200">expand_more</span>
                     </button>
                 </div>
 
                 {/* Title & Verified Government Badge */}
                 <div className="relative z-10 mb-4">
-                    <div className="inline-flex items-center space-x-1.5 bg-[#0ED054]/15 border border-[#0ED054]/30 px-3 py-1 rounded-full mb-2">
-                        <span className="w-2 h-2 rounded-full bg-[#0ED054] animate-ping"></span>
-                        <span className="text-[10px] font-extrabold tracking-wider text-[#0ED054] uppercase">
+                    <div className="inline-flex items-center space-x-1.5 bg-white/20 border border-white/30 px-3 py-1 rounded-full mb-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span className="text-[10px] font-extrabold tracking-wider text-white uppercase">
                             Agmarknet & e-NAM Verified Daily Rates
                         </span>
                     </div>
 
                     <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2 leading-tight">
                         <span>Mandi Bhav</span>
-                        <span className="text-[#0ED054] text-lg font-bold">(दैनिक थोक भाव)</span>
+                        <span className="text-emerald-200 text-lg font-bold">(दैनिक थोक भाव)</span>
                     </h1>
-                    <p className="text-xs text-gray-300">
+                    <p className="text-xs text-emerald-100">
                         Official APMC wholesale auction rates & daily price movements.
                     </p>
                 </div>
@@ -135,13 +135,13 @@ const LiveMarketPrices = ({ onBack, userProfile, selectedFarmId, userLocation, o
                             placeholder="Search commodity or APMC mandi..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full rounded-2xl border-none bg-white dark:bg-slate-900/90 py-3 pl-11 pr-10 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0ED054] shadow-lg text-xs font-semibold"
+                            className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-10 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-md text-xs font-semibold"
                         />
                         {searchQuery && (
                             <button
                                 type="button"
                                 onClick={() => { setSearchQuery(''); fetchPrices(activeCategory === 'All' ? '' : activeCategory, ''); }}
-                                className="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                                className="absolute right-3 text-slate-400 hover:text-slate-600"
                             >
                                 <span className="material-icons text-sm">close</span>
                             </button>
@@ -151,17 +151,17 @@ const LiveMarketPrices = ({ onBack, userProfile, selectedFarmId, userLocation, o
             </header>
 
             {/* Quick Commodity Filter Chips */}
-            <div className="px-4 py-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shrink-0 overflow-x-auto no-scrollbar flex space-x-2">
+            <div className="px-4 py-3 bg-white/95 backdrop-blur-md border-b border-slate-200 shrink-0 overflow-x-auto no-scrollbar flex space-x-2">
                 {commodityChips.map((chip) => {
                     const isSelected = activeCategory === chip;
                     return (
                         <button
                             key={chip}
                             onClick={() => handleCommodityChipClick(chip)}
-                            className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                                 isSelected
-                                    ? 'bg-[#0ED054] text-slate-950 shadow-md shadow-[#0ED054]/20 scale-105'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                    ? 'bg-emerald-600 text-white shadow-sm scale-105'
+                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/70'
                             }`}
                         >
                             {chip}
@@ -174,34 +174,34 @@ const LiveMarketPrices = ({ onBack, userProfile, selectedFarmId, userLocation, o
             <main className="flex-1 px-4 py-4 overflow-y-auto no-scrollbar space-y-3">
                 {isLoading ? (
                     <div className="py-16 text-center space-y-3">
-                        <div className="w-12 h-12 rounded-full border-3 border-[#0ED054] border-t-transparent animate-spin mx-auto"></div>
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                        <div className="w-12 h-12 rounded-full border-3 border-emerald-600 border-t-transparent animate-spin mx-auto"></div>
+                        <p className="text-xs font-bold text-slate-500">
                             Fetching verified Agmarknet rates for {activeDistrict}, {activeState}...
                         </p>
                     </div>
                 ) : error ? (
-                    <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-200 text-xs text-center space-y-2">
-                        <span className="material-icons text-2xl text-amber-500">info</span>
+                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs text-center space-y-2">
+                        <span className="material-icons text-2xl text-amber-600">info</span>
                         <p className="font-semibold">{error}</p>
                         <button
                             onClick={() => setIsLocationModalOpen(true)}
-                            className="py-2 px-4 rounded-xl bg-amber-600 text-white font-bold text-xs"
+                            className="py-2 px-4 rounded-xl bg-amber-600 text-white font-bold text-xs cursor-pointer shadow-xs"
                         >
                             Change Mandi Location
                         </button>
                     </div>
                 ) : filteredPrices.length === 0 ? (
-                    <div className="py-12 text-center space-y-2">
+                    <div className="py-12 text-center space-y-2 bg-white rounded-3xl p-6 border border-dashed border-slate-200">
                         <span className="material-symbols-outlined text-4xl text-slate-400">storefront</span>
-                        <p className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                        <p className="text-sm font-bold text-slate-700">
                             No Mandi rates found for "{searchQuery || activeCategory}" in {activeDistrict}.
                         </p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-500">
                             Try changing the commodity filter or selecting a nearby APMC district.
                         </p>
                         <button
                             onClick={() => { setActiveCategory('All'); setSearchQuery(''); }}
-                            className="mt-2 text-xs font-bold text-[#0ED054] hover:underline"
+                            className="mt-2 text-xs font-bold text-emerald-600 hover:underline cursor-pointer"
                         >
                             View All Commodities
                         </button>
@@ -217,20 +217,20 @@ const LiveMarketPrices = ({ onBack, userProfile, selectedFarmId, userLocation, o
                         return (
                             <div 
                                 key={item.id || idx}
-                                className="krishi-glass rounded-2xl p-4 border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-slate-900/90 shadow-md hover:shadow-lg transition-all space-y-3"
+                                className="rounded-2xl p-4 border border-slate-200/90 bg-white shadow-sm hover:shadow-md transition-all space-y-3"
                             >
                                 {/* Top Row: Commodity & Hike/Lower Badge */}
                                 <div className="flex items-start justify-between">
                                     <div>
                                         <div className="flex items-center space-x-2">
-                                            <h3 className="text-base font-extrabold text-slate-900 dark:text-white leading-snug">
+                                            <h3 className="text-base font-extrabold text-slate-900 leading-snug">
                                                 {item.commodity}
                                             </h3>
-                                            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                                            <span className="text-[11px] font-semibold text-slate-500">
                                                 ({item.variety || 'Standard Grade'})
                                             </span>
                                         </div>
-                                        <p className="text-xs font-semibold text-[#0ED054] flex items-center gap-1 mt-0.5">
+                                        <p className="text-xs font-semibold text-emerald-700 flex items-center gap-1 mt-0.5">
                                             <span className="material-symbols-outlined text-xs">storefront</span>
                                             {item.market_name}
                                         </p>
@@ -239,10 +239,10 @@ const LiveMarketPrices = ({ onBack, userProfile, selectedFarmId, userLocation, o
                                     {/* Daily Trend Badge (Hike / Lower / Steady) */}
                                     <div className={`px-2.5 py-1 rounded-xl text-xs font-extrabold flex items-center space-x-1 ${
                                         isHike 
-                                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' 
+                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
                                             : isLower 
-                                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30' 
-                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
+                                            ? 'bg-rose-50 text-rose-700 border border-rose-200' 
+                                            : 'bg-slate-100 text-slate-600 border border-slate-200'
                                     }`}>
                                         <span>{isHike ? '▲' : isLower ? '▼' : '●'}</span>
                                         <span>
@@ -255,26 +255,26 @@ const LiveMarketPrices = ({ onBack, userProfile, selectedFarmId, userLocation, o
                                 </div>
 
                                 {/* Center: Modal Price & Rate per kg */}
-                                <div className="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-center">
+                                <div className="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200/70 text-center">
                                     <div>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase block">Min Price</span>
-                                        <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase block">Min Price</span>
+                                        <span className="text-xs font-extrabold text-slate-800">
                                             {formatCurrency(item.min_price)}
                                         </span>
                                         <span className="text-[9px] text-slate-400 block">/ Quintal</span>
                                     </div>
-                                    <div className="border-x border-slate-200 dark:border-slate-700">
-                                        <span className="text-[10px] font-extrabold text-[#0ED054] uppercase block">Modal (Avg)</span>
-                                        <span className="text-sm font-black text-slate-900 dark:text-white">
+                                    <div className="border-x border-slate-200">
+                                        <span className="text-[10px] font-extrabold text-emerald-700 uppercase block">Modal (Avg)</span>
+                                        <span className="text-sm font-black text-slate-900">
                                             {formatCurrency(item.modal_price)}
                                         </span>
-                                        <span className="text-[10px] font-bold text-[#0ED054] block">
+                                        <span className="text-[10px] font-bold text-emerald-700 block">
                                             ₹{(item.modal_price / 100).toFixed(2)}/kg
                                         </span>
                                     </div>
                                     <div>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase block">Max Price</span>
-                                        <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase block">Max Price</span>
+                                        <span className="text-xs font-extrabold text-slate-800">
                                             {formatCurrency(item.max_price)}
                                         </span>
                                         <span className="text-[9px] text-slate-400 block">/ Quintal</span>
@@ -283,15 +283,15 @@ const LiveMarketPrices = ({ onBack, userProfile, selectedFarmId, userLocation, o
 
                                 {/* Bottom Meta: MSP & Official Verification */}
                                 <div className="flex items-center justify-between text-[11px] pt-1">
-                                    <div className="flex items-center space-x-1.5 text-slate-500 dark:text-slate-400">
+                                    <div className="flex items-center space-x-1.5 text-slate-500">
                                         <span className="material-icons text-xs text-amber-500">verified</span>
                                         {item.msp ? (
                                             <span>
-                                                Govt MSP: <strong className="text-slate-700 dark:text-slate-200">₹{item.msp.toLocaleString('en-IN')}/q</strong>
+                                                Govt MSP: <strong className="text-slate-800">₹{item.msp.toLocaleString('en-IN')}/q</strong>
                                                 {item.modal_price >= item.msp ? (
-                                                    <span className="text-emerald-500 font-bold ml-1">(+₹{item.modal_price - item.msp})</span>
+                                                    <span className="text-emerald-600 font-bold ml-1">(+₹{item.modal_price - item.msp})</span>
                                                 ) : (
-                                                    <span className="text-rose-500 font-bold ml-1">(-₹{item.msp - item.modal_price})</span>
+                                                    <span className="text-rose-600 font-bold ml-1">(-₹{item.msp - item.modal_price})</span>
                                                 )}
                                             </span>
                                         ) : (
@@ -311,12 +311,12 @@ const LiveMarketPrices = ({ onBack, userProfile, selectedFarmId, userLocation, o
                 )}
 
                 {/* Authentic Sources Footer Card */}
-                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1.5 mt-4">
-                    <div className="flex items-center space-x-2 text-[#0ED054] font-extrabold">
+                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs space-y-1.5 mt-4">
+                    <div className="flex items-center space-x-2 text-emerald-800 font-extrabold">
                         <span className="material-icons text-base">verified_user</span>
                         <span>Official Data Grounding Notice</span>
                     </div>
-                    <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
                         Prices are verified daily from the <strong>Directorate of Marketing and Inspection (Agmarknet)</strong> and the <strong>National Agriculture Market (e-NAM)</strong>, Ministry of Agriculture & Farmers Welfare, Government of India.
                     </p>
                 </div>

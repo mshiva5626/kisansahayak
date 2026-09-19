@@ -141,21 +141,28 @@ async function generateAgriculturalCompletion({
             });
         }
     } catch (primaryError) {
-        console.error(`❌ [AI Copilot Engine] Primary Model Error (${model}):`, primaryError.message);
+        console.warn(`⚠️ [AI Copilot Engine] Primary Model Notice (${model}): ${primaryError.message}`);
         
-        // Attempt explicit fallback ONLY if configured by developer
-        if (MODEL_CONFIG.fallbackModelName && MODEL_CONFIG.fallbackModelName !== model) {
-            console.warn(`🔄 [AI Copilot Engine] Attempting developer-configured fallback model: ${MODEL_CONFIG.fallbackModelName}`);
+        // Attempt resilient fallback chain using working OpenRouter models (e.g. deepseek-v4-flash)
+        const fallbackCandidates = [
+            MODEL_CONFIG.fallbackModelName,
+            'deepseek/deepseek-v4-flash-0731:free',
+            'nvidia/nemotron-3-super-120b-a12b:free',
+            'nex-agi/nex-n2.5-mini:free'
+        ].filter((fb, idx, arr) => fb && fb !== model && arr.indexOf(fb) === idx);
+
+        for (const fbModel of fallbackCandidates) {
+            console.log(`🔄 [AI Copilot Engine] Routing live request to OpenRouter model: ${fbModel}`);
             try {
                 return await callOpenRouter({
-                    model: MODEL_CONFIG.fallbackModelName,
+                    model: fbModel,
                     messages: fullMessages,
                     temperature,
                     maxTokens,
                     responseFormat
                 });
             } catch (fallbackError) {
-                console.error(`❌ [AI Copilot Engine] Fallback Model Error:`, fallbackError.message);
+                console.warn(`⚠️ [AI Copilot Engine] Fallback Model Notice (${fbModel}):`, fallbackError.message);
             }
         }
         
@@ -164,7 +171,7 @@ async function generateAgriculturalCompletion({
 }
 
 /**
- * OpenRouter Provider Adapter
+ * OpenRouter Provider Adapter (Supports reasoning and reasoning_details)
  */
 async function callOpenRouter({ model, messages, temperature, maxTokens, responseFormat }) {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -173,11 +180,24 @@ async function callOpenRouter({ model, messages, temperature, maxTokens, respons
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), MODEL_CONFIG.timeoutMs);
     
+    // Clean and preserve reasoning_details in message history
+    const cleanedMessages = (messages || []).map(m => {
+        const msg = {
+            role: m.role === 'assistant' || m.role === 'model' ? 'assistant' : m.role === 'system' ? 'system' : 'user',
+            content: m.content || m.text || ''
+        };
+        if (m.reasoning_details) {
+            msg.reasoning_details = m.reasoning_details;
+        }
+        return msg;
+    });
+
     const requestBody = {
         model,
-        messages,
+        messages: cleanedMessages,
         temperature,
-        max_tokens: maxTokens
+        max_tokens: maxTokens,
+        reasoning: { enabled: true }
     };
     
     if (responseFormat === 'json') {
@@ -216,6 +236,16 @@ async function callOpenRouter({ model, messages, temperature, maxTokens, respons
         
         // Clean thinking/reasoning tags and plain-text thinking preambles
         content = cleanOutputText(content);
+        
+        // If content is empty because reasoning consumed tokens, use cleaned reasoning or trigger fallback
+        if (!content || content.trim().length === 0) {
+            if (choice?.message?.reasoning) {
+                content = cleanOutputText(choice.message.reasoning);
+            }
+            if (!content || content.trim().length === 0) {
+                throw new Error(`Model ${model} returned empty completion content.`);
+            }
+        }
         
         console.log(`✅ [AI Copilot Engine] Response received (${content.length} chars)`);
         return content;
@@ -334,11 +364,9 @@ async function generateVisionAnalysis({ prompt, base64Image, mimeType = 'image/j
     
     // Candidate vision models on OpenRouter (ordered by reliability and precision)
     const visionModels = [
-        MODEL_CONFIG.visionModelName || 'google/gemini-2.0-flash-exp:free',
-        'meta-llama/llama-3.2-11b-vision-instruct:free',
-        'qwen/qwen-2.5-vl-72b-instruct:free',
-        'google/gemini-2.0-flash-lite-preview-02-05:free',
-        'nvidia/nemotron-nano-12b-v2-vl:free'
+        MODEL_CONFIG.visionModelName || 'inclusionai/ling-3.0-flash-vl:free',
+        'inclusionai/ling-3.0-flash-vl:free',
+        'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free'
     ];
 
     // Remove duplicates

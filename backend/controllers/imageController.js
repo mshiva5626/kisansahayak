@@ -187,12 +187,21 @@ exports.analyzeImage = async (req, res) => {
                 if (updateError) console.warn('Could not save analysis result to DB:', updateError.message);
             });
 
+        const diag = analysisResult.analysis || {};
         res.status(200).json({
             image_id: image.id,
             image_type: image.image_type,
-            analysis_result: analysisResult.analysis,
-            confidence_score: analysisResult.confidence_score,
-            indicators: analysisResult.indicators
+            is_valid_crop_or_leaf: diag.is_valid_crop_or_leaf !== false,
+            crop: diag.crop || diag.crop_identified || (farm ? farm.crop_type : 'Crop Leaf'),
+            observations: diag.observations || diag.symptoms_observed || [],
+            possible_issue: diag.possible_issue || diag.disease_name || 'Visual Symptoms Observed',
+            confidence: typeof diag.confidence === 'number' ? diag.confidence : analysisResult.confidence_score,
+            severity: diag.severity || 'Moderate',
+            recommendation: diag.recommendation || diag.overall_assessment || 'Isolate affected leaves and inspect nearby plants.',
+            disclaimer: diag.disclaimer || 'AI image analysis is an initial screening, not a definitive diagnosis.',
+            analysis_result: diag,
+            confidence_score: typeof diag.confidence === 'number' ? diag.confidence : analysisResult.confidence_score,
+            indicators: analysisResult.indicators || diag.observations || []
         });
     } catch (error) {
         console.error('Analyze image error:', error.message);

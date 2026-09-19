@@ -236,7 +236,6 @@ const Dashboard = ({
                                         <span className="material-symbols-outlined text-black text-[11px] font-black">add</span>
                                     </span>
                                 </button>
-
                                 <button onClick={onNotificationClick} className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/20 active:scale-95 transition-all relative shadow-md">
                                     <span className="material-symbols-outlined text-white text-[22px]">notifications</span>
                                     <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-red-500 border-2 border-[#0c4726] animate-ping"></span>
@@ -251,16 +250,16 @@ const Dashboard = ({
                         <div className="px-6 pb-4 flex items-center justify-between">
                             <button
                                 onClick={() => setIsLocationModalOpen(true)}
-                                className="flex items-center space-x-2 bg-black/40 hover:bg-black/60 active:scale-95 border border-[#0ED054]/40 px-3.5 py-1.5 rounded-full text-white backdrop-blur-md transition-all cursor-pointer shadow-md"
+                                className="flex items-center space-x-2 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 px-3.5 py-1.5 rounded-full text-white backdrop-blur-md transition-all cursor-pointer shadow-sm"
                             >
                                 <span className="material-symbols-outlined text-base text-[#0ED054] animate-pulse">location_on</span>
                                 <div className="text-left">
-                                    <span className="text-[9px] uppercase font-bold text-[#0ED054] block leading-none">Mandi Location</span>
+                                    <span className="text-[9px] uppercase font-bold text-emerald-200 block leading-none">Mandi Location</span>
                                     <span className="text-xs font-extrabold text-white leading-tight">
                                         {activeDistrict}, {activeState}
                                     </span>
                                 </div>
-                                <span className="material-icons text-xs text-[#0ED054]">expand_more</span>
+                                <span className="material-icons text-xs text-emerald-200">expand_more</span>
                             </button>
                         </div>
 
@@ -269,10 +268,10 @@ const Dashboard = ({
                             {/* Weather Stats Card */}
                             <div 
                                 onClick={onWeatherClick}
-                                className="bg-black/35 hover:bg-black/45 active:scale-95 backdrop-blur-xl border border-white/20 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card shadow-lg transition-all"
+                                className="bg-white/15 hover:bg-white/25 active:scale-95 backdrop-blur-xl border border-white/25 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card shadow-md transition-all"
                             >
                                 <span className="text-xl font-black text-white tracking-tight">{weather ? `${weather.temp}°C` : '—'}</span>
-                                <span className="text-[10px] text-emerald-200 font-bold flex items-center gap-1 mt-1 truncate max-w-full">
+                                <span className="text-[10px] text-emerald-100 font-bold flex items-center gap-1 mt-1 truncate max-w-full">
                                     <span className="material-symbols-outlined text-[13px] text-[#0ED054] shrink-0">
                                         {weather?.condition?.toLowerCase().includes('rain') ? 'grain' : 'wb_sunny'}
                                     </span>
@@ -283,15 +282,15 @@ const Dashboard = ({
                             {/* Mandi Wealth Card (Live & Grounded) */}
                             <div 
                                 onClick={onMandiPricesClick}
-                                className="bg-black/35 hover:bg-black/45 active:scale-95 backdrop-blur-xl border border-white/20 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card relative shadow-lg transition-all"
+                                className="bg-white/15 hover:bg-white/25 active:scale-95 backdrop-blur-xl border border-white/25 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card relative shadow-md transition-all"
                             >
                                 <div className="flex items-center space-x-1">
                                     <span className="text-lg font-black text-[#FACC15]">₹{mandiSummary.price.toLocaleString('en-IN')}</span>
-                                    <span className={`text-[10px] font-black ${mandiSummary.trend === 'hike' ? 'text-emerald-400' : mandiSummary.trend === 'lower' ? 'text-rose-400' : 'text-slate-400'}`}>
+                                    <span className={`text-[10px] font-black ${mandiSummary.trend === 'hike' ? 'text-emerald-300' : mandiSummary.trend === 'lower' ? 'text-rose-300' : 'text-slate-300'}`}>
                                         {mandiSummary.trend === 'hike' ? '▲' : mandiSummary.trend === 'lower' ? '▼' : '●'}
                                     </span>
                                 </div>
-                                <span className="text-[10px] text-emerald-200 font-bold flex items-center gap-0.5 mt-1 truncate w-full justify-center">
+                                <span className="text-[10px] text-emerald-100 font-bold flex items-center gap-0.5 mt-1 truncate w-full justify-center">
                                     <span className="material-symbols-outlined text-[13px] text-[#FACC15] shrink-0">storefront</span>
                                     <span className="truncate">{mandiSummary.crop}</span>
                                 </span>
@@ -300,10 +299,10 @@ const Dashboard = ({
                             {/* Farm Switcher Card */}
                             <div 
                                 onClick={onFarmSwitcherClick}
-                                className="bg-black/35 hover:bg-black/45 active:scale-95 backdrop-blur-xl border border-white/20 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card shadow-lg transition-all"
+                                className="bg-white/15 hover:bg-white/25 active:scale-95 backdrop-blur-xl border border-white/25 rounded-2xl p-3 flex flex-col items-center justify-between text-center cursor-pointer tilt-card shadow-md transition-all"
                             >
-                                <span className="text-lg font-black text-[#0ED054] max-w-[85px] truncate">{farm?.farm_name || 'My Farm'}</span>
-                                <span className="text-[10px] text-emerald-200 font-bold flex items-center gap-0.5 mt-1 justify-center">
+                                <span className="text-lg font-black text-white max-w-[85px] truncate">{farm?.farm_name || 'My Farm'}</span>
+                                <span className="text-[10px] text-emerald-100 font-bold flex items-center gap-0.5 mt-1 justify-center">
                                     <span className="material-symbols-outlined text-[13px] text-[#0ED054]">swap_horiz</span>
                                     Switch
                                 </span>
@@ -413,20 +412,15 @@ const Dashboard = ({
                                     <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Market</span>
                                 </button>
 
-                                <button onClick={onSoilTestClick} className="flex flex-col items-center gap-2 group tactile-btn">
+                                <button onClick={() => onNavigate('soil-intelligence')} className="flex flex-col items-center gap-2 group tactile-btn">
                                     <div className="h-13 w-13 rounded-2xl bg-green-100 dark:bg-green-950/40 border border-green-200/20 flex items-center justify-center transition-all group-active:scale-95 shadow-md">
                                         <span className="material-symbols-outlined text-green-600 dark:text-green-400 text-[26px]">science</span>
                                     </div>
-                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Soil Test</span>
+                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Soil Hub</span>
                                 </button>
                             </div>
                         </div>
 
-                        {/* ── Live IoT Soil Moisture Card ── */}
-                        <DashboardMoistureCard
-                            selectedFarmId={selectedFarmId}
-                            onNavigate={onNavigate}
-                        />
 
                         {/* ── Live Sensor NPK & Fertilizer Prescription Report (S.R. Reddy ICAR) ── */}
                         <NPKReportCard

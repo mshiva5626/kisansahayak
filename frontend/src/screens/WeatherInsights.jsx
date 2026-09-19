@@ -125,24 +125,21 @@ const WeatherInsights = ({ onBack, onNavigate, selectedFarmId, userLocation }) =
     }
 
     return (
-        <div className="flex flex-col min-h-full bg-gradient-to-b from-[#03140A] to-[#081d11] font-display text-white relative">
-            {/* Ambient Background Gradient for Weather */}
-            <div className={`fixed inset-0 z-0 pointer-events-none transition-colors duration-1000 ${weather?.condition?.toLowerCase().includes('rain') ? 'bg-gradient-to-b from-[#111e2e] to-[#03140A]' : 'bg-gradient-to-b from-[#042414] to-[#03140A]'}`}></div>
-
+        <div className="flex flex-col min-h-full bg-[#f8fafc] font-display text-slate-900 relative">
             {/* Header */}
-            <header className="px-5 pt-12 pb-6 relative z-10 sticky top-0 krishi-glass border-b border-white/10 shadow-md">
+            <header className="px-5 pt-12 pb-6 relative z-10 sticky top-0 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-xs">
                 <div className="flex items-center justify-between">
-                    <button onClick={onBack} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-white/20 text-[#8abf8a] hover:text-white transition-all cursor-pointer tactile-btn">
+                    <button onClick={onBack} className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 transition-all cursor-pointer">
                         <span className="material-symbols-outlined text-xl">arrow_back</span>
                     </button>
                     <div className="text-center flex-1">
-                        <h1 className="text-xl font-bold tracking-wide text-white">Weather Insights</h1>
-                        <p className="text-[#8abf8a] text-xs flex items-center justify-center gap-1 mt-0.5 font-semibold">
-                            <span className="material-symbols-outlined text-[12px]">location_on</span>
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900">Weather Insights</h1>
+                        <p className="text-emerald-700 text-xs flex items-center justify-center gap-1 mt-0.5 font-semibold">
+                            <span className="material-symbols-outlined text-[14px]">location_on</span>
                             {locationName}
                         </p>
                     </div>
-                    <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-white/20 text-[#8abf8a] hover:text-white transition-all cursor-pointer tactile-btn">
+                    <button className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 transition-all cursor-pointer">
                         <span className="material-symbols-outlined text-xl">share</span>
                     </button>
                 </div>
@@ -153,26 +150,25 @@ const WeatherInsights = ({ onBack, onNavigate, selectedFarmId, userLocation }) =
 
                 {/* Hero Current Weather */}
                 {weather && (
-                    <div className="relative text-center pb-6">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#0ED054]/10 rounded-full blur-3xl -z-10"></div>
+                    <div className="relative text-center pb-4">
                         <div className="flex justify-center mb-2">
                             {weather.condition?.toLowerCase().includes('rain') ? (
-                                <span className="material-symbols-outlined text-7xl text-blue-400 drop-shadow-[0_0_15px_rgba(96,165,250,0.5)]">rainy</span>
+                                <span className="material-symbols-outlined text-7xl text-blue-500 drop-shadow-sm">rainy</span>
                             ) : weather.condition?.toLowerCase().includes('cloud') ? (
-                                <span className="material-symbols-outlined text-7xl text-gray-300 drop-shadow-[0_0_15px_rgba(209,213,219,0.5)]">cloudy</span>
+                                <span className="material-symbols-outlined text-7xl text-slate-400 drop-shadow-sm">cloudy</span>
                             ) : (
-                                <span className="material-symbols-outlined text-7xl text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">sunny</span>
+                                <span className="material-symbols-outlined text-7xl text-amber-500 drop-shadow-sm">sunny</span>
                             )}
                         </div>
                         <div className="flex items-start justify-center">
-                            <h2 className="text-[5.5rem] font-black leading-none tracking-tighter mix-blend-screen drop-shadow-md">{weather.temp}</h2>
-                            <span className="text-3xl font-bold mt-2 text-[#8abf8a]">°C</span>
+                            <h2 className="text-[5.5rem] font-black leading-none tracking-tighter text-slate-900">{weather.temp}</h2>
+                            <span className="text-3xl font-bold mt-2 text-emerald-700">°C</span>
                         </div>
-                        <p className="text-xl text-white font-bold capitalize mt-1 tracking-wide">{weather.condition}</p>
+                        <p className="text-xl text-slate-800 font-bold capitalize mt-1 tracking-wide">{weather.condition}</p>
                         <div className="flex items-center justify-center gap-3 mt-3">
-                            <span className="bg-white/10 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-xs text-[#8abf8a] font-bold flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[14px]">thermostat</span>
-                                Feels like {weather.temp + 1}°
+                            <span className="bg-white border border-slate-200 shadow-xs px-3.5 py-1 rounded-full text-xs text-slate-600 font-bold flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[15px] text-emerald-600">thermostat</span>
+                                Feels like {weather.temp + 1}°C
                             </span>
                         </div>
                     </div>
@@ -180,69 +176,63 @@ const WeatherInsights = ({ onBack, onNavigate, selectedFarmId, userLocation }) =
 
                 {/* Metrics Grid */}
                 {weather && (
-                    <div className="grid grid-cols-2 gap-4 tilt-card-container">
-                        <div className="krishi-glass shadow-lg rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group tilt-card border border-white/20 dark:border-white/10">
-                            <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition-all"></div>
-                            <div className="flex items-center gap-2 text-[#a8dda8] text-[11px] uppercase tracking-widest font-bold">
-                                <span className="material-symbols-outlined text-blue-400 text-sm">water_drop</span>
+                    <div className="grid grid-cols-2 gap-3.5">
+                        <div className="bg-white shadow-xs rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden border border-slate-200">
+                            <div className="flex items-center gap-2 text-slate-500 text-[11px] uppercase tracking-wider font-bold">
+                                <span className="material-symbols-outlined text-blue-500 text-sm">water_drop</span>
                                 Humidity
                             </div>
-                            <div className="text-3xl font-black text-white">{weather.humidity}<span className="text-sm font-bold text-[#8abf8a] ml-1">%</span></div>
-                            <div className="text-[11px] font-bold text-[#8abf8a] mt-1">{weather.humidity > 70 ? 'High' : 'Normal'} Range</div>
+                            <div className="text-3xl font-black text-slate-900">{weather.humidity}<span className="text-sm font-bold text-slate-400 ml-1">%</span></div>
+                            <div className="text-[11px] font-bold text-emerald-700 mt-0.5">{weather.humidity > 70 ? 'High' : 'Normal'} Range</div>
                         </div>
 
-                        <div className="krishi-glass shadow-lg rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group tilt-card border border-white/20 dark:border-white/10">
-                            <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-gray-400/10 rounded-full blur-xl group-hover:bg-gray-400/20 transition-all"></div>
-                            <div className="flex items-center gap-2 text-[#a8dda8] text-[11px] uppercase tracking-widest font-bold">
-                                <span className="material-symbols-outlined text-gray-400 text-sm">air</span>
+                        <div className="bg-white shadow-xs rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden border border-slate-200">
+                            <div className="flex items-center gap-2 text-slate-500 text-[11px] uppercase tracking-wider font-bold">
+                                <span className="material-symbols-outlined text-slate-500 text-sm">air</span>
                                 Wind
                             </div>
-                            <div className="text-3xl font-black text-white">{weather.wind}<span className="text-sm font-bold text-[#8abf8a] ml-1">km/h</span></div>
-                            <div className="text-[11px] font-bold text-[#8abf8a] mt-1">{weather.wind > 20 ? 'Strong' : 'Light Breeze'}</div>
+                            <div className="text-3xl font-black text-slate-900">{weather.wind}<span className="text-sm font-bold text-slate-400 ml-1">km/h</span></div>
+                            <div className="text-[11px] font-bold text-emerald-700 mt-0.5">{weather.wind > 20 ? 'Strong' : 'Light Breeze'}</div>
                         </div>
 
-                        <div className="krishi-glass shadow-lg rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group tilt-card border border-white/20 dark:border-white/10">
-                            <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-blue-400/10 rounded-full blur-xl group-hover:bg-blue-400/20 transition-all"></div>
-                            <div className="flex items-center gap-2 text-[#a8dda8] text-[11px] uppercase tracking-widest font-bold">
-                                <span className="material-symbols-outlined text-blue-400 text-sm">umbrella</span>
+                        <div className="bg-white shadow-xs rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden border border-slate-200">
+                            <div className="flex items-center gap-2 text-slate-500 text-[11px] uppercase tracking-wider font-bold">
+                                <span className="material-symbols-outlined text-blue-500 text-sm">umbrella</span>
                                 Rain Chance
                             </div>
-                            <div className="text-3xl font-black text-white">{weather.condition?.toLowerCase().includes('rain') ? '80' : '10'}<span className="text-sm font-bold text-[#8abf8a] ml-1">%</span></div>
-                            <div className="text-[11px] font-bold text-[#8abf8a] mt-1">Next 24 Hours</div>
+                            <div className="text-3xl font-black text-slate-900">{weather.condition?.toLowerCase().includes('rain') ? '80' : '10'}<span className="text-sm font-bold text-slate-400 ml-1">%</span></div>
+                            <div className="text-[11px] font-bold text-slate-500 mt-0.5">Next 24 Hours</div>
                         </div>
 
-                        <div className="krishi-glass shadow-lg rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group tilt-card border border-white/20 dark:border-white/10">
-                            <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-orange-500/10 rounded-full blur-xl group-hover:bg-orange-500/20 transition-all"></div>
-                            <div className="flex items-center gap-2 text-[#a8dda8] text-[11px] uppercase tracking-widest font-bold">
-                                <span className="material-symbols-outlined text-orange-400 text-sm">wb_sunny</span>
+                        <div className="bg-white shadow-xs rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden border border-slate-200">
+                            <div className="flex items-center gap-2 text-slate-500 text-[11px] uppercase tracking-wider font-bold">
+                                <span className="material-symbols-outlined text-amber-500 text-sm">wb_sunny</span>
                                 UV Index
                             </div>
-                            <div className="text-3xl font-black text-white">6<span className="text-sm font-bold text-[#8abf8a] ml-1">/11</span></div>
-                            <div className="text-[11px] font-bold text-orange-400 mt-1">Moderate</div>
+                            <div className="text-3xl font-black text-slate-900">6<span className="text-sm font-bold text-slate-400 ml-1">/11</span></div>
+                            <div className="text-[11px] font-bold text-amber-600 mt-0.5">Moderate</div>
                         </div>
                     </div>
                 )}
 
                 {/* Agri-Insight Card */}
                 {weather && (
-                    <div className="relative mt-2 p-[1px] rounded-2xl overflow-hidden bg-gradient-to-r from-[#0ED054] via-[#10b953] to-[#0a662e] shadow-[0_4px_24px_rgba(14,208,84,0.15)] tilt-card-container">
-                        <div className="krishi-glass rounded-2xl p-5 h-full border-none tilt-card">
-                            <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 shrink-0 rounded-full bg-[#0ED054]/20 flex items-center justify-center border border-[#0ED054]/30 shadow-md">
-                                    <span className="material-symbols-outlined text-[#0ED054] text-2xl font-bold">psychology</span>
-                                </div>
-                                <div>
-                                    <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">
-                                        AI Agronomist
-                                        <span className="w-2 h-2 rounded-full bg-[#0ED054] animate-pulse"></span>
-                                    </h3>
-                                    <p className="text-[#8abf8a] text-sm leading-relaxed mb-3 font-semibold">
-                                        {getAgriRecommendation()}
-                                    </p>
-                                    <button className="text-[#0ED054] text-xs font-bold uppercase tracking-wider flex items-center gap-1 hover:underline cursor-pointer">
-                                        View Detailed Advisory <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                                    </button>
-                                </div>
+                    <div className="bg-emerald-50/80 border border-emerald-200 rounded-3xl p-5 shadow-xs">
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 shrink-0 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200 shadow-xs">
+                                <span className="material-symbols-outlined text-2xl font-bold">psychology</span>
+                            </div>
+                            <div>
+                                <h3 className="text-slate-900 font-bold text-base mb-1 flex items-center gap-2">
+                                    AI Agronomist
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                </h3>
+                                <p className="text-slate-700 text-xs leading-relaxed mb-3 font-medium">
+                                    {getAgriRecommendation()}
+                                </p>
+                                <button onClick={() => onNavigate('chat')} className="text-emerald-700 text-xs font-bold uppercase tracking-wider flex items-center gap-1 hover:underline cursor-pointer">
+                                    Ask Kisan Copilot <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -251,30 +241,30 @@ const WeatherInsights = ({ onBack, onNavigate, selectedFarmId, userLocation }) =
                 {/* Detailed Forecast */}
                 {weather?.forecast && weather.forecast.length > 0 && (
                     <div className="mt-6">
-                        <h3 className="text-white font-bold tracking-wide mb-4 text-lg">7-Day Forecast</h3>
-                        <div className="krishi-glass shadow-lg rounded-2xl overflow-hidden border border-white/20 dark:border-white/10">
+                        <h3 className="text-slate-900 font-bold tracking-tight mb-3 text-base">7-Day Agricultural Forecast</h3>
+                        <div className="bg-white shadow-xs rounded-2xl overflow-hidden border border-slate-200">
                             <div className="flex flex-col">
                                 {weather.forecast.map((day, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-4 border-b last:border-0 border-white/10 hover:bg-white/5 transition-all">
-                                        <div className="w-24 text-[15px] font-bold text-white">
+                                    <div key={idx} className="flex items-center justify-between p-3.5 border-b last:border-0 border-slate-100 hover:bg-slate-50 transition-all">
+                                        <div className="w-24 text-xs font-bold text-slate-800">
                                             {new Date(day.date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' })}
                                         </div>
                                         <div className="flex-1 flex items-center justify-start gap-3">
-                                            <span className="material-symbols-outlined text-gray-300">
+                                            <span className="material-symbols-outlined text-slate-500 text-lg">
                                                 {day.condition?.toLowerCase().includes('rain') ? 'rainy'
                                                     : day.condition?.toLowerCase().includes('cloud') ? 'cloudy'
                                                         : 'sunny'}
                                             </span>
                                             {day.precipitation > 0 && (
-                                                <span className="text-xs text-blue-400 font-bold bg-blue-500/10 px-1.5 py-0.5 rounded flex items-center">
+                                                <span className="text-[10px] text-blue-700 font-bold bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded flex items-center">
                                                     <span className="material-symbols-outlined text-[10px] mr-0.5">water_drop</span>
                                                     {day.precipitation}mm
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="w-24 flex items-center justify-end gap-2 text-[15px]">
-                                            <span className="text-white font-black">{Math.round(day.temp_max)}°</span>
-                                            <span className="text-[#8abf8a] font-bold">{Math.round(day.temp_min)}°</span>
+                                        <div className="w-24 flex items-center justify-end gap-2 text-xs">
+                                            <span className="text-slate-900 font-black">{Math.round(day.temp_max)}°</span>
+                                            <span className="text-slate-400 font-semibold">{Math.round(day.temp_min)}°</span>
                                         </div>
                                     </div>
                                 ))}

@@ -51,12 +51,18 @@ router.post('/scan', protect, async (req, res) => {
             if (err) console.warn('Failed to delete temp legacy scan file:', err.message);
         });
 
+        const diag = analysisResult.analysis || {};
         res.status(200).json({
-            crop: dummyFarm.crop_type,
-            analysis: analysisResult.analysis.disease_name,
-            confidence: analysisResult.confidence_score,
-            recommendation: analysisResult.analysis.overall_assessment,
-            analysis_result: analysisResult.analysis,
+            is_valid_crop_or_leaf: diag.is_valid_crop_or_leaf !== false,
+            crop: diag.crop || diag.crop_identified || dummyFarm.crop_type,
+            observations: diag.observations || diag.symptoms_observed || [],
+            possible_issue: diag.possible_issue || diag.disease_name || 'Visual Symptoms Observed',
+            confidence: typeof diag.confidence === 'number' ? diag.confidence : analysisResult.confidence_score,
+            severity: diag.severity || 'Moderate',
+            recommendation: diag.recommendation || diag.overall_assessment || 'Isolate affected leaves and inspect nearby plants.',
+            disclaimer: diag.disclaimer || 'AI image analysis is an initial screening, not a definitive diagnosis.',
+            analysis: diag.possible_issue || diag.disease_name,
+            analysis_result: diag,
             timestamp: new Date()
         });
     } catch (error) {

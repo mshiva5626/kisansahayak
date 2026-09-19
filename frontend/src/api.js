@@ -87,19 +87,19 @@ export const weatherAPI = {
     getWeatherByFarm: (farmId) => API.get(`/weather/farm/${farmId}`)
 };
 
-// AI Copilot API
+// AI Copilot API (with extended timeout for LLM inference)
 export const aiAPI = {
     getAdvisory: (farm_id, query, image_analysis, attachments, language, personalization_mode) => 
-        API.post('/ai/advisory', { farm_id, query, image_analysis, attachments, language, personalization_mode }),
+        API.post('/ai/advisory', { farm_id, query, image_analysis, attachments, language, personalization_mode }, { timeout: 60000 }),
     getAdvisoryHistory: (farmId) => API.get(`/ai/advisory/farm/${farmId}`),
     chat: (messages, farm_id, language, personalization_mode, attachments, session_id) => 
-        API.post('/ai/chat', { messages, farm_id, language, personalization_mode, attachments, session_id }),
+        API.post('/ai/chat', { messages, farm_id, language, personalization_mode, attachments, session_id }, { timeout: 60000 }),
     getSessions: () => API.get('/ai/sessions'),
     getSessionById: (sessionId) => API.get(`/ai/sessions/${sessionId}`),
     deleteSession: (sessionId) => API.delete(`/ai/sessions/${sessionId}`),
     // AI Daily Tasks & Field Survey
-    getDailySurvey: (farmId, lang) => API.get(`/ai/daily-survey/${farmId || 'default'}`, { params: { lang } }),
-    submitDailySurvey: (farmId, responses, language) => API.post(`/ai/daily-survey/${farmId || 'default'}/submit`, { responses, language }),
+    getDailySurvey: (farmId, lang) => API.get(`/ai/daily-survey/${farmId || 'default'}`, { params: { lang }, timeout: 30000 }),
+    submitDailySurvey: (farmId, responses, language) => API.post(`/ai/daily-survey/${farmId || 'default'}/submit`, { responses, language }, { timeout: 60000 }),
     getDailyTasks: (farmId, lang) => API.get(`/ai/daily-tasks/${farmId || 'default'}`, { params: { lang } }),
     updateTaskStatus: (farmId, taskId, status) => API.put(`/ai/daily-tasks/${farmId || 'default'}/task/${taskId}`, status)
 };
@@ -107,9 +107,10 @@ export const aiAPI = {
 // Image API
 export const imageAPI = {
     uploadImage: (formData) => API.post('/images/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 60000
     }),
-    analyzeImage: (imageId) => API.post(`/images/analyze/${imageId}`),
+    analyzeImage: (imageId) => API.post(`/images/analyze/${imageId}`, {}, { timeout: 60000 }),
     getImagesByFarm: (farmId) => API.get(`/images/farm/${farmId}`)
 };
 
@@ -119,7 +120,7 @@ export const schemeAPI = {
     getRealtimeSchemes: (state) => API.get('/schemes/realtime', { params: state ? { state } : {} }),
     getSchemeById: (id) => API.get(`/schemes/${id}`),
     seedSchemes: () => API.post('/schemes/seed'),
-    chatSchemes: (messages, schemesContext) => API.post('/schemes/chat', { messages, schemesContext })
+    chatSchemes: (messages, schemesContext) => API.post('/schemes/chat', { messages, schemesContext }, { timeout: 60000 })
 };
 
 // Notification API
@@ -132,7 +133,7 @@ export const notificationAPI = {
 
 // Crop API (legacy)
 export const cropAPI = {
-    scanCrop: (imageData) => API.post('/crop/scan', { image: imageData })
+    scanCrop: (imageData) => API.post('/crop/scan', { image: imageData }, { timeout: 60000 })
 };
 
 // Location API
@@ -152,7 +153,18 @@ export const mandiAPI = {
 
 // Soil API
 export const soilAPI = {
-    analyzeSoil: (farmId, imageBase64) => API.post('/soil/analyze', { farmId, image: imageBase64 })
+    analyzeSoil: (farmId, imageBase64) => API.post('/soil/analyze', { farmId, image: imageBase64 }, { timeout: 60000 })
+};
+
+// Unified Soil Intelligence API (Scan + IoT + Fertilizer Recommendation Engine)
+export const soilIntelligenceAPI = {
+    analyzePhoto: (farmId, imageBase64) => API.post('/soil-intelligence/analyze-photo', { farmId, image: imageBase64 }, { timeout: 60000 }),
+    estimateNPK: (sensorData) => API.post('/soil-intelligence/estimate-npk', sensorData),
+    recommendFertilizer: (data) => API.post('/soil-intelligence/recommend-fertilizer', data),
+    generateReport: (farmId, soilScanResults, iotData) => API.post('/soil-intelligence/generate-report', { farmId, soilScanResults, iotData }),
+    getHistory: (farmId) => API.get(`/soil-intelligence/history/${farmId}`),
+    pushSensorReading: (data) => API.post('/soil-intelligence/sensor-data', data),
+    getSensorHistory: (farmId) => API.get(`/soil-intelligence/sensor-history/${farmId}`)
 };
 
 // AMI AIF API

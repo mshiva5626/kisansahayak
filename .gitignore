@@ -37,3 +37,7 @@ Thumbs.db
 .cache/
 .eslintcache
 
+# Duplicate datasets in root (active datasets are in backend/data/)
+/*.csv
+/sensor_Crop_Dataset*.csv
+/AgriNet*/

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { soilIntelligenceAPI } from '../api';
 
 // ─── KisanSahayak BLE Service & Characteristic UUIDs ─────────────────────────
 // These MUST match exactly what is programmed into the ESP32 sketch
@@ -138,19 +139,35 @@ export const IoTProvider = ({ children }) => {
         if (!conn) return;
 
         try {
-            const moistChar = await conn.service.getCharacteristic(MOISTURE_CHAR_UUID);
-            await moistChar.startNotifications();
-            moistChar.addEventListener('characteristicvaluechanged', (e) => {
-                const moisture = e.target.value.getUint8(0);
+            const moistureChar = await conn.service.getCharacteristic(MOISTURE_CHAR_UUID); // Moisture (notify)
+            await moistureChar.startNotifications();
+            let lastServerPush = 0;
+            moistureChar.addEventListener('characteristicvaluechanged', (e) => {
+                const val = e.target.value.getUint8(0);
+                const nowIso = new Date().toISOString();
                 setSensorReadings(prev => ({
                     ...prev,
                     [deviceId]: {
                         ...(prev[deviceId] || {}),
-                        moisture,
+                        moisture: val,
                         connected: true,
-                        lastUpdated: new Date().toISOString()
+                        lastUpdated: nowIso
                     }
                 }));
+
+                // Auto-push to backend server if at least 10s elapsed
+                const now = Date.now();
+                if (now - lastServerPush > 10000) {
+                    lastServerPush = now;
+                    try {
+                        const dev = (loadDevices() || []).find(d => d.deviceId === deviceId);
+                        soilIntelligenceAPI.pushSensorReading({
+                            deviceId,
+                            farmId: dev?.farmId || null,
+                            moisture: val
+                        }).catch(() => {});
+                    } catch (e) {}
+                }
             });
 
             // Battery (poll every 30s — not notify)

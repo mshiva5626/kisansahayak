@@ -67,43 +67,43 @@ const SchemesDashboard = ({ onBack, onNotificationClick, onNavigate, userProfile
     };
 
     return (
-        <div className="relative flex h-screen w-full flex-col overflow-hidden max-w-md mx-auto bg-gradient-to-b from-[#fcfdfc] to-[#e3eae4] dark:from-[#03140A] dark:to-[#081d11] font-display text-slate-900 dark:text-slate-100 antialiased">
+        <div className="relative flex h-screen w-full flex-col overflow-hidden max-w-md mx-auto bg-[#f8fafc] font-display text-slate-900 antialiased">
             {/* Header Section */}
-            <header className="relative bg-gradient-to-b from-[#03140A] to-[#083D20] text-white pb-6 pt-12 px-5 rounded-b-[2rem] border-b border-emerald-500/10 shadow-lg z-10 overflow-hidden shrink-0">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl pointer-events-none"></div>
+            <header className="relative bg-gradient-to-b from-emerald-800 via-emerald-700 to-teal-800 text-white pb-6 pt-12 px-5 rounded-b-[2rem] border-b border-emerald-700 shadow-lg z-10 overflow-hidden shrink-0">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl pointer-events-none"></div>
 
                 <div className="flex items-center justify-between mb-5 relative z-10">
                     <div className="flex items-center gap-2 text-white">
-                        <button onClick={onBack} className="mr-2 p-2 bg-white/10 hover:bg-white/20 active:scale-95 rounded-full transition-all flex items-center justify-center tactile-btn">
+                        <button onClick={onBack} className="mr-2 p-2 bg-white/15 hover:bg-white/25 active:scale-95 rounded-full transition-all flex items-center justify-center cursor-pointer">
                             <span className="material-icons text-xl text-white">arrow_back</span>
                         </button>
-                        <span className="material-icons text-2xl text-emerald-400">gavel</span>
+                        <span className="material-icons text-2xl text-emerald-300">gavel</span>
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest">Sarkari Yojana</span>
+                            <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-widest">Sarkari Yojana</span>
                             <div className="flex items-center gap-1 font-extrabold text-base leading-none">
                                 Government Schemes
                             </div>
                         </div>
                     </div>
-                    <button onClick={onNotificationClick} className="relative p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white tactile-btn">
+                    <button onClick={onNotificationClick} className="relative p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white cursor-pointer">
                         <span className="material-icons text-white">notifications</span>
                         <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full"></span>
                     </button>
                 </div>
 
                 <div className="flex justify-between items-center mb-4 relative z-10">
-                    <p className="text-xs text-emerald-300 font-semibold bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
+                    <p className="text-xs text-white font-semibold bg-white/15 border border-white/20 px-3 py-1 rounded-full">
                         {schemes.length} schemes available{userProfile?.state ? ` for ${userProfile.state}` : ''}
                     </p>
                 </div>
 
                 <div className="relative z-10">
                     <div className="relative flex w-full items-center">
-                        <div className="absolute left-4 flex items-center justify-center text-emerald-600 dark:text-emerald-500">
+                        <div className="absolute left-4 flex items-center justify-center text-slate-400">
                             <span className="material-icons text-[20px]">search</span>
                         </div>
                         <input
-                            className="w-full rounded-xl border-none bg-white dark:bg-white/10 backdrop-blur-md py-3 pl-12 pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-350 focus:ring-2 focus:ring-emerald-500/50 shadow-soft text-sm font-semibold outline-none transition-all"
+                            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/50 shadow-sm text-sm font-semibold outline-none transition-all"
                             placeholder="Search schemes or eligibility..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -117,21 +117,21 @@ const SchemesDashboard = ({ onBack, onNotificationClick, onNavigate, userProfile
             <main className="flex-1 overflow-y-auto no-scrollbar pb-24 z-20 relative">
                 {/* Central / State Tabs */}
                 <div className="px-5 my-5">
-                    <div className="flex bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-1 rounded-2xl backdrop-blur-md">
+                    <div className="flex bg-slate-100 border border-slate-200/80 p-1 rounded-2xl">
                         <button
                             onClick={() => setActiveTab('central')}
-                            className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold tracking-wide uppercase transition-all duration-200 text-center tactile-btn ${activeTab === 'central'
-                                ? 'bg-emerald-500 text-slate-900 shadow-sm ring-1 ring-emerald-400 font-black'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold tracking-wide uppercase transition-all duration-200 text-center cursor-pointer ${activeTab === 'central'
+                                ? 'bg-white text-emerald-800 shadow-xs'
+                                : 'text-slate-500 hover:text-slate-800'
                                 }`}
                         >
                             Central ({schemes.filter(s => s.scheme_type === 'central').length})
                         </button>
                         <button
                             onClick={() => setActiveTab('state')}
-                            className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold tracking-wide uppercase transition-all duration-200 text-center tactile-btn ${activeTab === 'state'
-                                ? 'bg-emerald-500 text-slate-900 shadow-sm ring-1 ring-emerald-400 font-black'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold tracking-wide uppercase transition-all duration-200 text-center cursor-pointer ${activeTab === 'state'
+                                ? 'bg-white text-emerald-800 shadow-xs'
+                                : 'text-slate-500 hover:text-slate-800'
                                 }`}
                         >
                             State ({schemes.filter(s => s.scheme_type === 'state').length})
@@ -222,54 +222,51 @@ const SchemesDashboard = ({ onBack, onNotificationClick, onNavigate, userProfile
                                     key={scheme._id}
                                     className="tilt-card-container animate-fade-in"
                                 >
-                                    <div className="tilt-card krishi-glass rounded-3xl p-5 border border-white/50 dark:border-white/10 relative overflow-hidden group">
-                                        {/* Subtle green ambient card glow */}
-                                        <div className="absolute -top-10 -right-10 w-24 h-24 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform pointer-events-none"></div>
-
+                                    <div className="tilt-card rounded-3xl p-5 border border-slate-200 bg-white shadow-sm hover:shadow-md relative overflow-hidden group">
                                         <div className="flex justify-between items-start mb-3.5 relative z-10">
-                                            <span className={`${getTagColor(scheme)} text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg shadow-sm border border-emerald-500/15`}>
-                                                {scheme.scheme_type === 'central' ? '⚽ Central Scheme' : `🏛️ ${scheme.state}`}
+                                            <span className={`${getTagColor(scheme)} text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg shadow-xs border border-emerald-500/20`}>
+                                                {scheme.scheme_type === 'central' ? '🇮🇳 Central Scheme' : `🏛️ ${scheme.state}`}
                                             </span>
                                             {scheme.ministry && (
-                                                <span className="text-[10px] text-slate-450 dark:text-slate-400 max-w-[50%] text-right font-semibold truncate">
+                                                <span className="text-[10px] text-slate-500 max-w-[50%] text-right font-semibold truncate">
                                                     {scheme.ministry}
                                                 </span>
                                             )}
                                         </div>
 
-                                        <h3 className="text-base font-extrabold text-slate-900 dark:text-white leading-snug mb-2.5 pr-4 group-hover:text-emerald-500 transition-colors">
+                                        <h3 className="text-base font-extrabold text-slate-900 leading-snug mb-2.5 pr-4 group-hover:text-emerald-700 transition-colors">
                                             {scheme.name}
                                         </h3>
 
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed font-medium line-clamp-2">
+                                        <p className="text-xs text-slate-600 mb-4 leading-relaxed font-medium line-clamp-2">
                                             {scheme.benefits}
                                         </p>
 
                                         {/* Eligibility */}
                                         {scheme.eligibility && (
-                                            <div className="bg-white/40 dark:bg-white/5 border border-white/40 dark:border-white/5 rounded-2xl p-3 mb-3.5">
-                                                <p className="text-[9px] font-black uppercase text-slate-400 dark:text-slate-400 mb-1 tracking-widest flex items-center gap-1">
+                                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 mb-3.5">
+                                                <p className="text-[9px] font-black uppercase text-slate-500 mb-1 tracking-widest flex items-center gap-1">
                                                     <span className="material-icons text-[12px] text-amber-500">assignment_turned_in</span>
                                                     Eligibility (पात्रता)
                                                 </p>
-                                                <p className="text-xs text-slate-650 dark:text-slate-355 line-clamp-2 leading-normal">{scheme.eligibility}</p>
+                                                <p className="text-xs text-slate-700 line-clamp-2 leading-normal">{scheme.eligibility}</p>
                                             </div>
                                         )}
 
                                         {/* How to Apply */}
                                         {scheme.application_guidance && (
-                                            <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-3 mb-4">
-                                                <p className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 mb-1 tracking-widest flex items-center gap-1">
+                                            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 mb-4">
+                                                <p className="text-[9px] font-black uppercase text-emerald-800 mb-1 tracking-widest flex items-center gap-1">
                                                     <span className="material-icons text-[12px]">directions</span>
                                                     How to Apply (आवेदन प्रक्रिया)
                                                 </p>
-                                                <p className="text-xs text-slate-650 dark:text-slate-355 line-clamp-2 leading-normal">{scheme.application_guidance}</p>
+                                                <p className="text-xs text-slate-700 line-clamp-2 leading-normal">{scheme.application_guidance}</p>
                                             </div>
                                         )}
 
-                                        <div className="flex items-center justify-between mt-auto relative z-10 pt-2 border-t border-slate-150 dark:border-white/5">
-                                            <div className="flex items-center text-xs text-slate-450 dark:text-slate-400 font-semibold">
-                                                <span className="material-icons text-sm mr-1 text-emerald-400 animate-pulse">verified</span>
+                                        <div className="flex items-center justify-between mt-auto relative z-10 pt-2 border-t border-slate-100">
+                                            <div className="flex items-center text-xs text-slate-500 font-semibold">
+                                                <span className="material-icons text-sm mr-1 text-emerald-600">verified</span>
                                                 Government Verified
                                             </div>
                                             {scheme.website_url ? (
@@ -277,7 +274,7 @@ const SchemesDashboard = ({ onBack, onNotificationClick, onNavigate, userProfile
                                                     href={scheme.website_url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-extrabold text-xs py-2.5 px-4.5 rounded-xl shadow-md transition-all active:scale-95 inline-flex items-center gap-1.5 tactile-btn ring-1 ring-emerald-400"
+                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-3.5 rounded-xl shadow-xs transition-all active:scale-95 inline-flex items-center gap-1.5 cursor-pointer"
                                                 >
                                                     Apply Online
                                                     <span className="material-icons text-[13px]">open_in_new</span>

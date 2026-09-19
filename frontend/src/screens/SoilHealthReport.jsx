@@ -173,20 +173,20 @@ const SoilHealthReport = ({ onBack, onNavigate, userProfile, selectedFarmId }) =
         : 'AI analyzing soil properties...';
 
     return (
-        <div className="relative flex min-h-full w-full flex-col overflow-hidden max-w-md mx-auto bg-gradient-to-b from-[#fcfdfc] to-[#e3eae4] dark:from-[#03140A] dark:to-[#081d11] font-display text-slate-900 dark:text-slate-100 antialiased pb-20">
+        <div className="relative flex min-h-full w-full flex-col overflow-hidden max-w-md mx-auto bg-[#f8fafc] font-display text-slate-900 antialiased pb-20">
             {/* Header */}
-            <header className="relative bg-gradient-to-b from-[#03140A] to-[#083D20] text-white pb-6 pt-12 px-5 rounded-b-[2rem] border-b border-emerald-500/10 shadow-lg z-20 overflow-hidden shrink-0">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl pointer-events-none"></div>
+            <header className="relative bg-gradient-to-b from-emerald-800 via-emerald-700 to-teal-800 text-white pb-6 pt-12 px-5 rounded-b-[2rem] border-b border-emerald-700 shadow-md z-20 overflow-hidden shrink-0">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl pointer-events-none"></div>
 
                 <div className="flex items-center justify-between mb-6 relative z-10">
                     <div className="flex items-center gap-2 text-white">
-                        <button onClick={onBack} className="mr-2 p-2 bg-white/10 hover:bg-white/20 active:scale-95 rounded-full transition-all flex items-center justify-center tactile-btn">
+                        <button onClick={onBack} className="mr-2 p-2 bg-white/15 hover:bg-white/25 active:scale-95 rounded-full transition-all flex items-center justify-center cursor-pointer">
                             <span className="material-symbols-outlined text-xl">arrow_back</span>
                         </button>
                         <div className="flex flex-col">
                             <h1 className="text-xl font-black tracking-tight text-white mb-0.5">Soil Health Report</h1>
-                            <p className="text-emerald-400 text-xs font-bold tracking-wide">
-                                Kissan Sahayak ID: #{userProfile ? (userProfile._id || userProfile.id || '').substring(0, 7).toUpperCase() : 'KS-9821'}
+                            <p className="text-emerald-200 text-xs font-bold tracking-wide">
+                                Kisan Sahayak ID: #{userProfile ? (userProfile._id || userProfile.id || '').substring(0, 7).toUpperCase() : 'KS-9821'}
                             </p>
                         </div>
                     </div>
@@ -205,7 +205,7 @@ const SoilHealthReport = ({ onBack, onNavigate, userProfile, selectedFarmId }) =
                             )}
                         </button>
 
-                        <button onClick={handleDownloadPdf} className="flex items-center justify-center bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all active:scale-95 tactile-btn" title="Download PDF">
+                        <button onClick={handleDownloadPdf} className="flex items-center justify-center bg-white/15 hover:bg-white/25 p-2 rounded-full transition-all active:scale-95 cursor-pointer" title="Download PDF">
                             <span className="material-symbols-outlined text-xl">download</span>
                         </button>
                     </div>
