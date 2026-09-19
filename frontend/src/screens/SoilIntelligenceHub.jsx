@@ -4,7 +4,16 @@ import { useIoT } from '../context/IoTContext';
 import { soilIntelligenceAPI } from '../api';
 
 const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, farmContext }) => {
-    const { pairedDevices, sensorReadings, isWebBluetoothSupported, scanAndPair, connectDevice } = useIoT();
+    const { 
+        pairedDevices, 
+        sensorReadings, 
+        isWebBluetoothSupported, 
+        scanAndPair, 
+        connectDevice, 
+        disconnectDevice,
+        getSensorForFarm, 
+        connectingId 
+    } = useIoT();
 
     // Active Tab: 'scan' | 'iot' | 'fertilizer'
     const [activeTab, setActiveTab] = useState('scan');
@@ -17,19 +26,58 @@ const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, 
     const [soilScanResults, setSoilScanResults] = useState(null);
     const [scanError, setScanError] = useState('');
 
-    // ─── Tab 2: IoT Sensor State ─────────────────────────────────────────────
-    const pairedDevice = pairedDevices.find(d => selectedFarmId ? d.farmId === selectedFarmId : true) || pairedDevices[0];
-    const liveSensor = pairedDevice ? sensorReadings[pairedDevice.deviceId] : null;
+    // ─── Tab 2: IoT Sensor State (Unified Reactive Resolution) ───────────────
+    const activeSensor = getSensorForFarm(selectedFarmId);
+    const isSensorConnected = activeSensor?.connected === true;
+    const [isConnectingLocal, setIsConnectingLocal] = useState(false);
+    const isConnecting = isConnectingLocal || (activeSensor ? connectingId === activeSensor.deviceId : connectingId === 'active');
 
     // Simulation / Manual override if no hardware is currently connected
     const [manualMoisture, setManualMoisture] = useState(42);
-    const [isSimulated, setIsSimulated] = useState(!liveSensor?.connected);
-    const effectiveMoisture = (liveSensor?.connected && liveSensor.moisture !== undefined) 
-        ? liveSensor.moisture 
+    const effectiveMoisture = (isSensorConnected && activeSensor?.moisture !== undefined && activeSensor?.moisture !== null) 
+        ? activeSensor.moisture 
         : manualMoisture;
 
     const [iotNpkEstimate, setIotNpkEstimate] = useState(null);
     const [isLoadingNpk, setIsLoadingNpk] = useState(false);
+
+    // Reconnect existing sensor or trigger BLE scan
+    const handleReconnectSensor = async () => {
+        setIsConnectingLocal(true);
+        try {
+            if (activeSensor?.deviceId && !activeSensor.isWiFi) {
+                showToast('Connecting to ESP32 sensor...', 'info');
+                await connectDevice(activeSensor.deviceId, selectedFarmId, farmContext?.name || farmContext?.farm_name || 'My Farm');
+            } else {
+                showToast('Opening Bluetooth scanner...', 'info');
+                await scanAndPair(selectedFarmId, farmContext?.name || farmContext?.farm_name || 'My Farm');
+            }
+            showToast('ESP32 Sensor connected! Real-time moisture streaming.', 'success');
+        } catch (err) {
+            console.error('[Soil Hub] Reconnect error:', err);
+            if (err.name !== 'NotFoundError' && !err.message?.includes('cancelled') && !err.message?.includes('denied')) {
+                showToast(err.message || 'Bluetooth connection failed. Ensure ESP32 is powered on.', 'error');
+            }
+        } finally {
+            setIsConnectingLocal(false);
+        }
+    };
+
+    const handleScanNewSensor = async () => {
+        setIsConnectingLocal(true);
+        try {
+            showToast('Searching for ESP32 Bluetooth devices...', 'info');
+            await scanAndPair(selectedFarmId, farmContext?.name || farmContext?.farm_name || 'My Farm');
+            showToast('ESP32 Sensor paired & connected!', 'success');
+        } catch (err) {
+            console.error('[Soil Hub] Scan error:', err);
+            if (err.name !== 'NotFoundError' && !err.message?.includes('cancelled') && !err.message?.includes('denied')) {
+                showToast(err.message || 'Bluetooth scan cancelled or unavailable.', 'error');
+            }
+        } finally {
+            setIsConnectingLocal(false);
+        }
+    };
 
     // ─── Tab 3: Fertilizer & Combined Report State ─────────────────────────────
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
@@ -302,8 +350,18 @@ const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, 
 
             {/* Toast Notification */}
             {toast && (
-                <div className="fixed top-20 right-4 z-50 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg border border-slate-700 flex items-center gap-2 animate-fade-in">
-                    <span className="material-symbols-outlined text-sm text-emerald-400">check_circle</span>
+                <div className={`fixed top-20 right-4 z-50 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg border flex items-center gap-2 animate-fade-in ${
+                    toast.type === 'error'
+                        ? 'bg-rose-900 border-rose-700'
+                        : toast.type === 'success'
+                        ? 'bg-emerald-950 border-emerald-700'
+                        : 'bg-slate-900 border-slate-700'
+                }`}>
+                    <span className={`material-symbols-outlined text-sm ${
+                        toast.type === 'error' ? 'text-rose-400' : toast.type === 'success' ? 'text-emerald-400' : 'text-blue-400'
+                    }`}>
+                        {toast.type === 'error' ? 'error' : toast.type === 'success' ? 'check_circle' : 'info'}
+                    </span>
                     <span>{toast.message}</span>
                 </div>
             )}
@@ -472,44 +530,126 @@ const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, 
                    ══════════════════════════════════════════════════════════════ */}
                 {activeTab === 'iot' && (
                     <div className="space-y-4 animate-fade-in">
-                        {/* Hardware Card: Shows the user's specific FC-28 + NodeMCU 30-Pin setup */}
+                        {/* Hardware Card: Shows ESP32 FC-28 sensor status with working Reconnect & Live Telemetry */}
                         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
-                                        <span className="material-symbols-outlined text-lg">developer_board</span>
+                                <div className="flex items-center gap-2.5">
+                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                                        isSensorConnected ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                                    }`}>
+                                        <span className="material-symbols-outlined text-xl">developer_board</span>
                                     </div>
                                     <div>
-                                        <h3 className="text-xs font-extrabold text-slate-900">ESP32 NodeMCU 30-Pin + FC-28 Sensor</h3>
-                                        <p className="text-[11px] text-slate-500">Dual-Core CP2102 with LM393 Soil Moisture Module</p>
+                                        <div className="flex items-center gap-1.5">
+                                            <h3 className="text-xs font-extrabold text-slate-900">
+                                                {activeSensor?.deviceName || 'ESP32 NodeMCU 30-Pin + FC-28'}
+                                            </h3>
+                                            {isSensorConnected && (
+                                                <span className="relative flex h-2 w-2">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-[11px] text-slate-500">
+                                            {isSensorConnected 
+                                                ? (activeSensor.isWiFi ? 'ESP32 WiFi Stream • Real-time Active' : 'Dual-Core CP2102 BLE • Real-time Active')
+                                                : (activeSensor ? 'Sensor Offline • Tap Reconnect Below' : 'Dual-Core CP2102 with LM393 Soil Probe')}
+                                        </p>
                                     </div>
                                 </div>
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                                    liveSensor?.connected
+                                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
+                                    isSensorConnected
                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                         : 'bg-amber-50 text-amber-700 border-amber-200'
                                 }`}>
-                                    {liveSensor?.connected ? '● BLE Online' : 'Simulation / Offline'}
+                                    {isSensorConnected ? '● Online (Live)' : (activeSensor ? 'Offline' : 'Simulation')}
                                 </span>
                             </div>
 
-                            {/* Pairing & Guide Buttons */}
-                            <div className="flex items-center gap-2 pt-1">
-                                {isWebBluetoothSupported() && (
-                                    <button
-                                        onClick={scanAndPair}
-                                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3 rounded-xl shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all"
-                                    >
-                                        <span className="material-symbols-outlined text-sm">bluetooth_searching</span>
-                                        <span>Pair ESP32 Bluetooth</span>
-                                    </button>
+                            {/* Sensor Meta (Battery, Last Updated) when connected */}
+                            {isSensorConnected && (
+                                <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-600 border-t border-slate-100">
+                                    <span className="flex items-center gap-1 font-semibold text-emerald-700">
+                                        <span className="material-symbols-outlined text-sm">sensors</span>
+                                        Live Stream Active
+                                    </span>
+                                    {activeSensor?.battery !== undefined && activeSensor?.battery !== null && (
+                                        <span className="flex items-center gap-1 font-medium text-slate-500">
+                                            <span className="material-symbols-outlined text-sm text-emerald-600">battery_5_bar</span>
+                                            {activeSensor.battery}%
+                                        </span>
+                                    )}
+                                    {activeSensor?.lastUpdated && (
+                                        <span className="text-[10px] text-slate-400 ml-auto">
+                                            Updated {new Date(activeSensor.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Pairing, Reconnect & Guide Buttons */}
+                            <div className="flex items-center gap-2 pt-1 flex-wrap">
+                                {isSensorConnected ? (
+                                    <>
+                                        <button
+                                            onClick={handleReconnectSensor}
+                                            disabled={isConnecting}
+                                            className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold py-2 px-3 rounded-xl shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer disabled:opacity-60"
+                                            title="Re-sync sensor readings"
+                                        >
+                                            <span className={`material-symbols-outlined text-sm ${isConnecting ? 'animate-spin' : ''}`}>sync</span>
+                                            <span>{isConnecting ? 'Re-syncing...' : 'Re-sync BLE'}</span>
+                                        </button>
+                                        <button
+                                            onClick={() => disconnectDevice(activeSensor.deviceId)}
+                                            className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 px-3 rounded-xl transition-all flex items-center gap-1 active:scale-95 cursor-pointer"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">bluetooth_disabled</span>
+                                            <span>Disconnect</span>
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        {isWebBluetoothSupported() && (
+                                            <button
+                                                onClick={handleReconnectSensor}
+                                                disabled={isConnecting}
+                                                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer disabled:opacity-60"
+                                            >
+                                                {isConnecting ? (
+                                                    <>
+                                                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                        <span>Connecting...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="material-symbols-outlined text-sm">bluetooth</span>
+                                                        <span>{activeSensor ? 'Reconnect Sensor' : 'Connect ESP32 Bluetooth'}</span>
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
+                                        {activeSensor && isWebBluetoothSupported() && (
+                                            <button
+                                                onClick={handleScanNewSensor}
+                                                disabled={isConnecting}
+                                                className="text-xs font-bold text-slate-700 hover:text-emerald-700 bg-slate-100 hover:bg-slate-200 py-2.5 px-3 rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                                                title="Pair a different device"
+                                            >
+                                                <span className="material-symbols-outlined text-sm">add</span>
+                                                <span>Pair New</span>
+                                            </button>
+                                        )}
+                                    </>
                                 )}
+
                                 <button
                                     onClick={() => onNavigate && onNavigate('iot-esp32-guide')}
-                                    className="text-xs font-bold text-slate-700 hover:text-emerald-700 bg-slate-100 hover:bg-slate-200 py-2 px-3 rounded-xl transition-all flex items-center gap-1"
+                                    className="text-xs font-bold text-slate-700 hover:text-emerald-700 bg-slate-100 hover:bg-slate-200 py-2.5 px-3 rounded-xl transition-all flex items-center gap-1 cursor-pointer"
                                 >
                                     <span className="material-symbols-outlined text-sm">menu_book</span>
-                                    <span>Wiring & Code</span>
+                                    <span>Wiring Guide</span>
                                 </button>
                             </div>
                         </div>
@@ -519,11 +659,17 @@ const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, 
                             <div className="flex items-center justify-between">
                                 <div>
                                     <span className="text-xs font-extrabold text-slate-900">Soil Moisture Telemetry</span>
-                                    <p className="text-[11px] text-slate-500">Reading from FC-28 probe via GPIO 34 (ADC1)</p>
+                                    <p className="text-[11px] text-slate-500">
+                                        {isSensorConnected 
+                                            ? `Reading from FC-28 probe (${activeSensor?.deviceName || 'ESP32'}) via GPIO 34`
+                                            : 'Simulated / manual test mode. Connect sensor for live field telemetry.'}
+                                    </p>
                                 </div>
                                 <div className="text-right">
                                     <span className="text-3xl font-black text-emerald-700 tracking-tight">{effectiveMoisture}%</span>
-                                    <span className="text-[10px] text-slate-400 block font-semibold">VWC Index</span>
+                                    <span className="text-[10px] text-slate-400 block font-semibold">
+                                        {isSensorConnected ? 'Live VWC Index' : 'Manual VWC Index'}
+                                    </span>
                                 </div>
                             </div>
 

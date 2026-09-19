@@ -213,21 +213,26 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate, farm, onIoTPairClic
         return estimateSoilNPKFromSensor(moisture, cropName.toLowerCase());
     }, [moisture, cropName]);
 
-    // ─── 1-Tap Connect Directly from Card ────────────────────────────────────
+    const [connectError, setConnectError] = useState(null);
+
+    // ─── 1-Tap Connect / Reconnect Directly from Card ────────────────────────
     const handleConnectClick = async () => {
         setIsConnectingLocal(true);
+        setConnectError(null);
         try {
             if (sensor?.deviceId && !sensor.isWiFi) {
-                await connectDevice(sensor.deviceId);
+                await connectDevice(sensor.deviceId, selectedFarmId, farm?.farm_name || farm?.name || 'My Farm');
             } else {
                 await scanAndPair(selectedFarmId, farm?.farm_name || farm?.name || 'My Farm');
             }
         } catch (err) {
             console.error('[BLE Card] Connection failed:', err);
-            // If user cancelled or browser error, open the pair guide
-            if (err.name !== 'NotFoundError') {
-                if (onIoTPairClick) onIoTPairClick();
-                else onNavigate?.('iot-pairing');
+            // Don't navigate away if user cancelled picker!
+            if (err.name === 'NotFoundError' || err.message?.includes('User cancelled') || err.message?.includes('User denied')) {
+                // User intentionally cancelled device picker, stay on card
+            } else {
+                setConnectError(err.message || 'Connection failed. Ensure ESP32 is powered on.');
+                setTimeout(() => setConnectError(null), 4000);
             }
         } finally {
             setIsConnectingLocal(false);
@@ -412,7 +417,7 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate, farm, onIoTPairClic
                         <button
                             onClick={handleConnectClick}
                             disabled={isConnecting}
-                            className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[11px] flex items-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95 transition-all cursor-pointer disabled:opacity-60"
+                            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] flex items-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95 transition-all cursor-pointer disabled:opacity-60"
                         >
                             {isConnecting ? (
                                 <>
@@ -429,16 +434,37 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate, farm, onIoTPairClic
                     )}
 
                     {isConnected && (
-                        <button
-                            onClick={() => onNavigate?.('iot-settings')}
-                            className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 font-bold text-[10px] flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
-                        >
-                            <span className="material-symbols-outlined text-[12px]">tune</span>
-                            Settings
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                onClick={handleConnectClick}
+                                disabled={isConnecting}
+                                className="px-2 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold text-[10px] flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+                                title="Re-sync Bluetooth connection"
+                            >
+                                <span className={`material-symbols-outlined text-[12px] ${isConnecting ? 'animate-spin' : ''}`}>sync</span>
+                                <span>{isConnecting ? 'Syncing...' : 'Re-sync'}</span>
+                            </button>
+                            <button
+                                onClick={() => onNavigate?.('iot-settings')}
+                                className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 font-bold text-[10px] flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-[12px]">tune</span>
+                                Settings
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
+
+            {/* Inline Connection Error Banner */}
+            {connectError && (
+                <div className="mt-2 text-right relative z-10">
+                    <span className="text-[10px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-900 inline-flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">error</span>
+                        {connectError}
+                    </span>
+                </div>
+            )}
         </div>
     );
 };

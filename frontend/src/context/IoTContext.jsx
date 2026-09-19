@@ -195,11 +195,12 @@ export const IoTProvider = ({ children }) => {
             throw new Error('WEB_BLUETOOTH_UNSUPPORTED');
         }
 
-        // Prompt native system BLE picker
+        // Prompt native system BLE picker with broad, robust filters
         const device = await navigator.bluetooth.requestDevice({
             filters: [
                 { services: [KISAN_SERVICE_UUID] },
-                { namePrefix: 'KisanSensor' }
+                { namePrefix: 'Kisan' },
+                { namePrefix: 'ESP32' }
             ],
             optionalServices: [KISAN_SERVICE_UUID]
         });
@@ -207,10 +208,17 @@ export const IoTProvider = ({ children }) => {
         const deviceId   = device.id;
         const deviceName = device.name || 'KisanSensor';
 
-        // Connect GATT
-        const server = await device.gatt.connect();
-        const service = await server.getPrimaryService(KISAN_SERVICE_UUID);
+        // Connect GATT (with retry if stack was briefly busy)
+        let server;
+        try {
+            server = await device.gatt.connect();
+        } catch (firstErr) {
+            console.warn('[BLE] Initial GATT connect attempt failed, retrying in 400ms...', firstErr.message);
+            await new Promise(r => setTimeout(r, 400));
+            server = await device.gatt.connect();
+        }
 
+        const service = await server.getPrimaryService(KISAN_SERVICE_UUID);
         bleConnections.current[deviceId] = { device, server, service };
 
         // Handle unexpected disconnection
@@ -262,47 +270,65 @@ export const IoTProvider = ({ children }) => {
         };
     }, [isWebBluetoothSupported, subscribeToDevice]);
 
-    // ─── Connect to an already-paired device ────────────────────────────────
-    const connectDevice = useCallback(async (deviceId) => {
+    // ─── Connect to an already-paired device (or Reconnect) ──────────────────
+    const connectDevice = useCallback(async (deviceId, farmIdToAssign = null, farmNameToAssign = null) => {
         let conn = bleConnections.current[deviceId];
-        if (conn?.device?.gatt?.connected) return;
+        if (conn?.device?.gatt?.connected) {
+            setSensorReadings(prev => ({
+                ...prev,
+                [deviceId]: { ...(prev[deviceId] || {}), connected: true }
+            }));
+            await subscribeToDevice(deviceId);
+            return { deviceId, success: true };
+        }
 
-        setConnectingId(deviceId);
+        setConnectingId(deviceId || 'active');
         try {
-            // If device object is cached in memory (same session), reconnect directly
+            // 1. If device object is cached in memory (same session), attempt direct reconnect
             if (conn?.device) {
-                const server = await conn.device.gatt.connect();
-                const service = await server.getPrimaryService(KISAN_SERVICE_UUID);
-                bleConnections.current[deviceId] = { ...conn, server, service };
-                await subscribeToDevice(deviceId);
-                return;
-            }
-
-            // If Chrome has stored permitted devices
-            if (typeof navigator !== 'undefined' && 'bluetooth' in navigator && navigator.bluetooth.getDevices) {
                 try {
-                    const devices = await navigator.bluetooth.getDevices();
-                    const match = devices.find(d => d.id === deviceId);
-                    if (match) {
-                        const server = await match.gatt.connect();
-                        const service = await server.getPrimaryService(KISAN_SERVICE_UUID);
-                        bleConnections.current[deviceId] = { device: match, server, service };
-                        match.addEventListener('gattserverdisconnected', () => {
-                            setSensorReadings(prev => ({
-                                ...prev,
-                                [deviceId]: { ...(prev[deviceId] || {}), connected: false }
-                            }));
-                        });
-                        await subscribeToDevice(deviceId);
-                        return;
-                    }
-                } catch (e) {
-                    console.warn('[BLE] getDevices auto-reconnect fallback:', e.message);
+                    console.log('[BLE] Attempting direct reconnect to cached device:', deviceId);
+                    const server = await conn.device.gatt.connect();
+                    const service = await server.getPrimaryService(KISAN_SERVICE_UUID);
+                    bleConnections.current[deviceId] = { ...conn, server, service };
+                    await subscribeToDevice(deviceId);
+                    return { deviceId, success: true };
+                } catch (directErr) {
+                    console.warn('[BLE] Direct GATT connect failed, falling back to getDevices/scan:', directErr.message);
+                    delete bleConnections.current[deviceId];
                 }
             }
 
-            // If not cached, trigger scan
-            await scanAndPair();
+            // 2. Check navigator.bluetooth.getDevices() for previously granted devices
+            if (typeof navigator !== 'undefined' && 'bluetooth' in navigator && navigator.bluetooth.getDevices) {
+                try {
+                    const devices = await navigator.bluetooth.getDevices();
+                    const match = devices.find(d => d.id === deviceId || d.name?.startsWith('Kisan') || d.name?.startsWith('ESP32'));
+                    if (match) {
+                        console.log('[BLE] Found permitted device in getDevices(), connecting:', match.name);
+                        const server = await match.gatt.connect();
+                        const service = await server.getPrimaryService(KISAN_SERVICE_UUID);
+                        bleConnections.current[match.id] = { device: match, server, service };
+                        match.addEventListener('gattserverdisconnected', () => {
+                            const c = bleConnections.current[match.id];
+                            if (c?.moistInterval) clearInterval(c.moistInterval);
+                            if (c?.batInterval) clearInterval(c.batInterval);
+                            setSensorReadings(prev => ({
+                                ...prev,
+                                [match.id]: { ...(prev[match.id] || {}), connected: false }
+                            }));
+                        });
+                        await subscribeToDevice(match.id);
+                        return { deviceId: match.id, success: true };
+                    }
+                } catch (getDevErr) {
+                    console.warn('[BLE] getDevices auto-reconnect fallback:', getDevErr.message);
+                }
+            }
+
+            // 3. If direct reconnection is not possible, prompt the user with system BLE picker
+            console.log('[BLE] Prompting BLE picker to reconnect/pair device...');
+            return await scanAndPair(farmIdToAssign, farmNameToAssign);
         } finally {
             setConnectingId(null);
         }
@@ -332,13 +358,16 @@ export const IoTProvider = ({ children }) => {
             try {
                 const devices = await navigator.bluetooth.getDevices();
                 if (devices && devices.length > 0 && isMounted) {
-                    const target = devices.find(d => d.name?.startsWith('KisanSensor')) || devices[0];
+                    const target = devices.find(d => d.name?.startsWith('Kisan') || d.name?.startsWith('ESP32')) || devices[0];
                     if (target && target.gatt && !target.gatt.connected) {
                         try {
                             const server = await target.gatt.connect();
                             const service = await server.getPrimaryService(KISAN_SERVICE_UUID);
                             bleConnections.current[target.id] = { device: target, server, service };
                             target.addEventListener('gattserverdisconnected', () => {
+                                const c = bleConnections.current[target.id];
+                                if (c?.moistInterval) clearInterval(c.moistInterval);
+                                if (c?.batInterval) clearInterval(c.batInterval);
                                 setSensorReadings(prev => ({
                                     ...prev,
                                     [target.id]: { ...(prev[target.id] || {}), connected: false }
