@@ -6,10 +6,12 @@ import { estimateSoilNPKFromSensor } from '../utils/npkAgronomyModel';
 const CircularGauge = ({ value, size = 88, strokeWidth = 7 }) => {
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
-    const clamped = value !== null ? Math.min(100, Math.max(0, value)) : 48;
-    const dashOffset = circumference - (clamped / 100) * circumference;
+    const hasValue = value !== null && value !== undefined && !isNaN(Number(value));
+    const clamped = hasValue ? Math.min(100, Math.max(0, Number(value))) : 0;
+    const dashOffset = hasValue ? circumference - (clamped / 100) * circumference : circumference;
 
     const getColor = (v) => {
+        if (!hasValue) return { stroke: '#94a3b8', glow: 'transparent' };
         if (v < 20) return { stroke: '#ef4444', glow: 'rgba(239, 68, 68, 0.35)' };
         if (v < 40) return { stroke: '#f59e0b', glow: 'rgba(245, 158, 11, 0.35)' };
         if (v < 70) return { stroke: '#10b981', glow: 'rgba(16, 185, 129, 0.35)' };
@@ -30,28 +32,30 @@ const CircularGauge = ({ value, size = 88, strokeWidth = 7 }) => {
                     className="text-slate-200 dark:text-white/10"
                     strokeWidth={strokeWidth}
                 />
-                {/* Colored Progress with smooth transition */}
-                <circle
-                    cx={size / 2} cy={size / 2}
-                    r={radius}
-                    fill="none"
-                    stroke={stroke}
-                    strokeWidth={strokeWidth}
-                    strokeLinecap="round"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={dashOffset}
-                    style={{
-                        transition: 'stroke-dashoffset 0.9s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s ease',
-                        filter: `drop-shadow(0 0 6px ${glow})`
-                    }}
-                />
+                {/* Colored Progress when valid reading exists */}
+                {hasValue && (
+                    <circle
+                        cx={size / 2} cy={size / 2}
+                        r={radius}
+                        fill="none"
+                        stroke={stroke}
+                        strokeWidth={strokeWidth}
+                        strokeLinecap="round"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={dashOffset}
+                        style={{
+                            transition: 'stroke-dashoffset 0.9s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s ease',
+                            filter: `drop-shadow(0 0 6px ${glow})`
+                        }}
+                    />
+                )}
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white leading-none">
-                    {clamped}%
+                <span className={`text-xl font-black tracking-tight leading-none ${hasValue ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
+                    {hasValue ? `${clamped}%` : '—'}
                 </span>
-                <span className="text-[9px] font-bold text-slate-400 dark:text-slate-400 mt-0.5 uppercase tracking-wider">
-                    Moisture
+                <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 mt-0.5 uppercase tracking-wider">
+                    {hasValue ? 'Moisture' : 'No Data'}
                 </span>
             </div>
         </div>
@@ -59,8 +63,42 @@ const CircularGauge = ({ value, size = 88, strokeWidth = 7 }) => {
 };
 
 // ─── Status Classification ───────────────────────────────────────────────────
-const getMoistureStatus = (v) => {
-    const val = v ?? 48;
+const getMoistureStatus = (v, isConnected, hasDevice) => {
+    if (v === null || v === undefined || isNaN(Number(v))) {
+        if (!hasDevice) {
+            return {
+                label: 'No Sensor Paired',
+                badgeBg: 'bg-slate-500/10 border-slate-500/20 text-slate-600 dark:text-slate-400',
+                dotBg: 'bg-slate-400',
+                emoji: '📡',
+                advice: 'No soil moisture sensor is linked to this farm. Connect an ESP32 KisanSensor via Bluetooth to view live moisture.',
+                waterStress: 'Unknown',
+                capacityPct: null
+            };
+        }
+        if (!isConnected) {
+            return {
+                label: 'Sensor Disconnected',
+                badgeBg: 'bg-amber-500/15 border-amber-500/30 text-amber-700 dark:text-amber-400',
+                dotBg: 'bg-amber-500',
+                emoji: '⚠️',
+                advice: 'Your paired sensor is offline. Tap Reconnect below to resume live Bluetooth telemetry.',
+                waterStress: 'Offline',
+                capacityPct: null
+            };
+        }
+        return {
+            label: 'Waiting for Reading...',
+            badgeBg: 'bg-teal-500/15 border-teal-500/30 text-teal-700 dark:text-teal-400',
+            dotBg: 'bg-teal-500',
+            emoji: '⏳',
+            advice: 'Sensor connected. Waiting for first moisture telemetry packet from ESP32.',
+            waterStress: 'Connecting',
+            capacityPct: null
+        };
+    }
+
+    const val = Number(v);
     if (val < 20) {
         return {
             label: 'Very Dry',
@@ -89,7 +127,7 @@ const getMoistureStatus = (v) => {
             badgeBg: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400',
             dotBg: 'bg-emerald-500',
             emoji: '🟢',
-            advice: 'Moisture in root zone is well-balanced. Next irrigation in 3-4 days.',
+            advice: 'Moisture in root zone is well-balanced. Next irrigation cycle in 3-4 days.',
             waterStress: 'None (Ideal)',
             capacityPct: Math.min(95, Math.round(val * 1.35))
         };
@@ -110,6 +148,7 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate, farm, onIoTPairClic
     const { getSensorForFarm, connectDevice, connectingId } = useIoT();
     const [sensor, setSensor] = useState(null);
     const [pulse, setPulse] = useState(false);
+    const [demoMode, setDemoMode] = useState(false);
 
     // Poll sensor data from IoTContext
     useEffect(() => {
@@ -136,16 +175,25 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate, farm, onIoTPairClic
     }, [pulse]);
 
     const isConnected = sensor?.connected === true;
-    const hasHardwareSensor = !!sensor;
+    const hasHardwareDevice = !!sensor;
     const isConnecting = sensor ? connectingId === sensor.deviceId : false;
 
-    // Use live hardware sensor moisture if available; otherwise use realistic farm baseline (48-52%)
-    const moisture = sensor?.moisture ?? 48;
-    const soilTemp = sensor?.temperature ?? 24.6;
-    const batteryLevel = sensor?.battery ?? 88;
-    const deviceTitle = sensor?.deviceName || (hasHardwareSensor ? 'KisanSensor ESP32' : 'Field Sensor (Zone A)');
+    // True live sensor reading — strictly null if no active sensor is reporting (NO fake default 48%)
+    const rawMoisture = (isConnected && sensor?.moisture !== undefined && sensor?.moisture !== null)
+        ? sensor.moisture
+        : null;
 
-    const status = getMoistureStatus(moisture);
+    // If user explicitly enables demo mode for UI testing, use 54%; otherwise strictly use real sensor
+    const moisture = demoMode ? 54 : rawMoisture;
+    const hasReading = moisture !== null;
+
+    const soilTemp = demoMode ? 24.2 : ((isConnected && sensor?.temperature) ? sensor.temperature : null);
+    const batteryLevel = demoMode ? 92 : ((isConnected && sensor?.battery !== undefined) ? sensor.battery : null);
+    const deviceTitle = demoMode 
+        ? 'Simulator Mode (Test)' 
+        : (sensor?.deviceName || (hasHardwareDevice ? 'KisanSensor (Offline)' : 'No Hardware Sensor'));
+
+    const status = getMoistureStatus(moisture, isConnected, hasHardwareDevice);
     const cropName = farm?.crop_type || 'Wheat';
 
     const soilNPK = useMemo(() => {
@@ -161,21 +209,33 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate, farm, onIoTPairClic
             {/* ── Top Header ── */}
             <div className="flex items-center justify-between mb-4 relative z-10">
                 <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
-                        <span className="material-symbols-outlined text-[20px]">water_drop</span>
+                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-white shadow-md transition-all ${
+                        hasReading
+                            ? 'bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-emerald-500/20'
+                            : 'bg-slate-400 dark:bg-slate-700 shadow-slate-500/10'
+                    }`}>
+                        <span className="material-symbols-outlined text-[20px]">
+                            {hasReading ? 'water_drop' : 'sensors_off'}
+                        </span>
                     </div>
                     <div>
                         <div className="flex items-center gap-1.5">
                             <h2 className="text-sm font-black text-gray-900 dark:text-white leading-tight">
                                 Soil Moisture Sensor
                             </h2>
-                            <span className="relative flex h-2 w-2">
-                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-teal-400'} opacity-75`} />
-                                <span className={`relative inline-flex rounded-full h-2 w-2 ${isConnected ? 'bg-emerald-500' : 'bg-teal-500'}`} />
-                            </span>
+                            {hasReading ? (
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                </span>
+                            ) : (
+                                <span className="inline-flex h-2 w-2 rounded-full bg-slate-400" />
+                            )}
                         </div>
                         <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
-                            {isConnected ? 'ESP32 BLE Live Stream' : 'Live IoT Root-Zone Telemetry'}
+                            {demoMode
+                                ? 'Interactive Demo Mode • Active'
+                                : (isConnected ? 'ESP32 BLE Live Stream Active' : 'Live Hardware Telemetry')}
                         </p>
                     </div>
                 </div>
@@ -207,8 +267,13 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate, farm, onIoTPairClic
                             <span>{status.emoji}</span>
                             <span>{status.label}</span>
                         </span>
+                        {demoMode && (
+                            <span className="text-[9px] font-black uppercase tracking-wider text-amber-600 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                                Demo
+                            </span>
+                        )}
                         <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md">
-                            {cropName} Field
+                            {cropName}
                         </span>
                     </div>
 
@@ -219,13 +284,17 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate, farm, onIoTPairClic
                     {/* Sensor Device Identifier and Battery */}
                     <div className="flex items-center gap-3 text-[10px] text-gray-500 dark:text-gray-400">
                         <span className="flex items-center gap-1 font-semibold truncate">
-                            <span className="material-symbols-outlined text-[12px] text-emerald-500">sensors</span>
+                            <span className={`material-symbols-outlined text-[12px] ${isConnected ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                sensors
+                            </span>
                             {deviceTitle}
                         </span>
-                        <span className="flex items-center gap-0.5 font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
-                            <span className="material-symbols-outlined text-[13px]">battery_5_bar</span>
-                            {batteryLevel}%
-                        </span>
+                        {batteryLevel !== null && (
+                            <span className="flex items-center gap-0.5 font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+                                <span className="material-symbols-outlined text-[13px]">battery_5_bar</span>
+                                {batteryLevel}%
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
@@ -234,26 +303,32 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate, farm, onIoTPairClic
             <div className="grid grid-cols-3 gap-2 mb-3.5 relative z-10">
                 <div className="bg-white/60 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 rounded-xl p-2 text-center shadow-xs">
                     <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Soil Temp</span>
-                    <span className="text-xs font-black text-slate-800 dark:text-slate-100 mt-0.5 block">
-                        {soilTemp}°C
+                    <span className={`text-xs font-black mt-0.5 block ${soilTemp ? 'text-slate-800 dark:text-slate-100' : 'text-slate-400'}`}>
+                        {soilTemp !== null ? `${soilTemp}°C` : '—'}
                     </span>
-                    <span className="text-[8px] font-semibold text-emerald-500 block">Optimal</span>
+                    <span className="text-[8px] font-semibold text-slate-400 block">
+                        {soilTemp !== null ? 'Root Temp' : 'No Signal'}
+                    </span>
                 </div>
 
                 <div className="bg-white/60 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 rounded-xl p-2 text-center shadow-xs">
                     <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Field Cap.</span>
-                    <span className="text-xs font-black text-slate-800 dark:text-slate-100 mt-0.5 block">
-                        {status.capacityPct}%
+                    <span className={`text-xs font-black mt-0.5 block ${status.capacityPct ? 'text-slate-800 dark:text-slate-100' : 'text-slate-400'}`}>
+                        {status.capacityPct !== null ? `${status.capacityPct}%` : '—'}
                     </span>
-                    <span className="text-[8px] font-semibold text-teal-500 block">Water Holding</span>
+                    <span className="text-[8px] font-semibold text-slate-400 block">
+                        {status.capacityPct !== null ? 'Retention' : 'Offline'}
+                    </span>
                 </div>
 
                 <div className="bg-white/60 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 rounded-xl p-2 text-center shadow-xs">
-                    <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Soil NPK Est.</span>
-                    <span className="text-xs font-black text-slate-800 dark:text-slate-100 mt-0.5 block">
-                        {soilNPK.n.value}-{soilNPK.p.value}-{soilNPK.k.value}
+                    <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Soil NPK</span>
+                    <span className={`text-xs font-black mt-0.5 block ${hasReading ? 'text-slate-800 dark:text-slate-100' : 'text-slate-400'}`}>
+                        {hasReading ? `${soilNPK.n.value}-${soilNPK.p.value}-${soilNPK.k.value}` : '—'}
                     </span>
-                    <span className="text-[8px] font-semibold text-amber-500 block">kg/ha Ratio</span>
+                    <span className="text-[8px] font-semibold text-slate-400 block">
+                        {hasReading ? 'kg/ha Ratio' : 'Requires Sensor'}
+                    </span>
                 </div>
             </div>
 
@@ -261,47 +336,79 @@ const DashboardMoistureCard = ({ selectedFarmId, onNavigate, farm, onIoTPairClic
             <div className="mb-3 relative z-10">
                 <div className="flex items-center justify-between text-[9px] font-bold text-slate-400 mb-1">
                     <span>Wilting Pt (0%)</span>
-                    <span className="text-emerald-500">Optimal (40-70%)</span>
+                    <span className={hasReading ? 'text-emerald-500' : 'text-slate-400'}>Optimal (40-70%)</span>
                     <span>Saturation (100%)</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-white/10 relative overflow-hidden">
-                    <div
-                        className="h-full rounded-full transition-all duration-700 relative"
-                        style={{
-                            width: `${moisture}%`,
-                            background: moisture < 20 
-                                ? '#ef4444' 
-                                : moisture < 40 
-                                ? '#f59e0b' 
-                                : moisture < 70 
-                                ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)' 
-                                : '#0284c7'
-                        }}
-                    />
+                    {hasReading && (
+                        <div
+                            className="h-full rounded-full transition-all duration-700 relative"
+                            style={{
+                                width: `${moisture}%`,
+                                background: moisture < 20 
+                                    ? '#ef4444' 
+                                    : moisture < 40 
+                                    ? '#f59e0b' 
+                                    : moisture < 70 
+                                    ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)' 
+                                    : '#0284c7'
+                            }}
+                        />
+                    )}
                 </div>
             </div>
 
-            {/* ── Bottom Hardware Bar & Quick Action ── */}
-            <div className="pt-2.5 border-t border-emerald-500/15 flex items-center justify-between relative z-10">
+            {/* ── Bottom Hardware Bar & Actions ── */}
+            <div className="pt-2.5 border-t border-emerald-500/15 flex items-center justify-between relative z-10 flex-wrap gap-2">
                 <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400">
-                    <span className="material-symbols-outlined text-[13px] text-emerald-500">wifi_tethering</span>
+                    <span className={`material-symbols-outlined text-[13px] ${hasReading ? 'text-emerald-500' : 'text-slate-400'}`}>
+                        {hasReading ? 'wifi_tethering' : 'bluetooth_searching'}
+                    </span>
                     <span>
-                        {isConnected 
-                            ? 'BLE Synced • Telemetry active' 
-                            : 'Field Sensor Active • Calibrated'}
+                        {hasReading
+                            ? (demoMode ? 'Demo Telemetry active' : 'BLE Synced • Streaming')
+                            : (hasHardwareDevice ? 'Sensor Offline' : 'Hardware Not Connected')}
                     </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                    {!isConnected && (
+                    {/* Toggle to test telemetry without hardware */}
+                    <button
+                        onClick={() => setDemoMode(prev => !prev)}
+                        className={`px-2 py-0.5 rounded-lg border font-bold text-[9px] transition-all cursor-pointer ${
+                            demoMode
+                                ? 'bg-amber-500/20 border-amber-500/40 text-amber-700 dark:text-amber-300'
+                                : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                        }`}
+                        title={demoMode ? 'Switch back to real sensor' : 'Simulate sensor telemetry for testing'}
+                    >
+                        {demoMode ? 'Exit Demo' : 'Simulate'}
+                    </button>
+
+                    {!isConnected && !hasHardwareDevice && (
                         <button
                             onClick={onIoTPairClick || (() => onNavigate?.('iot-pairing'))}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold text-[10px] flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-extrabold text-[10px] flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
                         >
-                            <span className="material-symbols-outlined text-[12px]">bluetooth</span>
-                            {hasHardwareSensor ? 'Reconnect ESP32' : 'Pair ESP32'}
+                            <span className="material-symbols-outlined text-[12px]">add</span>
+                            Pair ESP32
                         </button>
                     )}
+
+                    {!isConnected && hasHardwareDevice && (
+                        <button
+                            onClick={() => connectDevice(sensor.deviceId)}
+                            disabled={isConnecting}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-extrabold text-[10px] flex items-center gap-1 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                        >
+                            {isConnecting ? (
+                                <><div className="w-2.5 h-2.5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />Connecting...</>
+                            ) : (
+                                <><span className="material-symbols-outlined text-[12px]">bluetooth</span>Reconnect</>
+                            )}
+                        </button>
+                    )}
+
                     {isConnected && (
                         <button
                             onClick={() => onNavigate?.('iot-settings')}

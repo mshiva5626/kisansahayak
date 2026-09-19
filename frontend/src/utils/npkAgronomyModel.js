@@ -203,9 +203,9 @@ export const FERTILIZER_CATALOG = {
  * - Available P (kg/ha): Low < 10  | Medium 10-25   | High > 25
  * - Available K (kg/ha): Low < 110 | Medium 110-280 | High > 280
  */
-export function estimateSoilNPKFromSensor(moisturePercent = 45, cropId = 'wheat') {
-    // Clamp moisture to valid 0-100 range
-    const moisture = Math.min(100, Math.max(0, Number(moisturePercent) || 45));
+export function estimateSoilNPKFromSensor(moisturePercent = null, cropId = 'wheat') {
+    const hasLiveMoisture = moisturePercent !== null && moisturePercent !== undefined && !isNaN(Number(moisturePercent));
+    const moisture = hasLiveMoisture ? Math.min(100, Math.max(0, Number(moisturePercent))) : null;
 
     // Crop baseline biases (typical Indian cultivated agricultural plains)
     const cropOffsets = {
@@ -222,16 +222,16 @@ export function estimateSoilNPKFromSensor(moisturePercent = 45, cropId = 'wheat'
     const base = cropOffsets[cropId] || cropOffsets.wheat;
 
     // Moisture dynamic factor (S.R. Reddy Chapter 7: Soil Moisture & Nutrient Availability)
-    // Optimum microbial mineralization occurs around 45% - 60% Field Capacity.
-    // Waterlogging (>75%) leads to anaerobic denitrification of nitrates.
-    // Drought (<25%) halts microbial nutrient release.
+    // If no sensor is connected, use standard 1.0 baseline
     let moistureFactor = 1.0;
-    if (moisture >= 40 && moisture <= 65) {
-        moistureFactor = 1.0 + (moisture - 50) * 0.002; // Small realistic dynamic variation
-    } else if (moisture < 40) {
-        moistureFactor = 0.90 + (moisture / 40) * 0.10; // Lower available pool
-    } else {
-        moistureFactor = 1.03 - ((moisture - 65) / 35) * 0.12; // Leaching & dilution
+    if (moisture !== null) {
+        if (moisture >= 40 && moisture <= 65) {
+            moistureFactor = 1.0 + (moisture - 50) * 0.002;
+        } else if (moisture < 40) {
+            moistureFactor = 0.90 + (moisture / 40) * 0.10;
+        } else {
+            moistureFactor = 1.03 - ((moisture - 65) / 35) * 0.12;
+        }
     }
 
     // Calibrated readings (tight limited range)

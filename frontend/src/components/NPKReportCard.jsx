@@ -6,7 +6,7 @@ import {
 } from '../utils/npkAgronomyModel';
 import { useCart } from '../context/CartContext';
 
-const NPKReportCard = ({ moisture = 48, defaultCrop = 'wheat', onNavigate }) => {
+const NPKReportCard = ({ moisture = null, defaultCrop = 'wheat', onNavigate }) => {
     const { addMultipleToCart, setIsCartOpen } = useCart();
 
     const [selectedCrop, setSelectedCrop] = useState(defaultCrop || 'wheat');
@@ -14,7 +14,9 @@ const NPKReportCard = ({ moisture = 48, defaultCrop = 'wheat', onNavigate }) => 
     const [activeTab, setActiveTab] = useState('prescription'); // 'prescription' | 'balance' | 'schedule'
     const [addedFeedback, setAddedFeedback] = useState(false);
 
-    // 1. Calculate simulated soil NPK from moisture & crop (limited range)
+    const hasLiveSensor = moisture !== null && moisture !== undefined && !isNaN(Number(moisture));
+
+    // 1. Calculate soil NPK from sensor moisture or standard ICAR agronomy baseline
     const soilReport = useMemo(() => {
         return estimateSoilNPKFromSensor(moisture, selectedCrop);
     }, [moisture, selectedCrop]);
@@ -47,12 +49,20 @@ const NPKReportCard = ({ moisture = 48, defaultCrop = 'wheat', onNavigate }) => 
                             <h2 className="text-sm font-black text-gray-900 dark:text-white leading-tight">
                                 Soil NPK & Fertilizer Prescription
                             </h2>
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
-                                S.R. Reddy ICAR
-                            </span>
+                            {hasLiveSensor ? (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+                                    Sensor: {moisture}%
+                                </span>
+                            ) : (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/25">
+                                    ICAR Baseline
+                                </span>
+                            )}
                         </div>
                         <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                            Derived from sensor moisture & crop nutrient balance
+                            {hasLiveSensor 
+                                ? `Dynamically tuned with live root moisture (${moisture}%)`
+                                : 'ICAR Recommended Dose of Fertilizers (RDF) • Connect sensor for live telemetry'}
                         </p>
                     </div>
                 </div>

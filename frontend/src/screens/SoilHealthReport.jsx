@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import BottomNavbar from '../components/BottomNavbar';
 import NPKReportCard from '../components/NPKReportCard';
 import { useCart } from '../context/CartContext';
+import { useIoT } from '../context/IoTContext';
 import { soilAPI } from '../api';
 
 const SoilHealthReport = ({ onBack, onNavigate, userProfile, selectedFarmId }) => {
@@ -13,6 +14,9 @@ const SoilHealthReport = ({ onBack, onNavigate, userProfile, selectedFarmId }) =
     const [previewUrl, setPreviewUrl] = useState(null);
     const [toast, setToast] = useState(null);
     const { cartCount, setIsCartOpen } = useCart();
+    const { getSensorForFarm } = useIoT();
+    const sensor = getSensorForFarm(selectedFarmId);
+    const liveMoisture = sensor?.connected && sensor?.moisture !== undefined ? sensor.moisture : null;
 
     // Default placeholder data
     const [reportData, setReportData] = useState({
@@ -236,7 +240,7 @@ const SoilHealthReport = ({ onBack, onNavigate, userProfile, selectedFarmId }) =
 
                 {/* ── S.R. Reddy & ICAR Agronomic NPK & Fertilizer Prescription ── */}
                 <div className="mt-6">
-                    <NPKReportCard moisture={48} defaultCrop="wheat" />
+                    <NPKReportCard moisture={liveMoisture} defaultCrop="wheat" onNavigate={onNavigate} />
                 </div>
 
                 {/* Overall Status Card */}

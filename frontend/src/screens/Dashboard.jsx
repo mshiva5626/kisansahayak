@@ -432,7 +432,7 @@ const Dashboard = ({
 
                         {/* ── Live Sensor NPK & Fertilizer Prescription Report (S.R. Reddy ICAR) ── */}
                         <NPKReportCard
-                            moisture={sensor?.moisture ?? 48}
+                            moisture={sensor?.moisture ?? null}
                             defaultCrop={farm?.crop_type?.toLowerCase() || 'wheat'}
                             onNavigate={onNavigate}
                         />
