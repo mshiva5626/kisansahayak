@@ -422,6 +422,14 @@ const Dashboard = ({
                         </div>
 
 
+                        {/* ── Live IoT Soil Moisture Card ── */}
+                        <DashboardMoistureCard
+                            selectedFarmId={selectedFarmId}
+                            onNavigate={onNavigate}
+                            farm={farm}
+                            onIoTPairClick={onIoTPairClick}
+                        />
+
                         {/* ── Live Sensor NPK & Fertilizer Prescription Report (S.R. Reddy ICAR) ── */}
                         <NPKReportCard
                             moisture={sensor?.moisture ?? 48}
