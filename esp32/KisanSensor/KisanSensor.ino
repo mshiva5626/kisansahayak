@@ -59,8 +59,8 @@
 #define BATTERY_PIN        35    // ADC1_CH7 (Optional 100k+100k battery divider)
 
 // ─── Calibration Defaults (Overridden by NVS if saved) ───────────────────────
-#define DEFAULT_DRY_VAL  3200    // Raw ADC reading in dry air (0% moisture)
-#define DEFAULT_WET_VAL  1100    // Raw ADC reading submerged in water (100% moisture)
+#define DEFAULT_DRY_VAL  0    // Raw ADC reading in dry air (0% moisture)
+#define DEFAULT_WET_VAL  1023   // Raw ADC reading submerged in water (100% moisture)
 
 // ─── Timing Settings ─────────────────────────────────────────────────────────
 #define READ_INTERVAL_MS        2000   // Send moisture reading every 2s
@@ -152,13 +152,13 @@ void attemptWifiConnect(const String& ssid, const String& pass) {
     setWifiStatus(WIFI_STATUS_CONNECTING);
 
     WiFi.disconnect(true);
-    delay(100);
+    delay(10);
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid.c_str(), pass.c_str());
 
     unsigned long startMs = millis();
     while (WiFi.status() != WL_CONNECTED && (millis() - startMs) < WIFI_CONNECT_TIMEOUT_MS) {
-        delay(250);
+        delay(10);
         digitalWrite(LED_PIN, !digitalRead(LED_PIN)); // Fast strobe while connecting
         Serial.print(".");
     }
@@ -198,7 +198,7 @@ void autoConnectSavedWifi() {
         
         unsigned long startMs = millis();
         while (WiFi.status() != WL_CONNECTED && (millis() - startMs) < 5000) {
-            delay(150);
+            delay(10);
             Serial.print(".");
         }
         Serial.println();
@@ -386,8 +386,8 @@ void setup() {
     digitalWrite(LED_PIN, LOW);
 
     for (int i = 0; i < 3; i++) {
-        digitalWrite(LED_PIN, HIGH); delay(100);
-        digitalWrite(LED_PIN, LOW);  delay(100);
+        digitalWrite(LED_PIN, HIGH); delay(10);
+        digitalWrite(LED_PIN, LOW);  delay(10);
     }
 
     loadCalibration();
