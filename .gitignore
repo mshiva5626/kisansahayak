@@ -41,3 +41,9 @@ Thumbs.db
 /*.csv
 /sensor_Crop_Dataset*.csv
 /AgriNet*/
+
+# Uploads & Scratch
+backend/uploads/
+scratch/
+dashboard.html
+frontend/public/dashboard.html

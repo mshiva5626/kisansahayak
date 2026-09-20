@@ -1032,6 +1032,108 @@
         }
       },
       "confidence_score": 0.4
+    },
+    {
+      "farm_id": "mem_56_mu9bemxk",
+      "image_url": "https://fcnvihbpuxhkwjvxdrim.supabase.co/storage/v1/object/public/farm_images/1789878505911-337296763.jpg",
+      "image_type": "leaf",
+      "local_path": "C:\\Users\\mshiv\\Downloads\\take 2 (4) (1)\\take 2 (4)\\take 2\\backend\\uploads\\1789878505911-337296763.jpg",
+      "_id": "mem_56_mu9bg75r",
+      "userId": "farmer_mu9be5ju_zwxpc",
+      "createdAt": "2026-09-20T04:28:27.327Z",
+      "updatedAt": "2026-09-20T04:29:37.060Z",
+      "analysis_result": {
+        "is_valid_crop_or_leaf": true,
+        "crop": "Broadleaf (likely Poplar / Populus spp.)",
+        "observations": [
+          "Prominent serpentine leaf mine trail visible across the leaf lamina — winding, whitish-grey tunnel with dark brown to black necrotic margins",
+          "Mine trail indicates internal feeding by a larva between upper and lower epidermis",
+          "Minor brown necrotic spots scattered on the leaf surface",
+          "Slight marginal browning and drying at the upper-left edge of the leaf",
+          "Rest of the leaf tissue appears green and largely healthy with intact venation"
+        ],
+        "possible_issue": "Leaf miner infestation (insect larval mining)",
+        "confidence": 0.92,
+        "severity": "Mild",
+        "recommendation": "Remove and destroy the infested leaf to prevent the larva from completing its life cycle and spreading to nearby plants. Monitor the crop regularly for new mine trails.",
+        "disclaimer": "AI image analysis is an initial screening, not a definitive diagnosis.",
+        "crop_identified": "Broadleaf (likely Poplar / Populus spp.)",
+        "disease_name": "Leaf miner infestation (insect larval mining)",
+        "scientific_name": "Phytomyza spp. (likely) — Leaf miner fly, Diptera: Agromyzidae",
+        "causal_agent": "Pest",
+        "overall_assessment": "Remove and destroy the infested leaf to prevent the larva from completing its life cycle and spreading to nearby plants. Monitor the crop regularly for new mine trails.",
+        "symptoms_observed": [
+          "Prominent serpentine leaf mine trail visible across the leaf lamina — winding, whitish-grey tunnel with dark brown to black necrotic margins",
+          "Mine trail indicates internal feeding by a larva between upper and lower epidermis",
+          "Minor brown necrotic spots scattered on the leaf surface",
+          "Slight marginal browning and drying at the upper-left edge of the leaf",
+          "Rest of the leaf tissue appears green and largely healthy with intact venation"
+        ],
+        "ipm_immediate": "Pick and destroy all visibly mined leaves immediately; do not compost them. This removes the larva before it pupates and reduces the next generation.",
+        "ipm_organic": "Neem oil @ 5 ml per liter of water, sprayed thoroughly on both leaf surfaces in the early morning or evening, repeated every 7–10 days for 2–3 applications.",
+        "ipm_chemical": {
+          "active_ingredient": "Spinosad",
+          "dosage": "0.5 ml per liter of water (or as per label: 25–30 g/acre for field crops)"
+        },
+        "npss_reference_images": [],
+        "npss_regional_reports": {
+          "count": 0,
+          "district": "Regional",
+          "state": "India",
+          "pest": "Leaf miner infestation (insect larval mining)"
+        }
+      },
+      "confidence_score": 0.92
+    },
+    {
+      "farm_id": "mem_56_mu9bemxk",
+      "image_url": "https://fcnvihbpuxhkwjvxdrim.supabase.co/storage/v1/object/public/farm_images/1789878605168-964704916.jpg",
+      "image_type": "leaf",
+      "local_path": "C:\\Users\\mshiv\\Downloads\\take 2 (4) (1)\\take 2 (4)\\take 2\\backend\\uploads\\1789878605168-964704916.jpg",
+      "_id": "mem_57_mu9biaz5",
+      "userId": "farmer_mu9be5ju_zwxpc",
+      "createdAt": "2026-09-20T04:30:05.585Z",
+      "updatedAt": "2026-09-20T04:30:24.499Z",
+      "analysis_result": {
+        "is_valid_crop_or_leaf": true,
+        "crop": "Unidentified broadleaf crop/leaf",
+        "observations": [
+          "Prominent winding, whitish serpentine mines inside the leaf tissue",
+          "Dark brown to black frass trail visible along the mined tunnel",
+          "Localized browning and necrosis along damaged leaf margins and mined areas",
+          "Leaf venation is prominent and otherwise green tissue remains visible"
+        ],
+        "possible_issue": "Possible leaf miner infestation",
+        "confidence": 0.84,
+        "severity": "Moderate",
+        "recommendation": "Remove and destroy severely mined leaves, avoid spreading infested leaves in the field, and monitor nearby plants for fresh serpentine mines. If infestation is increasing, spray a labeled biopesticide on the leaf surface, especially the tender leaves.",
+        "disclaimer": "AI image analysis is an initial screening, not a definitive diagnosis.",
+        "crop_identified": "Unidentified broadleaf crop/leaf",
+        "disease_name": "Possible leaf miner infestation",
+        "scientific_name": "Liriomyza spp.",
+        "causal_agent": "Pest",
+        "overall_assessment": "Remove and destroy severely mined leaves, avoid spreading infested leaves in the field, and monitor nearby plants for fresh serpentine mines. If infestation is increasing, spray a labeled biopesticide on the leaf surface, especially the tender leaves.",
+        "symptoms_observed": [
+          "Prominent winding, whitish serpentine mines inside the leaf tissue",
+          "Dark brown to black frass trail visible along the mined tunnel",
+          "Localized browning and necrosis along damaged leaf margins and mined areas",
+          "Leaf venation is prominent and otherwise green tissue remains visible"
+        ],
+        "ipm_immediate": "Hand-pick and destroy mined leaves today; install yellow sticky traps to monitor adult leaf miner flies.",
+        "ipm_organic": "Spray neem oil @ 5 ml per litre of water on affected foliage in the evening; repeat after 7-10 days if fresh mines appear.",
+        "ipm_chemical": {
+          "active_ingredient": "Spinosad",
+          "dosage": "0.5 ml per litre of water, if available and permitted; follow label directions and pre-harvest interval."
+        },
+        "npss_reference_images": [],
+        "npss_regional_reports": {
+          "count": 0,
+          "district": "Regional",
+          "state": "India",
+          "pest": "Possible leaf miner infestation"
+        }
+      },
+      "confidence_score": 0.84
     }
   ],
   "advisories": [
@@ -1097,11 +1199,105 @@
       "_id": "mem_52_mu7f3ruw",
       "createdAt": "2026-09-18T20:35:13.736Z",
       "updatedAt": "2026-09-18T20:35:13.736Z"
+    },
+    {
+      "farm_id": "mem_56_mu9bemxk",
+      "advisory_text": "### Recommended wheat seed rate\n- **Line sowing with seed drill:** **100 kg/ha = 40 kg/acre**\n- **Broadcasting, late sowing, or bold-grain variety:** **120–125 kg/ha = 48–50 kg/acre**\n- Sow at **4–5 cm depth**, maintaining **20–22.5 cm row spacing**.\n\nFor your **12-acre** farm: **480 kg seed normally**; use **576–600 kg** if broadcasting or sowing late.\n\n**Source:** ICAR–Indian Institute of Wheat & Barley Research (IIWBR), *Package of Practices for Wheat* — https://www.iiwbr.icar.gov.in/",
+      "weather_snapshot": null,
+      "query": "what is the seed rate of wheat",
+      "_id": "mem_55_mu9bfxld",
+      "createdAt": "2026-09-20T04:28:14.929Z",
+      "updatedAt": "2026-09-20T04:28:14.929Z"
     }
   ],
   "notifications": [],
-  "_nextId": 55,
+  "_nextId": 58,
   "chatSessions": [
+    {
+      "_id": "sess_mu9ber12",
+      "sessionId": "sess_mu9ber12",
+      "userId": "farmer_mu9be5ju_zwxpc",
+      "farmId": "mem_56_mu9bemxk",
+      "title": "Namaste, asdfghjjhgfd! I have loaded your **W",
+      "messages": [
+        {
+          "role": "assistant",
+          "content": "Namaste, asdfghjjhgfd! I have loaded your **Wheat** farm data from **Maharashtra**. You can ask questions, upload lab test reports, or share crop photos for instant analysis."
+        },
+        {
+          "role": "user",
+          "content": "what is the seed rate of wheat"
+        },
+        {
+          "id": 1789878494913,
+          "text": "### Recommended wheat seed rate\n- **Line sowing with seed drill:** **100 kg/ha = 40 kg/acre**\n- **Broadcasting, late sowing, or bold-grain variety:** **120–125 kg/ha = 48–50 kg/acre**\n- Sow at **4–5 cm depth**, maintaining **20–22.5 cm row spacing**.\n\nFor your **12-acre** farm: **480 kg seed normally**; use **576–600 kg** if broadcasting or sowing late.\n\n**Source:** ICAR–Indian Institute of Wheat & Barley Research (IIWBR), *Package of Practices for Wheat* — https://www.iiwbr.icar.gov.in/",
+          "isAI": true,
+          "sources": [
+            {
+              "id": "icar-general",
+              "title": "ICAR Package of Practices for Wheat",
+              "org": "Indian Council of Agricultural Research (ICAR)",
+              "type": "Agronomic Research Benchmark",
+              "detail": "Standard agronomic crop management, seed rates, fertilizer splits, and IPM protocols."
+            },
+            {
+              "id": "cibrc-dppqs",
+              "title": "CIBRC Registered Agrochemical Safety & Dilution Directory",
+              "org": "Central Insecticides Board & Registration Committee, Directorate of PPQ&S",
+              "type": "Chemical & Regulatory Safety Standard",
+              "detail": "Statutory dilution volumes (200 L water/acre), active ingredient specifications, and environmental safety limits."
+            },
+            {
+              "id": "agmarknet-dmi",
+              "title": "Agmarknet APMC Mandi Benchmark Rates",
+              "org": "Directorate of Marketing & Inspection (DMI) & e-NAM, Ministry of Agriculture",
+              "type": "Official Market Prices",
+              "detail": "Verified modal price for Wheat: ₹2,434/q in Wardha Main APMC Mandi Yard APMC."
+            },
+            {
+              "id": "shc-dacfw",
+              "title": "National Soil Health Card Metric Norms",
+              "org": "Department of Agriculture & Farmers Welfare (DAC&FW), Govt of India",
+              "type": "Soil Testing Standard",
+              "detail": "Standard diagnostic thresholds for pH, EC, Organic Carbon %, Available N-P-K, and Zinc deficiency correction."
+            }
+          ],
+          "time": "09:58 am"
+        }
+      ],
+      "sources": [
+        {
+          "id": "icar-general",
+          "title": "ICAR Package of Practices for Wheat",
+          "org": "Indian Council of Agricultural Research (ICAR)",
+          "type": "Agronomic Research Benchmark",
+          "detail": "Standard agronomic crop management, seed rates, fertilizer splits, and IPM protocols."
+        },
+        {
+          "id": "cibrc-dppqs",
+          "title": "CIBRC Registered Agrochemical Safety & Dilution Directory",
+          "org": "Central Insecticides Board & Registration Committee, Directorate of PPQ&S",
+          "type": "Chemical & Regulatory Safety Standard",
+          "detail": "Statutory dilution volumes (200 L water/acre), active ingredient specifications, and environmental safety limits."
+        },
+        {
+          "id": "agmarknet-dmi",
+          "title": "Agmarknet APMC Mandi Benchmark Rates",
+          "org": "Directorate of Marketing & Inspection (DMI) & e-NAM, Ministry of Agriculture",
+          "type": "Official Market Prices",
+          "detail": "Verified modal price for Wheat: ₹2,434/q in Wardha Main APMC Mandi Yard APMC."
+        },
+        {
+          "id": "shc-dacfw",
+          "title": "National Soil Health Card Metric Norms",
+          "org": "Department of Agriculture & Farmers Welfare (DAC&FW), Govt of India",
+          "type": "Soil Testing Standard",
+          "detail": "Standard diagnostic thresholds for pH, EC, Organic Carbon %, Available N-P-K, and Zinc deficiency correction."
+        }
+      ],
+      "createdAt": "2026-09-20T04:28:14.921Z",
+      "updatedAt": "2026-09-20T04:28:14.921Z"
+    },
     {
       "_id": "sess_mu8gjk5u",
       "sessionId": "sess_mu8gjk5u",
