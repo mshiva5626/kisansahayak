@@ -80,5 +80,13 @@ const protect = async (req, res, next) => {
     }
 };
 
-module.exports = { protect };
+const optionalProtect = async (req, res, next) => {
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        return protect(req, res, next);
+    }
+    req.user = null;
+    next();
+};
+
+module.exports = { protect, optionalProtect };
 

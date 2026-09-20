@@ -186,7 +186,7 @@ async function createTablesViaAPI() {
 }
 
 async function testTablesExist() {
-    const tables = ['users', 'farms', 'images', 'advisories', 'notifications', 'soil_reports', 'sensor_readings'];
+    const tables = ['users', 'farms', 'images', 'advisories', 'notifications', 'soil_reports', 'sensor_readings', 'schemes'];
     const results = {};
     
     for (const table of tables) {

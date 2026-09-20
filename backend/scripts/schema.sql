@@ -49,6 +49,10 @@ CREATE TABLE IF NOT EXISTS public.images (
     file_name TEXT,
     storage_url TEXT,
     public_url TEXT,
+    image_url TEXT,
+    image_type TEXT DEFAULT 'field',
+    local_path TEXT,
+    confidence_score DOUBLE PRECISION,
     analysis_result JSONB,
     status TEXT DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -85,6 +89,8 @@ CREATE TABLE IF NOT EXISTS public.soil_reports (
     user_id TEXT,
     farm_id TEXT,
     scan_type TEXT DEFAULT 'photo',
+    source TEXT,
+    report_data JSONB,
     soil_data JSONB,
     npk_estimate JSONB,
     recommendations JSONB,
@@ -98,7 +104,9 @@ CREATE TABLE IF NOT EXISTS public.sensor_readings (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     farm_id TEXT,
     user_id TEXT,
+    device_id TEXT,
     moisture DOUBLE PRECISION,
+    battery DOUBLE PRECISION,
     temperature DOUBLE PRECISION,
     humidity DOUBLE PRECISION,
     ph DOUBLE PRECISION,
@@ -110,6 +118,20 @@ CREATE TABLE IF NOT EXISTS public.sensor_readings (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS public.schemes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    benefits TEXT,
+    eligibility TEXT,
+    application_guidance TEXT,
+    state TEXT DEFAULT 'Central',
+    scheme_type TEXT DEFAULT 'central',
+    ministry TEXT,
+    website_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Disable RLS for service-role access (or make policies permissive)
 ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.farms DISABLE ROW LEVEL SECURITY;
@@ -118,3 +140,4 @@ ALTER TABLE public.advisories DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.soil_reports DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sensor_readings DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.schemes DISABLE ROW LEVEL SECURITY;
