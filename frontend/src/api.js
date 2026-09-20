@@ -3,14 +3,14 @@ import axios from 'axios';
 const getApiBaseUrl = () => {
     const envUrl = import.meta.env.VITE_API_URL;
     if (envUrl && envUrl.trim() !== '') {
-        return envUrl;
+        return envUrl.replace(/\/+$/, '');
     }
-    // In production running on HTTPS (e.g. Vercel deployment), don't default to http://127.0.0.1
-    // which causes mixed-content errors and connection hangs on mobile/remote browsers
-    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-        return '/api';
+    // Local developer environment
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return 'http://127.0.0.1:5000/api';
     }
-    return 'http://127.0.0.1:5000/api';
+    // Production (Vercel / deployed domain proxied via vercel.json)
+    return '/api';
 };
 
 const API_BASE_URL = getApiBaseUrl();

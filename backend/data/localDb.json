@@ -1134,6 +1134,58 @@
         }
       },
       "confidence_score": 0.84
+    },
+    {
+      "farm_id": "mem_56_mu9bemxk",
+      "image_url": "https://fcnvihbpuxhkwjvxdrim.supabase.co/storage/v1/object/public/farm_images/1789879332868-782487203.jpg",
+      "image_type": "leaf",
+      "local_path": "C:\\Users\\mshiv\\Downloads\\take 2 (4) (1)\\take 2 (4)\\take 2\\backend\\uploads\\1789879332868-782487203.jpg",
+      "_id": "mem_58_mu9bxwyx",
+      "userId": "farmer_mu9be5ju_zwxpc",
+      "createdAt": "2026-09-20T04:42:13.929Z",
+      "updatedAt": "2026-09-20T04:43:11.753Z",
+      "analysis_result": {
+        "is_valid_crop_or_leaf": true,
+        "crop": "Tobacco",
+        "observations": [
+          "Large irregular chewing damage and notching along the leaf margin",
+          "Dark brown to black necrotic margins around the feeding wounds",
+          "Pale larva/caterpillar-like insect visible near the damaged leaf edge",
+          "Small scattered brown necrotic spots on an otherwise green leaf blade",
+          "Prominent reticulate venation with no uniform yellowing"
+        ],
+        "possible_issue": "Insect chewing damage, likely caterpillar/armyworm feeding",
+        "confidence": 0.74,
+        "severity": "Moderate",
+        "recommendation": "Scout the crop early morning or evening, handpick visible larvae and egg masses, remove badly damaged leaves, and if fresh feeding is seen on many plants, spray a labeled biopesticide or insecticide while following local crop safety and pre-harvest interval guidance.",
+        "disclaimer": "AI image analysis is an initial screening, not a definitive diagnosis.",
+        "crop_identified": "Tobacco",
+        "disease_name": "Insect chewing damage, likely caterpillar/armyworm feeding",
+        "scientific_name": "Spodoptera litura",
+        "causal_agent": "Pest",
+        "overall_assessment": "Scout the crop early morning or evening, handpick visible larvae and egg masses, remove badly damaged leaves, and if fresh feeding is seen on many plants, spray a labeled biopesticide or insecticide while following local crop safety and pre-harvest interval guidance.",
+        "symptoms_observed": [
+          "Large irregular chewing damage and notching along the leaf margin",
+          "Dark brown to black necrotic margins around the feeding wounds",
+          "Pale larva/caterpillar-like insect visible near the damaged leaf edge",
+          "Small scattered brown necrotic spots on an otherwise green leaf blade",
+          "Prominent reticulate venation with no uniform yellowing"
+        ],
+        "ipm_immediate": "Handpick the visible larva and damaged leaf portions today; check leaf undersides and nearby plants for fresh feeding, larvae, and egg masses.",
+        "ipm_organic": "Spray Neem Seed Kernel Extract 5% @ 50 g/L water on affected plants, covering leaf undersides in the evening.",
+        "ipm_chemical": {
+          "active_ingredient": "Chlorantraniliprole",
+          "dosage": "0.3 ml/L water using the labeled formulation"
+        },
+        "npss_reference_images": [],
+        "npss_regional_reports": {
+          "count": 0,
+          "district": "Regional",
+          "state": "India",
+          "pest": "Insect chewing damage, likely caterpillar/armyworm feeding"
+        }
+      },
+      "confidence_score": 0.74
     }
   ],
   "advisories": [
@@ -1211,7 +1263,7 @@
     }
   ],
   "notifications": [],
-  "_nextId": 58,
+  "_nextId": 59,
   "chatSessions": [
     {
       "_id": "sess_mu9ber12",

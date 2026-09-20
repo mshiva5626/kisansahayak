@@ -101,7 +101,10 @@ async function generateAgriculturalCompletion({
     providerOverride = null
 }) {
     const provider = providerOverride || MODEL_CONFIG.provider;
-    const model = modelOverride || MODEL_CONFIG.modelName;
+    const configuredText = (MODEL_CONFIG.modelName && !MODEL_CONFIG.modelName.includes('nemotron-3.5-lightning')) 
+        ? MODEL_CONFIG.modelName 
+        : 'nex-agi/nex-n2.5-pro:free';
+    const model = modelOverride || configuredText;
     
     // Prepare full messages array
     const fullMessages = [];
@@ -363,11 +366,14 @@ async function generateVisionAnalysis({ prompt, base64Image, mimeType = 'image/j
     const apiKey = process.env.CROP_ANALYSIS_API_KEY || process.env.OPENROUTER_API_KEY;
     
     // Candidate vision models on OpenRouter (ordered by reliability and precision)
+    const configuredVision = (MODEL_CONFIG.visionModelName && !MODEL_CONFIG.visionModelName.includes('ling-3.0')) 
+        ? MODEL_CONFIG.visionModelName 
+        : 'nex-agi/nex-n2.5-pro:free';
+
     const visionModels = [
-        MODEL_CONFIG.visionModelName || 'nex-agi/nex-n2.5-pro:free',
         'nex-agi/nex-n2.5-pro:free',
-        'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
-        'inclusionai/ling-3.0-flash-vl:free'
+        configuredVision,
+        'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free'
     ];
 
     // Remove duplicates

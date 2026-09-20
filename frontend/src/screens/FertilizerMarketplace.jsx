@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { FERTILIZER_CATALOG } from '../utils/npkAgronomyModel';
 import { useCart } from '../context/CartContext';
+import API from '../api';
 
 const FertilizerMarketplace = ({ onBack, userProfile, selectedFarmId }) => {
     const { addToCart, cartCount, setIsCartOpen } = useCart();
@@ -75,21 +76,10 @@ const FertilizerMarketplace = ({ onBack, userProfile, selectedFarmId }) => {
                 content: m.text
             }));
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/fertilizer/ask`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-                },
-                body: JSON.stringify({
-                    messages: messageHistory,
-                    context: { farmId: selectedFarmId }
-                })
-            });
-
-            if (!response.ok) throw new Error('Failed to reach AI API');
-
-            const data = await response.json();
+            const { data } = await API.post('/fertilizer/ask', {
+                messages: messageHistory,
+                context: { farmId: selectedFarmId }
+            }, { timeout: 60000 });
             
             const aiMsg = {
                 id: Date.now() + 1,
