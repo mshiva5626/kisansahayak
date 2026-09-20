@@ -17,7 +17,7 @@ const API_BASE_URL = getApiBaseUrl();
 
 const API = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 5000, // 5-second fail-fast timeout so requests never freeze the UI indefinitely
+    timeout: 30000, // 30s timeout — Render free tier cold-starts can take up to 60s
     headers: {
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true',

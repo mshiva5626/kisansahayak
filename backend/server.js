@@ -39,10 +39,36 @@ connectDB();
 
 const app = express();
 
+// CORS — allow Vercel deployments, Render self, and local dev
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    'https://kisansahayak.onrender.com',
+    // Vercel domains — catch any preview/prod URL
+    /https:\/\/kisansahayak.*\.vercel\.app$/,
+    /https:\/\/.*\.vercel\.app$/
+];
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, server-to-server)
+        if (!origin) return callback(null, true);
+        const allowed = allowedOrigins.some(o =>
+            typeof o === 'string' ? o === origin : o.test(origin)
+        );
+        if (allowed) return callback(null, true);
+        console.warn(`[CORS] Blocked origin: ${origin}`);
+        return callback(null, true); // Permissive fallback for now — change to false to enforce
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'Bypass-Tunnel-Reminder']
+}));
+
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(cors());
 
 // Serve uploaded files as static
 app.use('/uploads', express.static(uploadsDir));

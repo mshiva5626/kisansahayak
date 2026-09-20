@@ -1263,7 +1263,7 @@
     }
   ],
   "notifications": [],
-  "_nextId": 59,
+  "_nextId": 61,
   "chatSessions": [
     {
       "_id": "sess_mu9ber12",
@@ -3170,5 +3170,24 @@
       "updatedAt": "2026-09-19T14:07:14.328Z"
     }
   ],
-  "sensor_readings": []
+  "sensor_readings": [
+    {
+      "device_id": "uawtsxaQW58WXkdsWUQSBg==",
+      "farm_id": "mem_56_mu9bemxk",
+      "moisture": 0,
+      "battery": null,
+      "_id": "rd_1789880092136",
+      "createdAt": "2026-09-20T04:54:52.136Z",
+      "updatedAt": "2026-09-20T04:54:52.139Z"
+    },
+    {
+      "device_id": "uawtsxaQW58WXkdsWUQSBg==",
+      "farm_id": "mem_56_mu9bemxk",
+      "moisture": 0,
+      "battery": null,
+      "_id": "rd_1789880103652",
+      "createdAt": "2026-09-20T04:55:03.652Z",
+      "updatedAt": "2026-09-20T04:55:03.655Z"
+    }
+  ]
 }
