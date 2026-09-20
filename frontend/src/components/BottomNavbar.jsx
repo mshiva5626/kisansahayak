@@ -18,7 +18,7 @@ const BottomNavbar = ({ activeTab = 'dashboard', onNavigate, onTabChange }) => {
     const isItemActive = (itemId) => {
         if (activeTab === itemId) return true;
         if (itemId === 'dashboard' && (activeTab === 'home' || !activeTab)) return true;
-        if (itemId === 'scanner' && (activeTab === 'scan' || activeTab === 'soil-test' || activeTab === 'soil-intelligence')) return true;
+        if (itemId === 'scanner' && (activeTab === 'scan' || activeTab === 'soil-test' || activeTab === 'soil-intelligence' || activeTab === 'soilhub' || activeTab === 'soil-hub' || activeTab === 'soil')) return true;
         return false;
     };
 

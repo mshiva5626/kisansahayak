@@ -35,19 +35,92 @@ import { IoTProvider } from './context/IoTContext';
 import { CartProvider } from './context/CartContext';
 import FertilizerCartDrawer from './components/FertilizerCartDrawer';
 
-import { authAPI } from './api';
+import { authAPI, farmAPI } from './api';
 import { supabase, signInWithGoogle } from './supabaseClient';
+
+const DEMO_USER = {
+  id: 'demo-farmer-01',
+  name: 'Ramesh Patel',
+  email: 'ramesh.patel@kisan.in',
+  mobile_number: '9876543210',
+  state: 'Madhya Pradesh',
+  district: 'Indore',
+  preferred_language: 'en',
+  role: 'verified_farmer',
+  land_size: '2 - 5 Acres (Semi-Medium)',
+  experience_years: '5 - 10 Years',
+  education_qualification: 'Senior Secondary (12th)'
+};
+const DEMO_TOKEN = 'demo-jwt-kisan-token';
+
+const parseScreenFromUrl = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    // 1. Pathname detection (e.g. /soilhub, /soil-intelligence, /mandi, etc.)
+    const pathname = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+    if (pathname) {
+      if (['soilhub', 'soil-hub', 'soil-intelligence', 'soil-test', 'soil'].includes(pathname)) {
+        return 'soil-intelligence';
+      }
+      if (['soil-health', 'soilhealth'].includes(pathname)) return 'soil-health';
+      if (['dashboard', 'home'].includes(pathname)) return 'dashboard';
+      if (['mandi', 'mandi-prices', 'prices'].includes(pathname)) return 'mandi-prices';
+      if (['scanner', 'scan'].includes(pathname)) return 'scanner';
+      if (['schemes'].includes(pathname)) return 'schemes';
+      if (['weather'].includes(pathname)) return 'weather';
+      if (['tasks', 'priority-tasks'].includes(pathname)) return 'priority-tasks';
+      if (['chat', 'copilot'].includes(pathname)) return 'chat';
+    }
+
+    // 2. Query param detection (e.g. ?screen=soilhub, ?page=soilhub, ?tab=soilhub)
+    const params = new URLSearchParams(window.location.search);
+    const paramVal = (params.get('screen') || params.get('page') || params.get('tab') || params.get('view') || '').toLowerCase();
+    if (paramVal) {
+      if (['soilhub', 'soil-hub', 'soil-intelligence', 'soil-test', 'soil'].includes(paramVal)) {
+        return 'soil-intelligence';
+      }
+      if (['soil-health', 'soilhealth'].includes(paramVal)) return 'soil-health';
+      return paramVal;
+    }
+
+    // 3. Hash detection (e.g. #soilhub, #/soilhub, #soil-intelligence)
+    if (window.location.hash && !window.location.hash.includes('access_token=')) {
+      const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase().split('?')[0];
+      if (['soilhub', 'soil-hub', 'soil-intelligence', 'soil-test', 'soil'].includes(hash)) {
+        return 'soil-intelligence';
+      }
+      if (['soil-health', 'soilhealth'].includes(hash)) return 'soil-health';
+      if (hash) return hash;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
 
 function App() {
   const [userProfile, setUserProfile] = useState(() => {
     try {
       const storedUser = localStorage.getItem('user');
-      return (localStorage.getItem('token') && storedUser) ? JSON.parse(storedUser) : null;
+      const token = localStorage.getItem('token');
+      if (token && storedUser) return JSON.parse(storedUser);
+
+      // Deep link support: If visiting a direct feature screen (like /soilhub or ?screen=soilhub)
+      // auto-seed demo session so the user can immediately experience the UI!
+      const initialFromUrl = parseScreenFromUrl();
+      if (initialFromUrl && !['welcome', 'language', 'login'].includes(initialFromUrl)) {
+        localStorage.setItem('token', DEMO_TOKEN);
+        localStorage.setItem('user', JSON.stringify(DEMO_USER));
+        return DEMO_USER;
+      }
+      return null;
     } catch {
       return null;
     }
   });
   const [currentScreen, setCurrentScreen] = useState(() => {
+    const fromUrl = parseScreenFromUrl();
+    if (fromUrl) return fromUrl;
     return (localStorage.getItem('token') && localStorage.getItem('user')) ? 'dashboard' : 'welcome';
   });
   const [language, setLanguage] = useState(() => localStorage.getItem('kisan_lang') || 'en');
@@ -164,6 +237,61 @@ function App() {
     };
   }, []);
 
+  const [activeFarm, setActiveFarm] = useState(null);
+
+  useEffect(() => {
+    if (selectedFarmId) {
+      farmAPI.getFarmById(selectedFarmId)
+        .then(res => {
+          if (res.data?.farm) setActiveFarm(res.data.farm);
+        })
+        .catch(() => {});
+    } else if (localStorage.getItem('token')) {
+      farmAPI.getFarms()
+        .then(res => {
+          const farmList = res.data?.farms || [];
+          if (farmList.length > 0) {
+            setActiveFarm(farmList[0]);
+            if (!selectedFarmId) setSelectedFarmId(farmList[0]._id || farmList[0].id);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [selectedFarmId, userProfile]);
+
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (event.state?.screen) {
+        setCurrentScreen(event.state.screen);
+      } else {
+        const fromUrl = parseScreenFromUrl();
+        if (fromUrl) {
+          setCurrentScreen(fromUrl);
+        } else {
+          setCurrentScreen(localStorage.getItem('token') ? 'dashboard' : 'welcome');
+        }
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const syncUrlToBrowser = (screenName) => {
+    try {
+      if (typeof window !== 'undefined' && window.history?.pushState) {
+        const url = new URL(window.location.href);
+        if (screenName === 'dashboard') {
+          url.searchParams.delete('screen');
+        } else {
+          url.searchParams.set('screen', screenName);
+        }
+        window.history.pushState({ screen: screenName }, '', url.toString());
+      }
+    } catch {
+      // Ignored
+    }
+  };
+
   const navigateTo = (screen, params) => {
     // Handle logout specially
     if (screen === 'logout') {
@@ -171,11 +299,18 @@ function App() {
       return;
     }
 
-    if (screen === 'copilot' || screen === 'chat') {
+    // Map screen aliases (soilhub, soil-hub, soil-test, soil -> soil-intelligence)
+    let targetScreen = screen;
+    if (['soilhub', 'soil-hub', 'soil-test', 'soil'].includes(targetScreen)) {
+      targetScreen = 'soil-intelligence';
+    }
+
+    if (targetScreen === 'copilot' || targetScreen === 'chat') {
       if (params?.initialQuery) {
         setChatContext({ type: 'direct_query', initialQuery: params.initialQuery });
       }
       setCurrentScreen('chat');
+      syncUrlToBrowser('chat');
       return;
     }
 
@@ -183,12 +318,14 @@ function App() {
     const publicScreens = ['welcome', 'language', 'login'];
     const token = localStorage.getItem('token');
 
-    if (!publicScreens.includes(screen) && !token) {
-      console.warn(`Blocked navigation to ${screen} without auth token. Redirecting to login.`);
+    if (!publicScreens.includes(targetScreen) && !token) {
+      console.warn(`Blocked navigation to ${targetScreen} without auth token. Redirecting to login.`);
       setCurrentScreen('login');
+      syncUrlToBrowser('login');
       return;
     }
-    setCurrentScreen(screen);
+    setCurrentScreen(targetScreen);
+    syncUrlToBrowser(targetScreen);
   };
 
   const [authInitialTab, setAuthInitialTab] = useState('login');
@@ -246,23 +383,9 @@ function App() {
   };
 
   const handleDemoLogin = () => {
-    const demoUser = {
-      id: 'demo-farmer-01',
-      name: 'Ramesh Patel',
-      email: 'ramesh.patel@kisan.in',
-      mobile_number: '9876543210',
-      state: 'Madhya Pradesh',
-      district: 'Indore',
-      preferred_language: language || 'en',
-      role: 'verified_farmer',
-      land_size: '2 - 5 Acres (Semi-Medium)',
-      experience_years: '5 - 10 Years',
-      education_qualification: 'Senior Secondary (12th)'
-    };
-    const demoToken = 'demo-jwt-kisan-token';
-    localStorage.setItem('token', demoToken);
-    localStorage.setItem('user', JSON.stringify(demoUser));
-    setUserProfile(demoUser);
+    localStorage.setItem('token', DEMO_TOKEN);
+    localStorage.setItem('user', JSON.stringify(DEMO_USER));
+    setUserProfile(DEMO_USER);
     setUserLocation({
       state: 'Madhya Pradesh',
       district: 'Indore',
@@ -529,12 +652,13 @@ function App() {
               selectedFarmId={selectedFarmId}
             />
           )}
-          {(currentScreen === 'soil-test' || currentScreen === 'soil-intelligence') && (
+          {(currentScreen === 'soil-test' || currentScreen === 'soil-intelligence' || currentScreen === 'soilhub' || currentScreen === 'soil-hub' || currentScreen === 'soil') && (
             <SoilIntelligenceHub
               onBack={() => navigateTo('dashboard')}
               onNavigate={navigateTo}
               userProfile={userProfile}
               selectedFarmId={selectedFarmId}
+              farmContext={activeFarm}
             />
           )}
           {(currentScreen === 'fertilizer-marketplace' || currentScreen === 'fertilizer-store') && (

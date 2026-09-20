@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import BottomNavbar from '../components/BottomNavbar';
 import { useIoT } from '../context/IoTContext';
-import { soilIntelligenceAPI } from '../api';
+import { soilIntelligenceAPI, farmAPI } from '../api';
 
 const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, farmContext }) => {
     const { 
@@ -14,6 +14,20 @@ const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, 
         getSensorForFarm, 
         connectingId 
     } = useIoT();
+
+    // Active Farm context resolution
+    const [localFarm, setLocalFarm] = useState(null);
+    useEffect(() => {
+        if (!farmContext && selectedFarmId) {
+            farmAPI.getFarmById(selectedFarmId)
+                .then(res => {
+                    if (res.data?.farm) setLocalFarm(res.data.farm);
+                })
+                .catch(() => {});
+        }
+    }, [farmContext, selectedFarmId]);
+
+    const currentFarm = farmContext || localFarm;
 
     // Active Tab: 'scan' | 'iot' | 'fertilizer'
     const [activeTab, setActiveTab] = useState('scan');
@@ -47,10 +61,10 @@ const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, 
         try {
             if (activeSensor?.deviceId && !activeSensor.isWiFi) {
                 showToast('Connecting to ESP32 sensor...', 'info');
-                await connectDevice(activeSensor.deviceId, selectedFarmId, farmContext?.name || farmContext?.farm_name || 'My Farm');
+                await connectDevice(activeSensor.deviceId, selectedFarmId, currentFarm?.name || currentFarm?.farm_name || 'My Farm');
             } else {
                 showToast('Opening Bluetooth scanner...', 'info');
-                await scanAndPair(selectedFarmId, farmContext?.name || farmContext?.farm_name || 'My Farm');
+                await scanAndPair(selectedFarmId, currentFarm?.name || currentFarm?.farm_name || 'My Farm');
             }
             showToast('ESP32 Sensor connected! Real-time moisture streaming.', 'success');
         } catch (err) {
@@ -67,7 +81,7 @@ const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, 
         setIsConnectingLocal(true);
         try {
             showToast('Searching for ESP32 Bluetooth devices...', 'info');
-            await scanAndPair(selectedFarmId, farmContext?.name || farmContext?.farm_name || 'My Farm');
+            await scanAndPair(selectedFarmId, currentFarm?.name || currentFarm?.farm_name || 'My Farm');
             showToast('ESP32 Sensor paired & connected!', 'success');
         } catch (err) {
             console.error('[Soil Hub] Scan error:', err);
@@ -100,8 +114,8 @@ const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, 
                     moisture: effectiveMoisture,
                     temperature: 28,
                     humidity: 65,
-                    soilType: soilScanResults?.soilType || farmContext?.soil_type || 'Loamy',
-                    cropType: farmContext?.crop_type || 'Wheat',
+                    soilType: soilScanResults?.soilType || currentFarm?.soil_type || 'Loamy',
+                    cropType: currentFarm?.crop_type || 'Wheat',
                     farmId: selectedFarmId
                 });
                 if (isMounted && res.data?.estimate) {
@@ -225,7 +239,7 @@ const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, 
                 overallStatus: 'Good Health',
                 overallBadge: 'GOOD',
                 soilType: soilScanResults?.soilType || 'Alluvial Loamy',
-                cropType: farmContext?.crop_type || 'Wheat',
+                cropType: currentFarm?.crop_type || 'Wheat',
                 sensorData: {
                     moisture: effectiveMoisture,
                     irrigationAdvice: iotNpkEstimate?.irrigationAdvice || { status: 'Optimal', action: 'Ideal moisture level', icon: '🟢' }
@@ -285,7 +299,7 @@ const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, 
                                 <span className="text-[10px] uppercase font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md">AI + IoT</span>
                             </div>
                             <p className="text-xs text-slate-500 font-medium">
-                                {farmContext?.name ? `${farmContext.name} • ${farmContext.crop_type || 'Crop'}` : 'All-in-one Soil Test, IoT & Fertilizer Engine'}
+                                {currentFarm?.name ? `${currentFarm.name} • ${currentFarm.crop_type || 'Crop'}` : 'All-in-one Soil Test, IoT & Fertilizer Engine'}
                             </p>
                         </div>
                     </div>
@@ -328,7 +342,7 @@ const SoilIntelligenceHub = ({ onBack, onNavigate, userProfile, selectedFarmId, 
                     >
                         <span className="material-symbols-outlined text-[17px]">sensors</span>
                         <span>2. IoT Live</span>
-                        <span className={`w-2 h-2 rounded-full ${liveSensor?.connected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`}></span>
+                        <span className={`w-2 h-2 rounded-full ${isSensorConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`}></span>
                     </button>
 
                     <button

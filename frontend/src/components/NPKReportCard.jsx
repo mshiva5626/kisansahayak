@@ -69,10 +69,10 @@ const NPKReportCard = ({ moisture = null, defaultCrop = 'wheat', onNavigate }) =
 
                 {onNavigate && (
                     <button
-                        onClick={() => onNavigate('soil-health')}
+                        onClick={() => onNavigate('soil-intelligence')}
                         className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 hover:underline"
                     >
-                        Full Lab Card
+                        Soil Hub
                         <span className="material-symbols-outlined text-sm">arrow_forward</span>
                     </button>
                 )}

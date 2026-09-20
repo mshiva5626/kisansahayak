@@ -238,8 +238,27 @@ const SoilHealthReport = ({ onBack, onNavigate, userProfile, selectedFarmId }) =
                     </div>
                 )}
 
+                {/* Switcher to Unified Soil Intelligence Hub */}
+                <div className="mt-4 p-3.5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-2xl shadow-md flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-lg">science</span>
+                        </div>
+                        <div>
+                            <p className="text-xs font-black">Soil Intelligence Hub</p>
+                            <p className="text-[10px] text-emerald-100">Photo AI Scan + IoT Sensors + Fertilizer Engine</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => onNavigate && onNavigate('soil-intelligence')}
+                        className="bg-white text-emerald-900 text-xs font-bold px-3 py-1.5 rounded-xl shrink-0 active:scale-95 transition-all shadow-sm hover:bg-emerald-50"
+                    >
+                        Open Hub
+                    </button>
+                </div>
+
                 {/* ── S.R. Reddy & ICAR Agronomic NPK & Fertilizer Prescription ── */}
-                <div className="mt-6">
+                <div className="mt-4">
                     <NPKReportCard moisture={liveMoisture} defaultCrop="wheat" onNavigate={onNavigate} />
                 </div>
 
