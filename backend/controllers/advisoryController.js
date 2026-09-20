@@ -29,7 +29,7 @@ async function getSchemesForState(state) {
 
 // Helper: get farm by id + userId
 async function getFarm(farmId, userId) {
-    if (!farmId) return null;
+    if (!farmId || farmId === 'default_field' || farmId === 'default') return null;
     try {
         const supabase = getSupabase();
         const { data } = await supabase

@@ -26,7 +26,7 @@ exports.analyzePhoto = async (req, res) => {
             land_type: 'Plain'
         };
 
-        if (farmId) {
+        if (farmId && farmId !== 'default_field' && farmId !== 'default') {
             try {
                 const supabase = getSupabase();
                 const { data: farm } = await supabase
@@ -62,17 +62,22 @@ exports.analyzePhoto = async (req, res) => {
 // ─── 2. Estimate NPK from IoT Sensor Data ──────────────────────────────────
 exports.estimateNPKFromSensor = async (req, res) => {
     try {
-        const { moisture, temperature, humidity, soilType, cropType, farmId } = req.body;
+        const moisture = req.body.moisture ?? req.body.soil_moisture;
+        const temperature = req.body.temperature ?? req.body.temp ?? 28;
+        const humidity = req.body.humidity ?? 65;
+        const soilType = req.body.soilType ?? req.body.soil_type ?? '';
+        const cropType = req.body.cropType ?? req.body.crop_type ?? '';
+        const farmId = req.body.farmId ?? req.body.farm_id;
 
         if (moisture === undefined || moisture === null) {
             return res.status(400).json({ message: 'Soil moisture value is required.' });
         }
 
         // Enrich with farm data if available
-        let enrichedSoilType = soilType || '';
-        let enrichedCropType = cropType || '';
+        let enrichedSoilType = soilType;
+        let enrichedCropType = cropType;
 
-        if (farmId) {
+        if (farmId && farmId !== 'default_field' && farmId !== 'default') {
             try {
                 const supabase = getSupabase();
                 const { data: farm } = await supabase
@@ -92,8 +97,8 @@ exports.estimateNPKFromSensor = async (req, res) => {
 
         const npk = estimateNPK({
             moisture: parseFloat(moisture),
-            temperature: parseFloat(temperature || 28),
-            humidity: parseFloat(humidity || 65),
+            temperature: parseFloat(temperature),
+            humidity: parseFloat(humidity),
             soilType: enrichedSoilType,
             cropType: enrichedCropType
         });
@@ -111,9 +116,16 @@ exports.estimateNPKFromSensor = async (req, res) => {
 // ─── 3. Recommend Fertilizer ────────────────────────────────────────────────
 exports.recommendFertilizerAction = async (req, res) => {
     try {
-        const { nitrogen, phosphorus, potassium, moisture, temperature, humidity, soilType, cropType } = req.body;
+        const nitrogen = req.body.nitrogen ?? req.body.n ?? req.body.N;
+        const phosphorus = req.body.phosphorus ?? req.body.p ?? req.body.P;
+        const potassium = req.body.potassium ?? req.body.k ?? req.body.K;
+        const moisture = req.body.moisture ?? req.body.soil_moisture ?? 45;
+        const temperature = req.body.temperature ?? req.body.temp ?? 28;
+        const humidity = req.body.humidity ?? 65;
+        const soilType = req.body.soilType ?? req.body.soil_type ?? '';
+        const cropType = req.body.cropType ?? req.body.crop_type ?? '';
 
-        if (!nitrogen && !phosphorus && !potassium) {
+        if (nitrogen === undefined && phosphorus === undefined && potassium === undefined) {
             return res.status(400).json({ message: 'NPK values are required for fertilizer recommendation.' });
         }
 
@@ -146,7 +158,7 @@ exports.generateReport = async (req, res) => {
 
         // Build farm context
         let farmContext = { cropType: '', soilType: '' };
-        if (farmId) {
+        if (farmId && farmId !== 'default_field' && farmId !== 'default') {
             try {
                 const supabase = getSupabase();
                 const { data: farm } = await supabase

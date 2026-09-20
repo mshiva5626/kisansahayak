@@ -6,7 +6,9 @@ const { protect } = require('../middleware/authMiddleware');
 
 // Helper
 async function getFarm(farmId, userId) {
-    const supabase = getSupabase();
+    if (!farmId || farmId === 'default_field' || farmId === 'default') return null;
+    try {
+        const supabase = getSupabase();
     const { data } = await supabase
         .from('farms')
         .select('*')
@@ -16,6 +18,9 @@ async function getFarm(farmId, userId) {
 
     if (data) data._id = data.id;
     return data;
+    } catch {
+        return null;
+    }
 }
 
 // Get weather by lat/lon query params (Public meteorological data)

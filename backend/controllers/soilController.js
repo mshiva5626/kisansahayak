@@ -18,7 +18,7 @@ exports.analyzeSoil = async (req, res) => {
         };
 
         // Optionally enrich with farm-specific data
-        if (farmId) {
+        if (farmId && farmId !== 'default_field' && farmId !== 'default') {
             try {
                 const supabase = getSupabase();
                 const { data: farm, error } = await supabase

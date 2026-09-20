@@ -10,7 +10,7 @@ dotenv.config();
 
 const MODEL_CONFIG = {
     provider: (process.env.MODEL_PROVIDER || 'openrouter').toLowerCase(),
-    modelName: process.env.MODEL_NAME || 'nvidia/nemotron-3.5-lightning:free',
+    modelName: process.env.MODEL_NAME || 'nex-agi/nex-n2.5-pro:free',
     temperature: parseFloat(process.env.MODEL_TEMPERATURE || '0.2'),
     maxTokens: parseInt(process.env.MODEL_MAX_TOKENS || '4096', 10),
     reasoningConfig: (() => {
@@ -21,8 +21,8 @@ const MODEL_CONFIG = {
         }
     })(),
     visionProvider: (process.env.VISION_MODEL_PROVIDER || 'openrouter').toLowerCase(),
-    visionModelName: process.env.VISION_MODEL_NAME || 'nvidia/nemotron-nano-12b-v2-vl:free',
-    fallbackModelName: process.env.FALLBACK_MODEL_NAME || 'nvidia/nemotron-3-super-120b-a12b:free',
+    visionModelName: process.env.VISION_MODEL_NAME || 'nex-agi/nex-n2.5-pro:free',
+    fallbackModelName: process.env.FALLBACK_MODEL_NAME || 'deepseek/deepseek-v4-flash-0731:free',
     
     // API Endpoints
     openRouterUrl: 'https://openrouter.ai/api/v1/chat/completions',
@@ -146,9 +146,9 @@ async function generateAgriculturalCompletion({
         // Attempt resilient fallback chain using working OpenRouter models (e.g. deepseek-v4-flash)
         const fallbackCandidates = [
             MODEL_CONFIG.fallbackModelName,
+            'nex-agi/nex-n2.5-mini:free',
             'deepseek/deepseek-v4-flash-0731:free',
-            'nvidia/nemotron-3-super-120b-a12b:free',
-            'nex-agi/nex-n2.5-mini:free'
+            'nvidia/nemotron-3.5-lightning:free'
         ].filter((fb, idx, arr) => fb && fb !== model && arr.indexOf(fb) === idx);
 
         for (const fbModel of fallbackCandidates) {
@@ -364,9 +364,10 @@ async function generateVisionAnalysis({ prompt, base64Image, mimeType = 'image/j
     
     // Candidate vision models on OpenRouter (ordered by reliability and precision)
     const visionModels = [
-        MODEL_CONFIG.visionModelName || 'inclusionai/ling-3.0-flash-vl:free',
-        'inclusionai/ling-3.0-flash-vl:free',
-        'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free'
+        MODEL_CONFIG.visionModelName || 'nex-agi/nex-n2.5-pro:free',
+        'nex-agi/nex-n2.5-pro:free',
+        'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+        'inclusionai/ling-3.0-flash-vl:free'
     ];
 
     // Remove duplicates
@@ -439,6 +440,10 @@ async function generateVisionAnalysis({ prompt, base64Image, mimeType = 'image/j
             if (content && content.length > 20) {
                 console.log(`✅ [Vision AI] Diagnostic response received successfully from ${model}`);
                 return content;
+            } else {
+                console.warn(`⚠️ [Vision AI] Model ${model} returned empty or short completion (${content.length} chars). Trying next candidate...`);
+                lastError = new Error(`Model ${model} returned empty completion`);
+                continue;
             }
         } catch (err) {
             clearTimeout(timeout);

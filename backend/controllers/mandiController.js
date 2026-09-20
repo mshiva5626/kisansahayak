@@ -14,7 +14,7 @@ exports.getMandiPrices = async (req, res) => {
         let crop = req.query.crop || '';
 
         // If farmId is provided and no crop was specified in query, fetch farm's crop
-        if (farmId && !crop) {
+        if (farmId && farmId !== 'default_field' && farmId !== 'default' && !crop) {
             try {
                 const supabase = getSupabase();
                 const { data: farm } = await supabase
